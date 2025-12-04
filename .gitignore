@@ -1,7 +1,7 @@
 # dependencies (bun install)
 node_modules
 .env
-data/app2.db
+data/app*.db
 .DS_Store
 password.txt
 

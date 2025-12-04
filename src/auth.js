@@ -1,10 +1,48 @@
-// version 3.0 Gemini 2.5 Pro (Added Password Change Hook)
-// lib/auth.js
+// src/auth.js
+// version 3.2 Gemini 2.5 Pro
+// Fixed: Passed 'db' directly to 'database' config to fix "selectFrom is not a function" error.
+// The library will now correctly auto-detect this as a bun:sqlite instance and wrap it.
+
 import { betterAuth } from 'better-auth'
 import { db } from './db-setup.js'
 
+// Plugin to handle password reset logic
+// This keeps the hook logic isolated and safe from config merging bugs
+const passwordResetPlugin = {
+  id: 'password-reset-plugin',
+  hooks: {
+    after: [
+      {
+        matcher: (context) => context.path.includes('/change-password'),
+        handler: async (ctx) => {
+          const session = ctx.session || ctx.context?.session
+          const response = ctx.response
+
+          if (response && (response.status === 200 || response.status === 201) && session) {
+            try {
+              console.log(
+                `Password changed successfully for ${session.user.email}. Clearing flag...`,
+              )
+              await auth.api.updateUser({
+                body: { requiresPasswordChange: false },
+                headers: ctx.request.headers,
+              })
+              console.log(`Flag cleared.`)
+            } catch (err) {
+              console.error('Failed to clear password reset flag:', err)
+            }
+          }
+        },
+      },
+    ],
+  },
+}
+
 export const auth = betterAuth({
+  // FIX: Pass the raw db instance directly.
+  // Do not wrap it in an object { db: db } or Better-Auth assumes it's already a Kysely instance.
   database: db,
+
   emailAndPassword: {
     enabled: true,
   },
@@ -17,31 +55,5 @@ export const auth = betterAuth({
       },
     },
   },
-  // Add server-side hooks to handle logic automatically
-  hooks: {
-    after: [
-      {
-        // 1. Listen for the "change-password" action
-        matcher: (context) => context.path.startsWith('/change-password'),
-
-        // 2. Run this function after the password change attempts
-        handler: async (ctx) => {
-          // If the password change was successful (status 200) and we have a session
-          if (ctx.response.status === 200 && ctx.session) {
-            try {
-              // 3. Automatically set the flag to false
-              // We use the internal API to update the user directly
-              await auth.api.updateUser({
-                body: { requiresPasswordChange: false },
-                headers: ctx.request.headers, // Pass headers to ensure auth context is valid
-              })
-              console.log(`Password reset flag cleared for user: ${ctx.session.user.email}`)
-            } catch (err) {
-              console.error('Failed to clear password reset flag:', err)
-            }
-          }
-        },
-      },
-    ],
-  },
+  plugins: [passwordResetPlugin],
 })

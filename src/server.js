@@ -29,7 +29,7 @@ if (isNewDatabase) {
         },
       })
       console.log(`Admin user created: ${res.user ? res.user.email : 'Success'}`)
-      console.log('--- New app2.db database created and populated successfully ---\n')
+      console.log('--- New app3.db database created and populated successfully ---\n')
     } catch (seedError) {
       console.error('Error seeding admin user:', seedError.message)
     }

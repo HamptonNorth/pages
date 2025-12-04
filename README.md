@@ -209,15 +209,15 @@ The test_countries table is used for an example GET api call and a GET call with
 The code for creating and populating the `test_countries` and `test_products` is in `db-setup.js`. If is no database in `./data/` the database setup code also creates the better-auth files and the default admin user. Here is a sample outpu of database creation for a new install:
 
 ``` bash
-Using database at: /home/rcollins/code/bun-starter/data/app2.db
-SQLite database initialised at: /home/rcollins/code/bun-starter/data/app2.db
+Using database at: /home/rcollins/code/bun-starter/data/app3.db
+SQLite database initialised at: /home/rcollins/code/bun-starter/data/app3.db
 test_countries table created and populated
 test_products table created and populated.
 
 --- Fresh Database Detected: Starting Better-Auth Setup ---
 Running Better-Auth Migration...
-Using database at: /home/rcollins/code/bun-starter/data/app2.db
-SQLite database initialised at: /home/rcollins/code/bun-starter/data/app2.db
+Using database at: /home/rcollins/code/bun-starter/data/app3.db
+SQLite database initialised at: /home/rcollins/code/bun-starter/data/app3.db
 -> name, email, emailVerified, image, createdAt, updatedAt, requiresPasswordChange fields on user table.
 -> expiresAt, token, createdAt, updatedAt, ipAddress, userAgent, userId fields on session table.
 -> accountId, providerId, userId, accessToken, refreshToken, idToken, accessTokenExpiresAt, refreshTokenExpiresAt, scope, password, createdAt, updatedAt fields on account table.
@@ -226,7 +226,7 @@ SQLite database initialised at: /home/rcollins/code/bun-starter/data/app2.db
 Better-Auth tables created successfully.
 Seeding initial admin user...
 Admin user created: rcollins@redmug.co.uk
---- New app2.db database created and populated successfully ---
+--- New app3.db database created and populated successfully ---
 
 Build successful. ./public/components/client-components.js created.
 
@@ -329,7 +329,7 @@ export function handleApiRoutes(req, path) {
 │   └── 2025-12-02T23-04-10.018Z.sql
 ├── bun.lock
 ├── data
-│   └── app2.db
+│   └── app3.db
 ├── dev.js
 ├── eslint.config.js
 ├── favicon.ico
