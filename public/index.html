@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="/styles/output.css" />
+    <link rel="stylesheet" href="/styles/rm.css" />
+    <script type="module" src="/components/client-components.js"></script>
+
+    <rm-head page-title="Home Page v2"></rm-head>
+  </head>
+  <body>
+    <rm-default-container>
+      <rm-nav-header class="block"></rm-nav-header>
+
+      <main class="mt-4">
+        <article>
+          <div class="text-primary-700 mt-2 ml-8 text-4xl font-semibold">Welcome</div>
+          <section>
+            <div class="text-primary-600 mx-8 mt-8 mb-4 text-2xl">Section Title</div>
+
+            <div class="text-primary-600 mx-8 my-2 text-base">
+              A home page for testing the bun-starter code
+            </div>
+
+            <div class="text-primary-600 mx-8 my-2 text-base">
+              The stack to build bunstarter is:
+              <ul class="mx-8 my-4 list-disc">
+                <li class="">Bun</li>
+                <li class="">Lit (reduce boilerplate for components)</li>
+                <li class="">SQLite for persistent storage</li>
+                <li class="">TailwindCSS</li>
+              </ul>
+              The Bun app is built as a combination static file server and API server using
+              bunserve(). The TailwindCSS colours used have are coded as a custom theme with a
+              primary and secondary pallette along with custom error colours and highlights.
+            </div>
+            <div class="text-primary-600 mx-8 my-2 text-base">
+              Releases tagged 1.4.0 and above in gitHub, add authenticatiomn using the better-auth
+              library.
+            </div>
+            <div class="text-primary-600 mx-8 my-2 text-base">
+              The
+              <span class="text-secondary-700 underline"
+                ><a
+                  href="https://github.com/HamptonNorth/bun-starter/blob/main/README.md"
+                  target="_blank"
+                  >readme.md</a
+                ></span
+              >
+              file contains install and set up notes. It will open in a new tab.
+            </div>
+          </section>
+        </article>
+      </main>
+
+      <rm-footer></rm-footer>
+    </rm-default-container>
+  </body>
+</html>

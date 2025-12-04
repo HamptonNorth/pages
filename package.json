@@ -1,0 +1,38 @@
+{
+  "name": "bun-starter",
+  "module": "server.js",
+  "version": "0.0.1",
+  "scripts": {
+    "tailwind:watch": "bun x @tailwindcss/cli -i ./public/styles/input.css -o ./public/styles/output.css --watch",
+    "server:js": "bun run ./src/server.js",
+    "dev": "bun run dev.js",
+    "debug": "bun --inspect run ./src/server.js",
+    "build": "bun build ./src/server.js --outdir ./dist --target bun ",
+    "start": "bun dist/server.js"
+  },
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@eslint/css": "^0.14.0",
+    "@eslint/js": "^9.39.0",
+    "@eslint/json": "^0.13.2",
+    "@eslint/markdown": "^7.5.0",
+    "@types/bun": "latest",
+    "autoprefixer": "^10.4.21",
+    "better-sqlite3": "^12.5.0",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "prettier": "3.6.2",
+    "prettier-plugin-tailwindcss": "0.7.1",
+    "tailwindcss": "^4.1.16"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "better-auth": "^1.4.4",
+    "lit": "^3.3.1"
+  }
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="/styles/output.css" />
+    <link rel="stylesheet" href="/styles/rm.css" />
+    <script type="module" src="/components/client-components.js"></script>
+    <rm-head page-title="Countries"></rm-head>
+  </head>
+  <body class="bg-primary-50">
+    <rm-default-container>
+      <rm-nav-header class="block"></rm-nav-header>
+      <main class="mt-4 w-4xl">
+        <article>
+          <div class="text-primary-700 mt-2 ml-8 text-4xl font-semibold">Countries</div>
+          <section>
+            <div class="text-primary-600 mx-8 mt-8 mb-4 text-2xl">Test data access</div>
+            <div class="text-primary-600 mx-8 my-2 text-base">
+              The test_countries table contains ISO country codes and descriptions for the top 100
+              countries by GDP.
+            </div>
+            <rm-button class="my-8 ml-8" id="getAllCountriesBtn">All countries</rm-button>
+
+            <div id="countriesResult" class="mx-8 mt-4 text-xs"></div>
+          </section>
+        </article>
+      </main>
+      <rm-footer></rm-footer>
+    </rm-default-container>
+    <script src="/scripts/countries.js"></script>
+  </body>
+</html>

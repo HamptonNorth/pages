@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="/styles/output.css" />
+    <link rel="stylesheet" href="/styles/rm.css" />
+    <script type="module" src="/components/client-components.js"></script>
+    <rm-head page-title="Menu test"></rm-head>
+  </head>
+  <body class="">
+    <rm-default-container>
+      <rm-nav-header class="block"></rm-nav-header>
+      <main class="mt-4">
+        <article>
+          <div class="text-primary-700 mt-2 ml-8 text-4xl font-semibold">Menu test</div>
+          <section>
+            <div class="text-primary-600 mx-8 my-2 text-base">
+              A temporary testing page to check menu links work okay.
+            </div>
+            <div id="from"></div>
+          </section>
+        </article>
+      </main>
+      <rm-footer></rm-footer>
+    </rm-default-container>
+    <div class="mx-8 mt-8"></div>
+  </body>
+  <script>
+    const params = new URLSearchParams(window.location.search)
+    const from = document.getElementById('from')
+    if (from) {
+      from.innerHTML = `
+        <div class="text-sm text-primary-700">
+      <p class="ml-8 mt-8">From menu section: ${params.get('area')}</p>
+      <p class="ml-8 mt-2">Menu text: ${params.get('text')}</p>
+      </div>
+      `
+    } else {
+      console.error('element with ID "from" not found.')
+    }
+  </script>
+</html>

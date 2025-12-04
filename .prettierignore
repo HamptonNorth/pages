@@ -1,0 +1,12 @@
+# Ignore build output
+/dist
+/build
+
+# Ignore node modules and bun cache (optional, prettier often ignores these by default)
+/node_modules
+.bun
+
+# Back end SQL migration files, if they are not plain JS
+# If your SQL is embedded in JS/TS, Prettier handles it.
+# If they are separate .sql files that shouldn't be formatted:
+# **/*.sql

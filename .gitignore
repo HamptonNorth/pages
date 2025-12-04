@@ -1,0 +1,48 @@
+# dependencies (bun install)
+node_modules
+.env
+data/app2.db
+.DS_Store
+password.txt
+
+# output
+out
+dist
+*.tgz
+
+# code coverage
+coverage
+*.lcov
+
+# logs
+logs
+_.log
+report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# === Build & Generated Files ===
+build/
+dist/
+
+# Specifically for Tailwind
+# track the *source* (e.g., input.css), not the *output*.
+public/styles/output.css
+
+bunstarter
+
+# built on server.js start up
+public/components/client-components.js
+
+# ignore data (SQLite files)
+data/

@@ -1,0 +1,52 @@
+.
+├── bun.lock
+├── data
+│   └── app.db
+├── dev.js
+├── eslint.config.js
+├── favicon.ico
+├── package.json
+├── package-lock.json
+├── public
+│   ├── components
+│   │   └── client-components.js
+│   ├── docs
+│   │   └── roadmap.md
+│   ├── index.html
+│   ├── media
+│   │   └── redmug_logo_316x316.png
+│   ├── scripts
+│   │   ├── countries.js
+│   │   ├── countries-search.js
+│   │   └── products.js
+│   ├── styles
+│   │   ├── input.css
+│   │   ├── output.css
+│   │   └── rm.css
+│   └── views
+│       ├── 404.html
+│       ├── about.html
+│       ├── countries.html
+│       ├── countries-search.html
+│       ├── menu-test.html
+│       └── products.html
+├── README.md
+└── src
+    ├── client-components-build.js
+    ├── components
+    │   ├── rm-button.js
+    │   ├── rm-default-container.js
+    │   ├── rm-footer.js
+    │   ├── rm-head.js
+    │   └── rm-nav-header.js
+    ├── controllers
+    │   ├── testCountries.controller.js
+    │   └── testProducts.controller.js
+    ├── db-setup.js
+    ├── models
+    │   ├── testCountries.model.js
+    │   └── testUsers.model.js
+    ├── routes
+    │   └── api.js
+    ├── server.js
+    └── utils.js
