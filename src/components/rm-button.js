@@ -34,6 +34,7 @@ export class RmButton extends LitElement {
 
   get _sizeClasses() {
     const sizes = {
+      xx: 'px-1 py-1 text-xs rounded-full',
       xs: 'px-2 py-1 text-xs rounded-sm',
       sm: 'px-2 py-1.5 text-xs rounded-sm',
       md: 'px-2.5 py-2 text-sm rounded-md',
@@ -60,7 +61,9 @@ export class RmButton extends LitElement {
       // Secondary: Mapped to Secondary-500 as requested
       secondary: 'bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-400',
 
-      outline: `bg-white text-primary-700 hover:bg-primary-50 focus:ring-gray-300 focus:outline-none border border-primary-300`,
+      outline: `bg-white text-primary-700 hover:bg-primary-50 focus:ring-primary-300 focus:outline-none border border-primary-300`,
+      ghost: `bg-white text-primary-700 hover:bg-primary-50 focus:ring-primary-300 focus:outline-none `,
+      xghost: `bg-white text-primary-500 hover:bg-primary-50 focus:ring-primary-300 focus:outline-none`,
 
       // Danger: Mapped to Error1
       // Note: Using brightness-90 for hover as explicit darker error shade wasn't provided
