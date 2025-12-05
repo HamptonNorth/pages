@@ -46,24 +46,24 @@ export class RmFooter extends LitElement {
 
   render() {
     const year = new Date().getFullYear()
-    const versionText = 'Version 1.1.2 released 03/12/2025'
+    const versionText = 'Version 1.1.2'
 
     return html`
       <link rel="stylesheet" href="/styles/output.css" />
 
-      <footer class="text-primary-800 mt-24 mb-8 px-8 text-xs">
+      <footer class="text-primary-800 mt-24 mb-8 pl-8 text-xs">
         <div class="flex flex-col items-center justify-between gap-2 sm:flex-row">
-          <div class="flex flex-col gap-2 sm:flex-row sm:gap-6">
-            <span>&copy; ${year} Redmug Software. All rights reserved.</span>
-
-            ${this.currentUser
-              ? html`<span class="text-primary-600 font-semibold"
-                  >Signed in as: ${this.currentUser}</span
-                >`
-              : html`<span class="text-gray-400 italic">Not signed in</span>`}
+          <div class="flex flex-col gap-2 sm:flex-row sm:gap-2">
+            <span>&copy; ${year} Redmug Software. </span><span class="pl-0">${versionText}</span>
           </div>
 
-          <div class="text-right">${versionText}</div>
+          <div class="text-right mr-8">${
+            this.currentUser
+              ? html`Signed in as:
+                  <span class="text-primary-600 font-semibold">${this.currentUser}</span>`
+              : html`<span class="text-gray-400 italic">Not signed in</span>`
+          }</div>
+        </div>
         </div>
       </footer>
     `
