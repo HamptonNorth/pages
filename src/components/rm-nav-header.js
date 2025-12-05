@@ -456,14 +456,14 @@ export class RmHeader extends LitElement {
                     </summary>
                     <div class="bg-primary-50 flex flex-col">
                       <a
-                        href="${getTestLink('waffle', 'Add new resource')}"
+                        href="/colours.html"
                         class="text-primary-600 hover:text-secondary-700 py-2 pr-4 pl-10 text-xs"
-                        >Add new resource</a
+                        >Colour swatches</a
                       >
                       <a
-                        href="${getTestLink('waffle', 'View resources')}"
+                        href="/component-variants.html"
                         class="text-primary-600 hover:text-secondary-700 py-2 pr-4 pl-10 text-xs"
-                        >View resources</a
+                        >Custom components</a
                       >
                     </div>
                   </details>
