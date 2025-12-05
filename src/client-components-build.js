@@ -8,5 +8,6 @@ import './components/rm-footer'
 import './components/rm-default-container.js'
 
 import './components/rm-login.js'
+import './components/rm-colour-swatch.js'
 
 console.log('Component bundle loaded successfully.')

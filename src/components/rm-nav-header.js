@@ -217,16 +217,16 @@ export class RmHeader extends LitElement {
                         Resources
                       </div>
                       <a
-                        href="${getTestLink('waffle', 'Add new resource')}"
+                        href="/colours.html"
                         class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
                       >
-                        Add new resource
+                        Colour swatches
                       </a>
                       <a
-                        href="${getTestLink('waffle', 'View resources')}"
+                        href="/component-variants.html"
                         class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
                       >
-                        View resources
+                        Custom components
                       </a>
 
                       <div

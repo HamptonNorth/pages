@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="/styles/output.css" />
+    <link rel="stylesheet" href="/styles/rm.css" />
+    <script type="module" src="/components/client-components.js"></script>
+    <rm-head page-title="Components"></rm-head>
+  </head>
+  <body class="">
+    <rm-default-container>
+      <rm-nav-header class="block"></rm-nav-header>
+      <main class="mt-6">
+        <article>
+          <div class="text-primary-700 mt-2 ml-8 text-4xl font-semibold">Components</div>
+          <section>
+            <div class="text-primary-600 mx-8 my-2 text-base">Component variants</div>
+            <article>
+              <div class="mx-8 my-8">
+                The button custom component
+                <span class="text-highlight3 font-bold"> &ltrm-button&gt </span> can have settings
+                for size, primary colour/secondary colour, error type and disabled. The default
+                settings are size medium, background colour primary-600 and disabled = false.
+              </div>
+            </article>
+            <div class="mx-8 my-8">
+              <rm-button size="xs">Extra Small</rm-button>
+              <rm-button size="sm">Small</rm-button>
+              <rm-button size="md">Medium</rm-button>
+              <rm-button size="lg">Large</rm-button>
+              <rm-button>Default settings</rm-button>
+            </div>
+            <div class="mt-8 ml-8 gap-4">
+              <rm-button variant="secondary">Secondary</rm-button>
+              <rm-button variant="danger">Danger</rm-button>
+              <rm-button disabled>Disabled</rm-button>
+            </div>
+
+            <div class="mt-8 ml-8">
+              <rm-button size="lg" variant="secondary" disabled>Large Secondary Disabled</rm-button>
+            </div>
+          </section>
+        </article>
+        <article>
+          <div class="mx-8 mt-8">
+            The button custom component
+            <span class="text-highlight3 font-bold"> &ltrm-default-container&gt </span> wraps a page
+            or code section so it is reponsive. This allows the consistent setting of viewport
+            breakpoints across all views.
+          </div>
+          <div class="mx-8 mt-8">
+            This text is nonsense and is used to test text wrapping & repsonsive settings using the
+            <span class="text-highlight3 font-bold"> &ltrm-default-container&gt </span>only.
+            Seamlessly empower frictionless e-business after global e-tailers. Rapidiously extend
+            interactive infomediaries without go forward sources.
+          </div>
+        </article>
+      </main>
+      <rm-footer></rm-footer>
+    </rm-default-container>
+    <div class="mx-8 mt-8"></div>
+  </body>
+</html>

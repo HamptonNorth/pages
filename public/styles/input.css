@@ -3,7 +3,7 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Primary Palette (replaces Slate) */
+  /* Primary Palette (Standard 50-900) */
   --color-primary-50: #eceff1;
   --color-primary-100: #cfd8dc;
   --color-primary-200: #b0bec5;
@@ -15,7 +15,7 @@
   --color-primary-800: #37474f;
   --color-primary-900: #263238;
 
-  /* Secondary Palette (replaces Blue/Secondary) */
+  /* Secondary Palette (Standard 50-900) */
   --color-secondary-50: #e3f2fd;
   --color-secondary-100: #bbdefb;
   --color-secondary-200: #90caf9;
@@ -27,11 +27,13 @@
   --color-secondary-800: #1565c0;
   --color-secondary-900: #0d47a1;
 
-  /* Error Palette */
+  /* Error Palette (Custom 1, 2) */
+  /* No hyphen before number, matching JS logic */
   --color-error1: #b00020;
   --color-error2: #f36c60;
 
-  /* Highlight Palette */
+  /* Highlight Palette (Custom 1, 2, 3) */
+  /* No hyphen before number, matching JS logic */
   --color-highlight1: #fff59d;
   --color-highlight2: #b2dfdb;
   --color-highlight3: #4db6ac;

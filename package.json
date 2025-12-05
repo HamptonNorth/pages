@@ -3,7 +3,7 @@
   "module": "server.js",
   "version": "0.0.1",
   "scripts": {
-    "tailwind:watch": "bun x @tailwindcss/cli -i ./public/styles/input.css -o ./public/styles/output.css --watch",
+    "tailwind:watch": "bunx @tailwindcss/cli -i ./public/styles/input.css -o ./public/styles/output.css --watch",
     "server:js": "bun run ./src/server.js",
     "dev": "bun run dev.js",
     "debug": "bun --inspect run ./src/server.js",

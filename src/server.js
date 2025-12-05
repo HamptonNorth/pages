@@ -75,7 +75,10 @@ const server = Bun.serve({
       return new Response(Bun.file('./public/components/client-components.js'), {
         headers: {
           'Content-Type': 'text/javascript',
-          'Cache-Control': 'public, max-age=3600',
+          // Disable cache for development
+          // 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          // Pragma: 'no-cache',
+          // Expires: '0',
         },
       })
     }
@@ -120,7 +123,7 @@ async function serveStatic(path) {
   return new Response(file, {
     headers: {
       'Content-Type': file.type || 'application/octet-stream',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': 'public, max-age=604800',
     },
   })
 }
