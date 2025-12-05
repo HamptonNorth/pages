@@ -22,10 +22,10 @@ if (isNewDatabase) {
     try {
       const res = await auth.api.signUpEmail({
         body: {
-          email: 'rcollins@redmug.co.uk',
-          password: 'borland1511',
-          name: 'rcollins',
-          requiresPasswordChange: false,
+          email: '',
+          password: '',
+          name: '',
+          requiresPasswordChange: true,
         },
       })
       console.log(`Admin user created: ${res.user ? res.user.email : 'Success'}`)
