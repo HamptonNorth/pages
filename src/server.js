@@ -13,19 +13,20 @@ if (isNewDatabase) {
   // Security Check: Ensure environment variables are present
   const adminEmail = process.env.ADMIN_EMAIL
   const adminPassword = process.env.ADMIN_PASSWORD
+  const adminName = process.env.ADMIN_NAME
 
   if (!adminEmail || !adminPassword) {
     console.error(
-      'Error: ADMIN_EMAIL or ADMIN_PASSWORD missing from .env file. Skipping admin creation.',
+      'Error: ADMIN_NAME, ADMIN_EMAIL or ADMIN_PASSWORD missing from .env file. Skipping admin creation.',
     )
   } else {
     try {
       const res = await auth.api.signUpEmail({
         body: {
-          email: '',
-          password: '',
-          name: '',
-          requiresPasswordChange: true,
+          email: `${adminEmail}`,
+          password: `${adminPassword}`,
+          name: `${adminName}`,
+          requiresPasswordChange: false,
         },
       })
       console.log(`Admin user created: ${res.user ? res.user.email : 'Success'}`)
