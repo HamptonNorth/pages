@@ -581,18 +581,10 @@ export class RmHeader extends LitElement {
                   Are you sure you want to sign out of your account?
                 </p>
                 <div class="mt-6 flex justify-end gap-3">
-                  <button
-                    @click="${this.closeSignOutModal}"
-                    class="hover:bg-primary-50 text-primary-700 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-gray-300 focus:outline-none"
-                  >
+                  <rm-button variant="outline" @click="${this.closeSignOutModal}">
                     Cancel
-                  </button>
-                  <button
-                    @click="${this.performSignOut}"
-                    class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:outline-none"
-                  >
-                    Sign Out
-                  </button>
+                  </rm-button>
+                  <rm-button @click="${this.performSignOut}"> Sign Out </rm-button>
                 </div>
               </div>
             </div>
