@@ -41,8 +41,8 @@ async function getAllCountries() {
                 <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase">ISO Name</th>
                 <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase">Official Name</th>
                 <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase">Currency</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase">Population</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase">GPD </th>
+                <th class="px-4 py-2 text-right text-xs font-medium text-slate-700 uppercase">Population</th>
+                <th class="px-4 py-2 text-right text-xs font-medium text-slate-700 uppercase ">GPD </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-slate-100 ">
