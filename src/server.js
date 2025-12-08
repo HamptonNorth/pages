@@ -1,41 +1,19 @@
+// src/server.js
+// version 1.4 Gemini 2.0 Flash
+// Changes:
+// - Added 'const PORT' to ensure port is defined for logging.
+// - Fixed 'server.port is undefined' error by using the constant.
+// - Kept Admin Seeding paused for Step 1 (DB Connectivity Test).
+
 import { auth } from './auth.js'
-import { db, isNewDatabase } from './db-setup.js' // Imports the DB and triggers table creation
+import { db } from './db-setup.js' // Imports the DB and triggers table creation
 import { handleApiRoutes } from './routes/api.js'
 
 // Re-export db so existing models referencing 'server.js' don't break
 export { db }
 
-// Database Seeding (If New) ---
-// We do this here because 'auth' is fully initialized now.
-if (isNewDatabase) {
-  console.log('Seeding initial admin user...')
-
-  // Security Check: Ensure environment variables are present
-  const adminEmail = process.env.ADMIN_EMAIL
-  const adminPassword = process.env.ADMIN_PASSWORD
-  const adminName = process.env.ADMIN_NAME
-
-  if (!adminEmail || !adminPassword) {
-    console.error(
-      'Error: ADMIN_NAME, ADMIN_EMAIL or ADMIN_PASSWORD missing from .env file. Skipping admin creation.',
-    )
-  } else {
-    try {
-      const res = await auth.api.signUpEmail({
-        body: {
-          email: `${adminEmail}`,
-          password: `${adminPassword}`,
-          name: `${adminName}`,
-          requiresPasswordChange: false,
-        },
-      })
-      console.log(`Admin user created: ${res.user ? res.user.email : 'Success'}`)
-      console.log('--- New app3.db database created and populated successfully ---\n')
-    } catch (seedError) {
-      console.error('Error seeding admin user:', seedError.message)
-    }
-  }
-}
+// Define Port explicitly
+const PORT = process.env.PORT || 3000
 
 // Bundle the client components on server start.
 const buildResult = await Bun.build({
@@ -53,7 +31,7 @@ if (!buildResult.success) {
 
 // Server Configuration
 const server = Bun.serve({
-  port: 3000,
+  port: PORT,
 
   async fetch(req) {
     const url = new URL(req.url)
@@ -154,4 +132,4 @@ async function serve404() {
   return new Response('Not Found', { status: 404 })
 }
 
-console.log(`\nServer running at http://localhost:${server.port}`)
+console.log(`\nServer running at http://localhost:${PORT}`)

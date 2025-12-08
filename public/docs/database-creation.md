@@ -18,3 +18,11 @@ curl -X POST http://localhost:3000/api/auth/sign-up/email \
     "name": "Test User"
   }'
   ```
+  curl -X POST http://localhost:3000/api/auth/sign-up/email \
+    -H "Content-Type: application/json" \
+    -d '{
+      "email": "rcollins@redmug.co.uk",
+      "password": "borland1511",
+      "name": "rcollins",
+      "requiresPasswordChange": false
+    }'

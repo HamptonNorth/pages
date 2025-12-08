@@ -1,17 +1,13 @@
-// src/auth.js
-// version 3.2 Gemini 2.5 Pro
-// Fixed: Passed 'db' directly to 'database' config to fix "selectFrom is not a function" error.
-// The library will now correctly auto-detect this as a bun:sqlite instance and wrap it.
-
+// scripts/node-auth-config.js
 import { betterAuth } from 'better-auth'
-import { Database } from 'bun:sqlite'
-import { authOptions } from './auth-options.js'
+import Database from 'better-sqlite3'
+import { authOptions } from '../../src/auth-options.js'
 
-// We use the runtime database path here
+// This file is used ONLY by the CLI tool via Node
 const db = new Database('data/app3.db')
-
 // Plugin to handle password reset logic
 // This keeps the hook logic isolated and safe from config merging bugs
+// Plugin to handle password reset logic
 const passwordResetPlugin = {
   id: 'password-reset-plugin',
   hooks: {
@@ -27,6 +23,7 @@ const passwordResetPlugin = {
               console.log(
                 `Password changed successfully for ${session.user.email}. Clearing flag...`,
               )
+              // Note: ensure 'auth' is available/hoisted or accessible here
               await auth.api.updateUser({
                 body: { requiresPasswordChange: false },
                 headers: ctx.request.headers,
@@ -41,19 +38,8 @@ const passwordResetPlugin = {
     ],
   },
 }
-
 export const auth = betterAuth({
-  // FIX: Pass the raw db instance directly.
-  // Do not wrap it in an object { db: db } or Better-Auth assumes it's already a Kysely instance.
   database: db,
   ...authOptions,
-  // ---------------------------------------------------------
-  // ADDED: Register the local plugin and merge with existing ones
-  // ---------------------------------------------------------
-  //
-
-  plugins: [
-    passwordResetPlugin,
-    ...(authOptions.plugins || []), // Preserves plugins from authOptions if they exist
-  ],
+  plugins: [passwordResetPlugin],
 })
