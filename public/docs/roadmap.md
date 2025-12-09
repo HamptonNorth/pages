@@ -1,5 +1,5 @@
 # Roadmap
-### Release 0.0.3
+### Next Release 
 Authentication and show a protected API route (SimpleWebAuth?, better-auth https://www.better-auth.com/) Add avatar to (replace?) 3-dot menu
 
 
@@ -34,3 +34,6 @@ Release 2.0: Once merged, you repeat the tagging process:
 git tag -a v2.0.0 -m "Release 2.0: Added User Authentication"
 git push origin v2.0.0
 ```
+
+
+Set primary 600 to #134679  - Looks a good blue slight grey

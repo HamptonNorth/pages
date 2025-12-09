@@ -186,10 +186,42 @@ In the `.prettierrc` file in root and add the `plugin` line
 
 Test by amending the order of classes in test-tailwind.css by moving `m-8` to the end. Saving should restore the default class order.
 Go to `./public/styles/input.css` to view the custom theme colour pallette. Thes colours are base on Material Design 3 blue-grey and teal pallettes. 
+
+## Initial set up
+Following a new install or when deleting an existing SQLite database to force creation, there will be not database for the server.js app to read/update. 
+
+When starting server.js, it checks if there is a database. If the test fails, the user is asked to run a node setup script (not **node** script)
+
+## setup.js script
+From the terminal use `node --env-file=.env setup.js` to run.
+
+This Node script, performs the following steps:
+- Checks for an `.env` file in root
+- Checks the env file contains the following settings:
+```
+# .env
+PORT=3000
+ADMIN_NAME=rcollins
+ADMIN_EMAIL=your_email@somewhere.co.uk
+ADMIN_PASSWORD=your_passsword
+BETTER_AUTH_SECRET=along-secret-here-that-mustbe->-32chars
+```
+- creates the better-auth SQLite table creation SQL script in dir `./better-auth_migrations` (the setup.js auto answers'yes')
+- executes the `./better-auth_migrations/datetime_stamped.sql` script to creat the better-auth tables, `account`, `session`, `user` and `verification`
+- starts `bun run server.js` which starts the bun-starter app. This checks for a `test_countries` table and a `test-products` table. If the tables don't exist, they are created and populated.
+- with the server running, a curl script is run that populates the better-auth tables with a 'admin user'. The admin user has `requiresPasswordChange` set to false
+- On successfult update of the better-auth tables with the default admin user, the server exits and the the setup.js script finshes.
+
+To reset the database at any time simply delete the database file in `./data` eg. `app3.db` and rerun setup.js
+
+### Why is this a node script and not a bun x script
+
+Currently `bun x` cannot run the better-auth scripts e.g. `execSync(`npx @better-auth/cli generate --config ${configPath}`, execOptions)` will fail. This is a known issue and has been reported several times. All bug reports point to bun/node difference and are closed and redirected to https://github.com/oven-sh/bun/issues/4290 - when fixed the setup.js can be incorporated back into the vanilla bun server.js. For now it **must** run as a Node script.
+
 ## **bun serve**
 Supports serving of `auth` routes, `api` routes, static files and file base serving of the HTML views
 
-The file `server.js` imports  `bun:sqlite` and then calls the function `intialiseTestCountries()`. This function checks for an existing database/creates a new database, creates test tables `test_countries` and `test_products` . `test_countries` is populated with 100 countries (top 100 by GPD). The layout of the `test_countries` table is:
+The file `server.js` imports  `bun:sqlite`, checks for the existence of a valid SQLite database and then calls the function `intialiseTestCountries()`. This function checks for existing test_* tables and if not found, creates test tables `test_countries` and `test_products` . `test_countries` is populated with 100 countries (top 100 by GPD). The layout of the `test_countries` table is:
 
 ```sql
 CREATE TABLE test_countries (
@@ -206,35 +238,9 @@ CREATE TABLE test_countries (
 
 The test_countries table is used for an example GET api call and a GET call with a passed parameter - the search token. The test_products table is used for POST and PUT examples with JSON form data passsed to the API.
 
-The code for creating and populating the `test_countries` and `test_products` is in `db-setup.js`. If is no database in `./data/` the database setup code also creates the better-auth files and the default admin user. Here is a sample outpu of database creation for a new install:
-
-``` bash
-Using database at: /home/rcollins/code/bun-starter/data/app3.db
-SQLite database initialised at: /home/rcollins/code/bun-starter/data/app3.db
-test_countries table created and populated
-test_products table created and populated.
-
---- Fresh Database Detected: Starting Better-Auth Setup ---
-Running Better-Auth Migration...
-Using database at: /home/rcollins/code/bun-starter/data/app3.db
-SQLite database initialised at: /home/rcollins/code/bun-starter/data/app3.db
--> name, email, emailVerified, image, createdAt, updatedAt, requiresPasswordChange fields on user table.
--> expiresAt, token, createdAt, updatedAt, ipAddress, userAgent, userId fields on session table.
--> accountId, providerId, userId, accessToken, refreshToken, idToken, accessTokenExpiresAt, refreshTokenExpiresAt, scope, password, createdAt, updatedAt fields on account table.
--> identifier, value, expiresAt, createdAt, updatedAt fields on verification table.
-✔ Are you sure you want to run these migrations? … yes
-Better-Auth tables created successfully.
-Seeding initial admin user...
-Admin user created: rcollins@redmug.co.uk
---- New app3.db database created and populated successfully ---
-
-Build successful. ./public/components/client-components.js created.
-
-Server running at http://localhost:3000
-```
+The code for creating and populating the `test_countries` and `test_products` is in `db-setup.js`. 
 
 All calls pass through a controller for business logic and a model for database access. All data is returned as JSON
-
 
 To see this, navigate to [https://bunstarter.redmug.dev/] and select Countries from nav bar.
 
@@ -326,7 +332,7 @@ export function handleApiRoutes(req, path) {
 ```shell
 .
 ├── better-auth_migrations
-│   └── 2025-12-02T23-04-10.018Z.sql
+│   └── 2025-12-09T12-48-10.136Z.sql
 ├── bun.lock
 ├── data
 │   └── app3.db
@@ -338,6 +344,8 @@ export function handleApiRoutes(req, path) {
 ├── public
 │   ├── components
 │   │   └── client-components.js
+│   ├── data
+│   │   └── app3.db
 │   ├── docs
 │   │   ├── adding-better-auth.md
 │   │   ├── database-creation.md
@@ -349,7 +357,9 @@ export function handleApiRoutes(req, path) {
 │   ├── scripts
 │   │   ├── countries.js
 │   │   ├── countries-search.js
-│   │   └── products.js
+│   │   ├── node-auth-config.js
+│   │   ├── products.js
+│   │   └── setup.js
 │   ├── styles
 │   │   ├── input.css
 │   │   ├── output.css
@@ -357,19 +367,27 @@ export function handleApiRoutes(req, path) {
 │   └── views
 │       ├── 404.html
 │       ├── about.html
+│       ├── colours.html
+│       ├── component-variants.html
 │       ├── countries.html
 │       ├── countries-search.html
+│       ├── login.html
 │       ├── menu-test.html
 │       └── products.html
 ├── README.md
+├── scripts
 └── src
+    ├── auth-client.js
     ├── auth.js
+    ├── auth-options.js
     ├── client-components-build.js
     ├── components
     │   ├── rm-button.js
+    │   ├── rm-colour-swatch.js
     │   ├── rm-default-container.js
     │   ├── rm-footer.js
     │   ├── rm-head.js
+    │   ├── rm-login.js
     │   └── rm-nav-header.js
     ├── controllers
     │   ├── testCountries.controller.js
