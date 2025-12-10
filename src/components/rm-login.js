@@ -1,4 +1,4 @@
-// version 3.2 Gemini 2.5 Pro (Final Stage 1 - Hook Optimized)
+// version 3.3 Gemini 2.5 Pro (Stage 2 - Network Error Handling Added)
 // public/components/rm-login.js
 
 import { authClient } from '../auth-client.js'
@@ -130,7 +130,6 @@ class RMLogin extends HTMLElement {
         if (error) throw new Error(error.message || 'Login failed')
 
         // CHECK: Does this user need to change their password?
-        // 'requiresPasswordChange' comes from the custom field in auth.js
         if (data.user.requiresPasswordChange) {
           this.tempEmail = email
           this.tempPassword = password
@@ -150,8 +149,6 @@ class RMLogin extends HTMLElement {
         if (newPassword !== confirmPassword) throw new Error('Passwords do not match')
         if (newPassword.length < 8) throw new Error('Password must be at least 8 characters')
 
-        // We call changePassword.
-        // NOTE: We rely on the Server Hook (in auth.js) to set requiresPasswordChange=false automatically.
         const { data, error } = await authClient.changePassword({
           newPassword: newPassword,
           currentPassword: this.tempPassword,
@@ -161,12 +158,17 @@ class RMLogin extends HTMLElement {
         if (error) throw new Error(error.message || 'Failed to update password')
 
         // Success! The server hook handled the flag cleanup.
-        // We use the returned user data, or fallback to our temp email.
         const userPayload = data?.user || { email: this.tempEmail }
         this.finishLogin(userPayload)
       }
     } catch (err) {
-      this.showError(err.message)
+      // Improved error handling for connection issues
+      let message = err.message
+      if (message === 'Failed to fetch' || message === 'NetworkError') {
+        message = 'Unable to connect to the server. Please try again later.'
+      }
+      this.showError(message)
+
       if (this.isChangePasswordMode) submitBtn.textContent = 'Update & Sign In'
       else submitBtn.textContent = 'Sign In'
     } finally {

@@ -193,7 +193,7 @@ Following a new install or when deleting an existing SQLite database to force cr
 When starting server.js, it checks if there is a database. If the test fails, the user is asked to run a node setup script (not **node** script)
 
 ## setup.js script
-From the terminal use `node --env-file=.env setup.js` to run.
+From the terminal use `node --env-file=.env public/scripts/setup.js` to run.
 
 This Node script, performs the following steps:
 - Checks for an `.env` file in root

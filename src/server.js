@@ -16,11 +16,25 @@ export { db }
 const PORT = process.env.PORT || 3000
 
 // Bundle the client components on server start.
+// for dev mode:
+// minify: false,
+// define: {
+//     "process.env.NODE_ENV": JSON.stringify("development"), // Tells libraries like Lit to use development build
+//   }, set to minify: false
+//
+// for production mode:
+// minify: true,
+// define: {
+//     "process.env.NODE_ENV": JSON.stringify("development"), // Tells libraries like Lit to use development build
+//   }, set to minify: false
 const buildResult = await Bun.build({
   entrypoints: ['./src/client-components-build.js'],
   outdir: './public/components',
   naming: 'client-components.js',
   minify: false,
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('development'), // Tells libraries like Lit to use dev build
+  },
 })
 
 if (!buildResult.success) {
