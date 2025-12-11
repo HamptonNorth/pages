@@ -94,7 +94,8 @@ try {
           email: ADMIN_EMAIL,
           password: ADMIN_PASSWORD,
           name: ADMIN_NAME,
-          requiresPasswordChange: false,
+          role: 'admin',
+          data: { requiresPasswordChange: false },
         }),
       })
 

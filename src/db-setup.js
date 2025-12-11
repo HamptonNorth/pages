@@ -14,8 +14,14 @@ const dbPath = join(projectRoot, 'data', 'app3.db')
 // 2. FAIL FAST if DB is missing
 if (!existsSync(dbPath)) {
   console.error(`\n❌ CRITICAL ERROR: Database not found at ${dbPath}`)
-  console.error(`   Please run the setup script first:`)
-  console.error(`   $ node scripts/setup.js\n`)
+  console.error(
+    `   Please run the setup script first. This creates an empty database and creates all the `,
+  )
+  console.error(`   empty tables for authentication and adds the default admin user. \n`)
+  console.error(
+    `   Ensure the variables ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD and BETTER_AUTH_SECRET are set in .env and then:\n `,
+  )
+  console.error(`   From the terminal run:      node --env-file=.env public/scripts/setup.js\n`)
   process.exit(1)
 }
 

@@ -4,11 +4,10 @@
 // The library will now correctly auto-detect this as a bun:sqlite instance and wrap it.
 
 import { betterAuth } from 'better-auth'
-import { Database } from 'bun:sqlite'
+
 import { authOptions } from './auth-options.js'
 
-// We use the runtime database path here
-const db = new Database('data/app3.db')
+import { db } from './db-setup.js'
 
 // Plugin to handle password reset logic
 // This keeps the hook logic isolated and safe from config merging bugs

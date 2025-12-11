@@ -188,31 +188,32 @@ Test by amending the order of classes in test-tailwind.css by moving `m-8` to th
 Go to `./public/styles/input.css` to view the custom theme colour pallette. Thes colours are base on Material Design 3 blue-grey and teal pallettes. 
 
 ## Initial set up
-Following a new install or when deleting an existing SQLite database to force creation, there will be not database for the server.js app to read/update. 
+Following a new install or when deleting an existing SQLite database to force creation, there will not be a database for the server.js app to read/update. 
 
-When starting server.js, it checks if there is a database. If the test fails, the user is asked to run a node setup script (not **node** script)
+When starting server.js, it checks if there is a database. If the test fails, the user is asked to run a node setup script (note a **node** script)
 
 ## setup.js script
-From the terminal use `node --env-file=.env public/scripts/setup.js` to run.
-
-This Node script, performs the following steps:
-- Checks for an `.env` file in root
-- Checks the env file contains the following settings:
+# Database Creation
+If the SQLite database does not exist, running the app (server.js) fails with the following message:
 ```
-# .env
-PORT=3000
-ADMIN_NAME=rcollins
-ADMIN_EMAIL=your_email@somewhere.co.uk
-ADMIN_PASSWORD=your_passsword
-BETTER_AUTH_SECRET=along-secret-here-that-mustbe->-32chars
-```
-- creates the better-auth SQLite table creation SQL script in dir `./better-auth_migrations` (the setup.js auto answers'yes')
-- executes the `./better-auth_migrations/datetime_stamped.sql` script to creat the better-auth tables, `account`, `session`, `user` and `verification`
-- starts `bun run server.js` which starts the bun-starter app. This checks for a `test_countries` table and a `test-products` table. If the tables don't exist, they are created and populated.
-- with the server running, a curl script is run that populates the better-auth tables with a 'admin user'. The admin user has `requiresPasswordChange` set to false
-- On successfult update of the better-auth tables with the default admin user, the server exits and the the setup.js script finshes.
+❌ CRITICAL ERROR: Database not found at /home/rcollins/code/bun-starter/data/app3.db
+   Please run the setup script first. This creates an empty database and creates all the
+   empty tables for authentication and adds the default admin user.
 
-To reset the database at any time simply delete the database file in `./data` eg. `app3.db` and rerun setup.js
+   Ensure the variables ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD and BETTER_AUTH_SECRET are set in .env and then:
+
+   From the terminal run:      node scripts/setup.js
+   
+```
+
+
+The outline sequence to create a new database is:
+
+1) Optionally delete the database from './data' - currently 'app3.db' if you want to create a new database and test data..
+2) Check .env varaibles for ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD and BETTER_AUTH_SECRET are set in .env
+3) Run the script `node --env-file=.env public/scripts/setup.js`
+
+To reset the database at any time simply delete the database file in `./data` eg. `app3.db` and rerun the node setup.js script.
 
 ### Why is this a node script and not a bun x script
 
