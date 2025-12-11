@@ -4,6 +4,7 @@
 // The library will now correctly auto-detect this as a bun:sqlite instance and wrap it.
 
 import { betterAuth } from 'better-auth'
+import { admin } from 'better-auth/plugins'
 
 import { authOptions } from './auth-options.js'
 

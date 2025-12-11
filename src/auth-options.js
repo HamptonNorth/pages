@@ -1,3 +1,4 @@
+import { admin } from 'better-auth/plugins'
 // src/auth-options.js
 export const authOptions = {
   emailAndPassword: {
@@ -12,4 +13,5 @@ export const authOptions = {
       },
     },
   },
+  plugins: [admin()],
 }

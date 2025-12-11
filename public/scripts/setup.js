@@ -32,6 +32,7 @@ if (!existsSync(dirname(dbPath))) {
   mkdirSync(dirname(dbPath), { recursive: true })
 }
 const db = new Database(dbPath)
+db.pragma('journal_mode = WAL')
 console.log(`✅ Database created at: ${dbPath}`)
 
 // 2. Run Better-Auth CLI (Generate & Migrate)
@@ -94,13 +95,22 @@ try {
           email: ADMIN_EMAIL,
           password: ADMIN_PASSWORD,
           name: ADMIN_NAME,
-          role: 'admin',
           data: { requiresPasswordChange: false },
         }),
       })
 
       if (response.ok) {
-        console.log('✅ Admin user created successfully via API.')
+        console.log('✅ Admin user created successfully via API.') // 2. Manually promote to Admin via direct DB access
+        // This bypasses the API restriction since we are in a trusted setup script
+        const updateInfo = db
+          .prepare("UPDATE user SET role = 'admin' WHERE email = ?")
+          .run(ADMIN_EMAIL)
+
+        if (updateInfo.changes > 0) {
+          console.log('✅ User manually promoted to ADMIN role in database.')
+        } else {
+          console.error('❌ Failed to promote user to admin in DB.')
+        }
       } else {
         const errText = await response.text()
         console.error(`❌ API Error: ${response.status} - ${errText}`)
@@ -121,4 +131,4 @@ try {
 }
 
 console.log('\n🎉 Setup Complete! You can now start the server normally.')
-console.log('   $ bun src/server.js')
+console.log(' e.g.  $ bun run dev')

@@ -41,5 +41,5 @@ const passwordResetPlugin = {
 export const auth = betterAuth({
   database: db,
   ...authOptions,
-  plugins: [passwordResetPlugin],
+  plugins: [...(authOptions.plugins || []), passwordResetPlugin],
 })
