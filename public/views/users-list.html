@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="/styles/output.css" />
+    <link rel="stylesheet" href="/styles/rm.css" />
+    <script type="module" src="/components/client-components.js"></script>
+    <rm-head page-title="User List"></rm-head>
+  </head>
+  <body class="bg-primary-50">
+    <rm-default-container>
+      <rm-nav-header class="block"></rm-nav-header>
+      <main class="mx-auto mt-4 w-full max-w-4xl px-4">
+        <article>
+          <div class="text-primary-700 mt-2 text-4xl font-semibold">Users</div>
+          <section>
+            <div class="text-primary-600 mt-4 mb-4 text-base">List of system users.</div>
+
+            <div class="overflow-x-auto rounded-sm bg-white shadow ring-1 ring-black/5">
+              <table class="min-w-full divide-y divide-gray-300">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                    >
+                      Name
+                    </th>
+                    <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900">
+                      Email
+                    </th>
+                    <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900">
+                      Role
+                    </th>
+                    <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900">
+                      Created At
+                    </th>
+                    <th scope="col" class="px-3 py-2 text-left text-sm font-semibold text-gray-900">
+                      Updated At
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-3 py-2 text-center text-sm font-semibold text-gray-900"
+                    >
+                      Pwd Change Req
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="usersResult" class="divide-y divide-gray-200 bg-white"></tbody>
+              </table>
+            </div>
+
+            <div id="loadingMessage" class="text-primary-600 mt-4 text-center">
+              Loading users...
+            </div>
+            <div id="errorMessage" class="mt-4 hidden text-center text-red-600"></div>
+          </section>
+          <div class="text-primary-500 mt-4 mb-8 ml-8 text-xs">
+            Right-click a row to reset a user's password.
+          </div>
+        </article>
+      </main>
+      <rm-footer></rm-footer>
+    </rm-default-container>
+    <script src="/scripts/users-list.js"></script>
+  </body>
+</html>

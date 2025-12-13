@@ -1,4 +1,5 @@
 // public/components/rm-nav-header.js
+// version 1.1 Gemini 2.0 Flash
 import { LitElement, html, nothing } from 'lit'
 import { authClient } from '../auth-client.js'
 import './rm-add-user-modal.js'
@@ -363,6 +364,11 @@ export class RmHeader extends LitElement {
                               href="${getTestLink('user_admin', 'Reset password')}"
                               class="hover:bg-primary-100 block px-4 py-2 text-sm"
                               >Reset password</a
+                            >
+                            <a
+                              href="/users-list.html"
+                              class="hover:bg-primary-100 block px-4 py-2 text-sm"
+                              >List users</a
                             >
                             <hr class="border-primary-100 my-1" />
                           `
