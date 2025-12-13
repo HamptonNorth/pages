@@ -1,41 +1,68 @@
+// version 1.3 Gemini 2.5 Pro
 // src/auth.js
-// version 3.2 Gemini 2.5 Pro
-// Fixed: Passed 'db' directly to 'database' config to fix "selectFrom is not a function" error.
-// The library will now correctly auto-detect this as a bun:sqlite instance and wrap it.
-
 import { betterAuth } from 'better-auth'
-import { admin } from 'better-auth/plugins'
-
 import { authOptions } from './auth-options.js'
+import { db } from './db-setup.js' // ✅ Safe: This is Bun-only
 
-import { db } from './db-setup.js'
+// 🟢 Define the Bun-specific plugin here
+// bun-password-reset-plugin.js (Updated)
 
-// Plugin to handle password reset logic
-// This keeps the hook logic isolated and safe from config merging bugs
-const passwordResetPlugin = {
+// src/auth.js (Snippet)
+
+// src/auth.js (Updated Plugin)
+
+const bunPasswordResetPlugin = {
   id: 'password-reset-plugin',
   hooks: {
     after: [
       {
         matcher: (context) => context.path.includes('/change-password'),
         handler: async (ctx) => {
-          const session = ctx.session || ctx.context?.session
-          const response = ctx.response
+          console.log('🪝 [PasswordResetPlugin] Hook Triggered')
 
-          if (response && (response.status === 200 || response.status === 201) && session) {
-            try {
-              console.log(
-                `Password changed successfully for ${session.user.email}. Clearing flag...`,
-              )
-              await auth.api.updateUser({
-                body: { requiresPasswordChange: false },
-                headers: ctx.request.headers,
-              })
-              console.log(`Flag cleared.`)
-            } catch (err) {
-              console.error('Failed to clear password reset flag:', err)
-            }
+          // 1. LOCATE THE SESSION
+          // The logs showed 'session' isn't at the top level, but 'context' is.
+          // We check both locations to be safe.
+          const session = ctx.session || ctx.context?.session
+          const userEmail = session?.user?.email
+
+          // DEBUG: Verify we found the session this time
+          if (!session) {
+            console.log('🔍 Inspecting ctx.context:', Object.keys(ctx.context || {}))
           }
+
+          if (userEmail) {
+            console.log(`[PasswordResetPlugin] Targeting user email: ${userEmail}`)
+            try {
+              // 2. UPDATE DB
+              const query = db.query(
+                'UPDATE "user" SET "requiresPasswordChange" = 0 WHERE "email" = $email',
+              )
+              const result = query.run({ $email: userEmail })
+
+              if (result.changes > 0) {
+                console.log(`✅ [PasswordResetPlugin] Flag cleared for ${userEmail}`)
+              } else {
+                console.warn(`⚠️ [PasswordResetPlugin] No user found to update.`)
+              }
+            } catch (err) {
+              console.error('❌ [PasswordResetPlugin] DB Error:', err)
+            }
+          } else {
+            console.error(
+              '❌ [PasswordResetPlugin] Still could not find email. Session is missing.',
+            )
+          }
+
+          // 3. PREVENT CRASH
+          // Ensure we return a valid response object even if the original was undefined
+          return (
+            ctx.response || {
+              headers: new Headers(),
+              body: { success: true },
+              status: 200,
+            }
+          )
         },
       },
     ],
@@ -43,17 +70,7 @@ const passwordResetPlugin = {
 }
 
 export const auth = betterAuth({
-  // FIX: Pass the raw db instance directly.
-  // Do not wrap it in an object { db: db } or Better-Auth assumes it's already a Kysely instance.
   database: db,
   ...authOptions,
-  // ---------------------------------------------------------
-  // ADDED: Register the local plugin and merge with existing ones
-  // ---------------------------------------------------------
-  //
-
-  plugins: [
-    passwordResetPlugin,
-    ...(authOptions.plugins || []), // Preserves plugins from authOptions if they exist
-  ],
+  plugins: [...(authOptions.plugins || []), bunPasswordResetPlugin],
 })

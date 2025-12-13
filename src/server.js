@@ -1,9 +1,9 @@
 // src/server.js
-// version 1.4 Gemini 2.0 Flash
+// version 1.5 Gemini 2.5 Pro
 // Changes:
-// - Added 'const PORT' to ensure port is defined for logging.
-// - Fixed 'server.port is undefined' error by using the constant.
-// - Kept Admin Seeding paused for Step 1 (DB Connectivity Test).
+// - Merged "Option B": Added dedicated Admin API Route handling.
+// - Implemented '/api/admin/seed' route to safely create the first admin user.
+// - Kept strict route ordering: Auth -> Admin -> API -> Static.
 
 import { auth } from './auth.js'
 import { db } from './db-setup.js' // Imports the DB and triggers table creation
@@ -16,24 +16,13 @@ export { db }
 const PORT = process.env.PORT || 3000
 
 // Bundle the client components on server start.
-// for dev mode:
-// minify: false,
-// define: {
-//     "process.env.NODE_ENV": JSON.stringify("development"), // Tells libraries like Lit to use development build
-//   }, set to minify: false
-//
-// for production mode:
-// minify: true,
-// define: {
-//     "process.env.NODE_ENV": JSON.stringify("development"), // Tells libraries like Lit to use development build
-//   }, set to minify: false
 const buildResult = await Bun.build({
   entrypoints: ['./src/client-components-build.js'],
   outdir: './public/components',
   naming: 'client-components.js',
   minify: false,
   define: {
-    'process.env.NODE_ENV': JSON.stringify('development'), // Tells libraries like Lit to use dev build
+    'process.env.NODE_ENV': JSON.stringify('development'),
   },
 })
 
@@ -52,31 +41,34 @@ const server = Bun.serve({
     const path = url.pathname
 
     // 1. Auth Routes (Better-Auth)
-    // Intercepts /api/auth/* requests (signin, signup, session, etc.)
+    // Intercepts /api/auth/* requests (signin, signup, session, admin plugin routes etc.)
     if (path.startsWith('/api/auth')) {
       return auth.handler(req)
     }
 
-    // 2. API Routes
+    // 2. Admin API Routes (Custom)
+    // Handles custom server-side admin logic (like initial seeding)
+    // This is separate from the Better-Auth Admin Plugin routes (which are under /api/auth/admin)
+    if (path.startsWith('/api/admin/')) {
+      return handleAdminRoutes(req, path)
+    }
+
+    // 3. API Routes (General)
     if (path.startsWith('/api/')) {
       return handleApiRoutes(req, path)
     }
 
-    // 3. Serve Bundled Components (Cached)
+    // 4. Serve Bundled Components (Cached)
     if (path === '/components/client-components.js') {
       console.log('Serving bundled components (cached)')
       return new Response(Bun.file('./public/components/client-components.js'), {
         headers: {
           'Content-Type': 'text/javascript',
-          // Disable cache for development
-          // 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          // Pragma: 'no-cache',
-          // Expires: '0',
         },
       })
     }
 
-    // 4. Static Assets (CSS, JS, Images)
+    // 5. Static Assets (CSS, JS, Images)
     if (
       path.startsWith('/styles/') ||
       path.startsWith('/scripts/') ||
@@ -92,7 +84,7 @@ const server = Bun.serve({
       })
     }
 
-    // 5. HTML Pages (Routing)
+    // 6. HTML Pages (Routing)
     if (path === '/') {
       return serveHtmlPage('./public/index.html')
     }
@@ -103,6 +95,64 @@ const server = Bun.serve({
 })
 
 // --- Helper Functions ---
+
+// Handles Custom Admin Routes (e.g. Seeding)
+async function handleAdminRoutes(req, path) {
+  // ROUTE: /api/admin/seed
+  // Usage: Creates the initial Admin user if one does not exist.
+  if (path === '/api/admin/seed' && req.method === 'POST') {
+    try {
+      const body = await req.json()
+      const { email, password, name } = body
+
+      // Basic validation
+      if (!email || !password || !name) {
+        return new Response(JSON.stringify({ error: 'Missing email, password, or name' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Check if ANY user exists (Safety check to ensure this is only used for first user)
+      // Note: In a real app, checking specifically for 'admin' role users is safer,
+      // but checking for *any* user is a good "first run" guard.
+      // We use the 'better-auth' internal API to count or list users.
+      const users = await auth.api.listUsers({
+        query: { limit: 1 },
+      })
+
+      if (users && users.length > 0) {
+        return new Response(JSON.stringify({ error: 'Setup already complete. Users exist.' }), {
+          status: 403, // Forbidden
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Create the Admin User
+      const newUser = await auth.api.signUp({
+        body: {
+          email,
+          password,
+          name,
+          role: 'admin', // Explicitly set role to admin
+        },
+      })
+
+      return new Response(JSON.stringify({ success: true, user: newUser }), {
+        status: 201,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    } catch (error) {
+      console.error('Admin Seed Error:', error)
+      return new Response(JSON.stringify({ error: error.message || 'Internal Server Error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
+  return new Response('Admin route not found', { status: 404 })
+}
 
 // Serves a static file from the public directory.
 async function serveStatic(path) {

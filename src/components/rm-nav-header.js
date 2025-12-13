@@ -1,7 +1,7 @@
-// version 2.1 Gemini 2.5 Pro
 // public/components/rm-nav-header.js
-
 import { LitElement, html, nothing } from 'lit'
+import { authClient } from '../auth-client.js'
+import './rm-add-user-modal.js'
 
 export class RmHeader extends LitElement {
   static properties = {
@@ -9,8 +9,10 @@ export class RmHeader extends LitElement {
     _isMenuOpen: { state: true },
     _isAppsOpen: { state: true },
     _isCountriesOpen: { state: true },
-    _isSignOutModalOpen: { state: true }, // New state for confirmation modal
+    _isSignOutModalOpen: { state: true },
+    _isAddUserModalOpen: { state: true },
     isSignedIn: { type: Boolean },
+    userRole: { type: String },
   }
 
   constructor() {
@@ -20,11 +22,58 @@ export class RmHeader extends LitElement {
     this._isAppsOpen = false
     this._isCountriesOpen = false
     this._isSignOutModalOpen = false
-    this.isSignedIn = true
+    this._isAddUserModalOpen = false
+
+    this.isSignedIn = false
+    this.userRole = null
   }
 
   createRenderRoot() {
     return this
+  }
+
+  async connectedCallback() {
+    super.connectedCallback()
+    window.addEventListener('auth-changed', this._handleAuthChange.bind(this))
+
+    // RULE 1: Use better-auth API to determine session status
+    await this._checkSession()
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('auth-changed', this._handleAuthChange.bind(this))
+    super.disconnectedCallback()
+  }
+
+  async _checkSession() {
+    try {
+      const { data } = await authClient.getSession()
+
+      if (data) {
+        this.isSignedIn = true
+        // Assuming the role is stored on the user object in the session
+        this.userRole = data.user.role || 'user'
+      } else {
+        this.isSignedIn = false
+        this.userRole = null
+      }
+    } catch (error) {
+      console.error('Failed to check session:', error)
+      this.isSignedIn = false
+      this.userRole = null
+    }
+  }
+
+  // Handle events from other components (like immediate login updates)
+  _handleAuthChange(e) {
+    this.isSignedIn = e.detail.signedIn
+    // If we just logged in via event, we might need to fetch the role
+    // or pass it in the event detail. For safety, we re-check session.
+    if (this.isSignedIn) {
+      this._checkSession()
+    } else {
+      this.userRole = null
+    }
   }
 
   toggleDrawer() {
@@ -55,11 +104,18 @@ export class RmHeader extends LitElement {
     }
   }
 
-  // --- Sign Out Logic ---
+  openAddUserModal() {
+    this._isMenuOpen = false
+    this._isAddUserModalOpen = true
+  }
+
+  closeAddUserModal() {
+    this._isAddUserModalOpen = false
+  }
 
   openSignOutModal() {
-    this._isMenuOpen = false // Close the dropdown menu
-    this._isSignOutModalOpen = true // Open the modal
+    this._isMenuOpen = false
+    this._isSignOutModalOpen = true
   }
 
   closeSignOutModal() {
@@ -68,15 +124,18 @@ export class RmHeader extends LitElement {
 
   async performSignOut() {
     try {
-      // Call the better-auth signout endpoint
-      await fetch('/api/auth/sign-out', {
-        method: 'POST',
-      })
-      // Redirect to home or login page after successful sign out
+      // Use better-auth client for sign out
+      await authClient.signOut()
+
+      localStorage.removeItem('user_email')
+
+      this.isSignedIn = false
+      this.userRole = null
+      this._isSignOutModalOpen = false
+
       window.location.href = '/'
     } catch (error) {
       console.error('Sign out failed', error)
-      // Optional: Add error handling UI here
       this._isSignOutModalOpen = false
     }
   }
@@ -103,6 +162,9 @@ export class RmHeader extends LitElement {
     const getTestLink = (area, text) => {
       return `/menu-test.html?area=${area}&text=${encodeURIComponent(text)}`
     }
+
+    // RULE 5: Check specifically for admin role
+    const isAdmin = this.isSignedIn && this.userRole === 'admin'
 
     return html`
       <header class="bg-primary-700 relative z-30 text-white shadow-md">
@@ -137,7 +199,6 @@ export class RmHeader extends LitElement {
           <div class="flex items-center gap-2 sm:gap-4">
             <nav class="mr-2 hidden items-center gap-6 text-sm sm:flex">
               <a href="/" class="${getHeaderLinkClass('/')}">Home</a>
-
               <div class="relative">
                 <button
                   @click="${this.toggleCountries}"
@@ -155,7 +216,6 @@ export class RmHeader extends LitElement {
                     ></path>
                   </svg>
                 </button>
-
                 ${this._isCountriesOpen
                   ? html`
                       <div
@@ -207,7 +267,6 @@ export class RmHeader extends LitElement {
                       class="fixed inset-0 z-40 cursor-default"
                       @click="${() => (this._isAppsOpen = false)}"
                     ></div>
-
                     <div
                       class="text-primary-800 absolute right-0 z-50 mt-2 w-56 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5"
                     >
@@ -219,16 +278,13 @@ export class RmHeader extends LitElement {
                       <a
                         href="/colours.html"
                         class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
+                        >Colour swatches</a
                       >
-                        Colour swatches
-                      </a>
                       <a
                         href="/component-variants.html"
                         class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
+                        >Custom components</a
                       >
-                        Custom components
-                      </a>
-
                       <div
                         class="border-primary-700 bg-primary-100 text-primary-500 mt-2 border-b px-4 py-2 text-xs font-bold tracking-wider uppercase"
                       >
@@ -237,30 +293,24 @@ export class RmHeader extends LitElement {
                       <a
                         href="${getTestLink('waffle', 'Add new event')}"
                         class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
+                        >Add new event</a
                       >
-                        Add new event
-                      </a>
                       <a
                         href="${getTestLink('waffle', 'Amend event')}"
                         class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
+                        >Amend event</a
                       >
-                        Amend event
-                      </a>
                       <a
                         href="${getTestLink('waffle', 'View all events')}"
                         class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
+                        >View all events</a
                       >
-                        View all events
-                      </a>
-
                       <hr class="border-primary-100 my-1" />
-
                       <a
                         href="${getTestLink('waffle', 'Email users')}"
                         class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
+                        >Email users</a
                       >
-                        Email users
-                      </a>
                     </div>
                   `
                 : nothing}
@@ -296,46 +346,49 @@ export class RmHeader extends LitElement {
                     <div
                       class="text-primary-800 absolute right-0 z-50 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5"
                     >
-                      ${this.isSignedIn
+                      ${isAdmin
                         ? html`
                             <div
                               class="border-primary-700 bg-primary-100 text-primary-500 border-b px-4 py-2 text-xs font-bold tracking-wider uppercase"
                             >
                               User admin
                             </div>
-                            <a
-                              href="${getTestLink('user_admin', 'Add new user')}"
-                              class="hover:bg-primary-100 block px-4 py-2 text-sm"
-                              >Add new user</a
+                            <button
+                              @click="${this.openAddUserModal}"
+                              class="text-primary-800 hover:bg-primary-100 w-full px-4 py-2 text-left text-sm"
                             >
+                              Add new user
+                            </button>
                             <a
-                              href="${getTestLink('user_admin', 'Amend user')}"
+                              href="${getTestLink('user_admin', 'Reset password')}"
                               class="hover:bg-primary-100 block px-4 py-2 text-sm"
-                              >Amend user</a
-                            >
-                            <a
-                              href="${getTestLink('user_admin', 'Reset user password')}"
-                              class="hover:bg-primary-100 block px-4 py-2 text-sm"
-                              >Reset user password</a
+                              >Reset password</a
                             >
                             <hr class="border-primary-100 my-1" />
                           `
                         : nothing}
-
-                      <a href="/login.html" class="hover:bg-primary-100 block px-4 py-2 text-sm"
-                        >Sign in</a
-                      >
-                      <button
-                        @click="${this.openSignOutModal}"
-                        class="text-primary-800 hover:bg-primary-100 w-full px-4 py-2 text-left text-sm"
-                      >
-                        Sign out
-                      </button>
-                      <a
-                        href="${getTestLink('user', 'Add avatar')}"
-                        class="hover:bg-primary-100 block px-4 py-2 text-sm"
-                        >Add avatar</a
-                      >
+                      ${!this.isSignedIn
+                        ? html` <a
+                            href="/login.html"
+                            class="hover:bg-primary-100 block px-4 py-2 text-sm"
+                            >Sign in</a
+                          >`
+                        : nothing}
+                      ${this.isSignedIn
+                        ? html`
+                            <a
+                              href="${getTestLink('user', 'Add avatar')}"
+                              class="hover:bg-primary-100 block px-4 py-2 text-sm"
+                              >Add avatar</a
+                            >
+                            <button
+                              @click="${this.openSignOutModal}"
+                              class="text-primary-800 hover:bg-primary-100 w-full px-4 py-2 text-left text-sm"
+                            >
+                              Sign out
+                            </button>
+                          `
+                        : nothing}
                     </div>
                   `
                 : nothing}
@@ -367,181 +420,13 @@ export class RmHeader extends LitElement {
                   </svg>
                 </button>
               </div>
-
               <div class="flex flex-col py-2">
                 <div class="border-primary-200 mb-2 flex flex-col gap-1 border-b pb-2 sm:hidden">
-                  <span class="text-primary-400 mt-2 mb-1 px-4 text-xs font-semibold uppercase"
-                    >Navigation</span
-                  >
-
                   <a href="/" class="${getDrawerLinkClass('/')}">Home</a>
-
-                  <details class="group">
-                    <summary
-                      class="text-primary-600 hover:bg-primary-100 flex cursor-pointer list-none items-center justify-between px-4 py-2 text-sm"
-                    >
-                      <span>Countries</span>
-                      <svg
-                        class="text-primary-400 h-4 w-4 transition-transform group-open:rotate-180"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 9l-7 7-7 7"
-                        ></path>
-                      </svg>
-                    </summary>
-                    <div class="bg-primary-50 flex flex-col">
-                      <a
-                        href="/countries.html"
-                        class="text-primary-600 hover:text-secondary-700 py-2 pr-4 pl-8 text-sm"
-                        >View all countries</a
-                      >
-                      <a
-                        href="/countries-search.html"
-                        class="text-primary-600 hover:text-secondary-700 py-2 pr-4 pl-8 text-sm"
-                        >Search countries</a
-                      >
-                    </div>
-                  </details>
-
                   <a href="/products.html" class="${getDrawerLinkClass('/products.html')}"
                     >Products</a
                   >
                   <a href="/about.html" class="${getDrawerLinkClass('/about.html')}">About</a>
-                </div>
-
-                <div class="flex flex-col gap-1">
-                  <span class="text-primary-400 mt-2 mb-1 px-4 text-xs font-semibold uppercase"
-                    >Apps</span
-                  >
-
-                  <details class="group">
-                    <summary
-                      class="text-primary-600 hover:bg-primary-100 flex cursor-pointer list-none items-center justify-between px-4 py-2 text-sm"
-                    >
-                      <div class="flex items-center gap-2">
-                        <svg
-                          class="text-primary-400 h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                          ></path>
-                        </svg>
-                        <span>Resources</span>
-                      </div>
-                      <svg
-                        class="text-primary-400 h-4 w-4 transition-transform group-open:rotate-180"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 9l-7 7-7 7"
-                        ></path>
-                      </svg>
-                    </summary>
-                    <div class="bg-primary-50 flex flex-col">
-                      <a
-                        href="/colours.html"
-                        class="text-primary-600 hover:text-secondary-700 py-2 pr-4 pl-10 text-xs"
-                        >Colour swatches</a
-                      >
-                      <a
-                        href="/component-variants.html"
-                        class="text-primary-600 hover:text-secondary-700 py-2 pr-4 pl-10 text-xs"
-                        >Custom components</a
-                      >
-                    </div>
-                  </details>
-
-                  <details class="group">
-                    <summary
-                      class="text-primary-600 hover:bg-primary-100 flex cursor-pointer list-none items-center justify-between px-4 py-2 text-sm"
-                    >
-                      <div class="flex items-center gap-2">
-                        <svg
-                          class="text-primary-400 h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          ></path>
-                        </svg>
-                        <span>Calendar</span>
-                      </div>
-                      <svg
-                        class="text-primary-400 h-4 w-4 transition-transform group-open:rotate-180"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 9l-7 7-7 7"
-                        ></path>
-                      </svg>
-                    </summary>
-                    <div class="bg-primary-50 flex flex-col">
-                      <a
-                        href="${getTestLink('waffle', 'Add new event')}"
-                        class="text-primary-600 hover:text-secondary-700 py-2 pr-4 pl-10 text-xs"
-                        >Add new event</a
-                      >
-                      <a
-                        href="${getTestLink('waffle', 'Amend event')}"
-                        class="text-primary-600 hover:text-secondary-700 py-2 pr-4 pl-10 text-xs"
-                        >Amend event</a
-                      >
-                      <a
-                        href="${getTestLink('waffle', 'View all events')}"
-                        class="text-primary-600 hover:text-secondary-700 py-2 pr-4 pl-10 text-xs"
-                        >View all events</a
-                      >
-                    </div>
-                  </details>
-
-                  <a
-                    href="${getTestLink('waffle', 'Email users')}"
-                    class="text-primary-600 hover:bg-primary-100 flex items-center gap-2 px-4 py-2 text-sm"
-                  >
-                    <div class="flex items-center gap-2">
-                      <svg
-                        class="text-primary-400 h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        ></path>
-                      </svg>
-                      <span>Email users</span>
-                    </div>
-                  </a>
                 </div>
               </div>
             </aside>
@@ -581,15 +466,26 @@ export class RmHeader extends LitElement {
                   Are you sure you want to sign out of your account?
                 </p>
                 <div class="mt-6 flex justify-end gap-3">
-                  <rm-button variant="outline" @click="${this.closeSignOutModal}">
+                  <button
+                    @click="${this.closeSignOutModal}"
+                    class="rounded border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
+                  >
                     Cancel
-                  </rm-button>
-                  <rm-button @click="${this.performSignOut}"> Sign Out </rm-button>
+                  </button>
+                  <button
+                    @click="${this.performSignOut}"
+                    class="bg-primary-600 hover:bg-primary-700 rounded px-4 py-2 text-white"
+                  >
+                    Sign Out
+                  </button>
                 </div>
               </div>
             </div>
           `
         : nothing}
+
+      <rm-add-user-modal .isOpen="${this._isAddUserModalOpen}" @close="${this.closeAddUserModal}">
+      </rm-add-user-modal>
     `
   }
 }

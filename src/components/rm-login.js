@@ -1,4 +1,4 @@
-// version 3.3 Gemini 2.5 Pro (Stage 2 - Network Error Handling Added)
+// version 3.4 Gemini 2.5 Pro (Stage 3 - Password Change Flow)
 // public/components/rm-login.js
 
 import { authClient } from '../auth-client.js'
@@ -9,7 +9,7 @@ class RMLogin extends HTMLElement {
     this.attachShadow({ mode: 'open' })
     this.isChangePasswordMode = false
     this.tempEmail = ''
-    this.tempPassword = '' // better-auth requires 'currentPassword' to change it
+    this.tempPassword = ''
   }
 
   connectedCallback() {
@@ -73,22 +73,18 @@ class RMLogin extends HTMLElement {
       .addEventListener('submit', (e) => this.handleSubmit(e))
   }
 
-  // Switches the form to "Update Password" mode
   enableChangePasswordMode() {
     this.isChangePasswordMode = true
 
-    // UI Updates
     this.shadowRoot.getElementById('form-title').textContent = 'Setup New Password'
     this.shadowRoot.getElementById('form-desc').textContent =
       'Administrator requires you to change your password.'
     this.shadowRoot.getElementById('submit-btn').textContent = 'Update & Sign In'
 
-    // Toggle Visibility (Hide old, show new)
     this.shadowRoot.getElementById('new-password-section').classList.remove('hidden')
     this.shadowRoot.getElementById('email-group').classList.add('hidden')
     this.shadowRoot.getElementById('password-group').classList.add('hidden')
 
-    // Add 'required' attributes to new fields
     this.shadowRoot.getElementById('new-password').required = true
     this.shadowRoot.getElementById('confirm-password').required = true
 
@@ -116,9 +112,7 @@ class RMLogin extends HTMLElement {
 
     try {
       if (!this.isChangePasswordMode) {
-        // ==========================================
-        // 1. INITIAL SIGN IN ATTEMPT
-        // ==========================================
+        // --- SIGN IN ---
         const email = this.shadowRoot.getElementById('email').value
         const password = this.shadowRoot.getElementById('password').value
 
@@ -129,25 +123,25 @@ class RMLogin extends HTMLElement {
 
         if (error) throw new Error(error.message || 'Login failed')
 
-        // CHECK: Does this user need to change their password?
-        if (data.user.requiresPasswordChange) {
+        // Check if user object contains the custom flag
+        // Note: ensure 'user' configuration in better-auth includes 'requiresPasswordChange'
+        if (data.user && data.user.requiresPasswordChange) {
           this.tempEmail = email
           this.tempPassword = password
           this.enableChangePasswordMode()
-          return // Stop here. Do NOT redirect. Wait for user to enter new password.
+          return
         }
 
-        // No forced change? Log them in.
         this.finishLogin(data.user)
       } else {
-        // ==========================================
-        // 2. FORCE PASSWORD CHANGE SUBMISSION
-        // ==========================================
+        // --- CHANGE PASSWORD ---
         const newPassword = this.shadowRoot.getElementById('new-password').value
         const confirmPassword = this.shadowRoot.getElementById('confirm-password').value
 
         if (newPassword !== confirmPassword) throw new Error('Passwords do not match')
         if (newPassword.length < 8) throw new Error('Password must be at least 8 characters')
+        if (newPassword === this.tempPassword)
+          throw new Error('New password cannot be the same as temporary password')
 
         const { data, error } = await authClient.changePassword({
           newPassword: newPassword,
@@ -157,12 +151,11 @@ class RMLogin extends HTMLElement {
 
         if (error) throw new Error(error.message || 'Failed to update password')
 
-        // Success! The server hook handled the flag cleanup.
+        // The server hook (after:changePassword) handles clearing the flag
         const userPayload = data?.user || { email: this.tempEmail }
         this.finishLogin(userPayload)
       }
     } catch (err) {
-      // Improved error handling for connection issues
       let message = err.message
       if (message === 'Failed to fetch' || message === 'NetworkError') {
         message = 'Unable to connect to the server. Please try again later.'
@@ -177,10 +170,8 @@ class RMLogin extends HTMLElement {
   }
 
   finishLogin(user) {
-    // Store email for the footer to read
     localStorage.setItem('user_email', user.email || this.tempEmail)
 
-    // Dispatch event to update other components immediately
     window.dispatchEvent(
       new CustomEvent('auth-changed', {
         detail: { email: user.email || this.tempEmail, signedIn: true },
