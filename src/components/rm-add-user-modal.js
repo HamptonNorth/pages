@@ -265,7 +265,7 @@ Please log in and change your password immediately.`,
 
             <div class="mb-4">
               <div class="mb-2 flex items-center justify-between">
-                <label for="password" class="block text-sm font-medium text-gray-600"
+                <label for="add-user-password" class="block text-sm font-medium text-gray-600"
                   >Temporary Password</label
                 >
                 ${this._formData.email && this._formData.password
@@ -298,7 +298,7 @@ Please log in and change your password immediately.`,
               <div class="flex gap-2">
                 <input
                   type="text"
-                  id="password"
+                  id="add-user-password"
                   name="password"
                   .value="${this._formData.password}"
                   @input="${this._handleInput}"

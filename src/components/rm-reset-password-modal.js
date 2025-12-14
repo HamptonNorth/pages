@@ -225,7 +225,7 @@ Please log in and change your password immediately.`,
 
             <div class="mb-4">
               <div class="mb-2 flex items-center justify-between">
-                <label for="password" class="block text-sm font-medium text-gray-600"
+                <label for="reset-temp-password" class="block text-sm font-medium text-gray-600"
                   >New Temporary Password</label
                 >
                 <a
@@ -254,7 +254,7 @@ Please log in and change your password immediately.`,
               <div class="flex gap-2">
                 <input
                   type="text"
-                  id="password"
+                  id="reset-temp-password"
                   name="password"
                   .value="${this._password}"
                   @input="${this._handlePasswordInput}"
