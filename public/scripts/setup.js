@@ -1,8 +1,12 @@
 // public/scripts/setup.js
+// version 1.2 Gemini 2.5 Pro
+// Changes:
+// - Added validation for GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET.
+
 import Database from 'better-sqlite3'
 import { execSync, spawn } from 'child_process'
 import { mkdirSync, existsSync } from 'fs'
-import { dirname, resolve, join, relative } from 'path' // Added 'relative'
+import { dirname, resolve, join, relative } from 'path'
 import { fileURLToPath } from 'url'
 
 // 1. Setup Path Logic
@@ -16,15 +20,39 @@ console.log('🚀 Starting System Setup...')
 console.log(`📂 Project Root determined as: ${projectRoot}`)
 
 // 0. Validation: Check for Environment Variables
-const { ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME, PORT } = process.env
+const {
+  ADMIN_EMAIL,
+  ADMIN_PASSWORD,
+  ADMIN_NAME,
+  PORT,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET,
+} = process.env
 
-if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !ADMIN_NAME || !PORT) {
-  console.error('\n❌ Error: Missing Admin details in environment.')
+const missingVars = []
+if (!ADMIN_EMAIL) missingVars.push('ADMIN_EMAIL')
+if (!ADMIN_PASSWORD) missingVars.push('ADMIN_PASSWORD')
+if (!ADMIN_NAME) missingVars.push('ADMIN_NAME')
+if (!PORT) missingVars.push('PORT')
+
+// Warn/Error for Social Keys
+if (!GOOGLE_CLIENT_ID) missingVars.push('GOOGLE_CLIENT_ID')
+if (!GOOGLE_CLIENT_SECRET) missingVars.push('GOOGLE_CLIENT_SECRET')
+if (!GITHUB_CLIENT_ID) missingVars.push('GITHUB_CLIENT_ID')
+if (!GITHUB_CLIENT_SECRET) missingVars.push('GITHUB_CLIENT_SECRET')
+
+if (missingVars.length > 0) {
+  console.error('\n❌ Error: Missing Environment Variables.')
   console.error(`   Checked for .env at: ${envPath}`)
-  console.error('   Please ensure ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME and PORT are set.\n')
+  console.error(`   Missing: ${missingVars.join(', ')}`)
+  console.error('   Please add these to your .env file.\n')
   process.exit(1)
 } else {
-  console.log('.env variables loaded successfully - ADMIN_NAME set to: ', ADMIN_NAME)
+  console.log('.env variables loaded successfully.')
+  console.log('   - ADMIN_NAME:', ADMIN_NAME)
+  console.log('   - Social Keys: Google & GitHub Set')
 }
 
 // 1. Create DB Directory & File
@@ -38,7 +66,7 @@ console.log(`✅ Database created at: ${dbPath}`)
 // 2. Run Better-Auth CLI (Generate & Migrate)
 console.log('📦 Running Better-Auth Migrations...')
 try {
-  // FIXED: Calculate path relative to process.cwd() to prevent "double path" errors in CLI
+  // Calculate path relative to process.cwd()
   const absConfigPath = join(__dirname, 'node-auth-config.js')
   const configPath = relative(process.cwd(), absConfigPath)
 
@@ -50,12 +78,12 @@ try {
     env: { ...process.env },
   }
 
-  // Generate
+  // Generate (Updates schema.json based on auth-options.js)
   execSync(`npx @better-auth/cli generate --config ${configPath}`, execOptions)
 
-  // Migrate
+  // Migrate (Applies schema changes to sqlite)
   execSync(`npx @better-auth/cli migrate --config ${configPath}`, execOptions)
-  console.log('✅ Auth tables created successfully.')
+  console.log('✅ Auth tables created/updated successfully.')
 } catch (error) {
   console.error('❌ Migration failed.')
   process.exit(1)
@@ -74,7 +102,6 @@ try {
     console.log('   Starting temporary server to handle API request...')
 
     // 1. Start the server in the background
-    // NOTE: This uses 'bun'. If you are moving strictly to Node, change 'bun' to 'node' below.
     const serverProcess = spawn('bun', ['src/server.js'], {
       cwd: projectRoot,
       stdio: 'ignore',
@@ -100,8 +127,9 @@ try {
       })
 
       if (response.ok) {
-        console.log('✅ Admin user created successfully via API.') // 2. Manually promote to Admin via direct DB access
-        // This bypasses the API restriction since we are in a trusted setup script
+        console.log('✅ Admin user created successfully via API.')
+
+        // 2. Manually promote to Admin via direct DB access
         const updateInfo = db
           .prepare("UPDATE user SET role = 'admin' WHERE email = ?")
           .run(ADMIN_EMAIL)
