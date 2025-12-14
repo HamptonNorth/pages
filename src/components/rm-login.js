@@ -1,5 +1,8 @@
-// version 3.5 Gemini 2.0 Flash - Fixed Duplicate ID
 // public/components/rm-login.js
+// version 3.6 Gemini 2.0 Flash
+// Changes:
+// - FIXED: Restored missing opening <div> for password group in HTML.
+// - FIXED: Added missing 'email' variable definition in handleSubmit.
 
 import { authClient } from '../auth-client.js'
 
@@ -33,10 +36,12 @@ class RMLogin extends HTMLElement {
 
         <form id="auth-form">
           <div class="mb-4" id="email-group">
-            <label for="email" class="block mb-2 text-gray-600 text-sm font-medium">Email Address</label>
-            <input type="email" id="email" required placeholder="you@company.com"
+            <label for="login-email" class="block mb-2 text-gray-600 text-sm font-medium">Email Address</label>
+            <input type="email" id="login-email" required placeholder="you@company.com"
               class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
           </div>
+
+          <div class="mb-6" id="password-group">
             <label for="login-password" id="password-label" class="block mb-2 text-gray-600 text-sm font-medium">Password</label>
             <input type="password" id="login-password" required placeholder="••••••••"
               class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
@@ -110,7 +115,8 @@ class RMLogin extends HTMLElement {
 
     try {
       if (!this.isChangePasswordMode) {
-        // UPDATED: ID CHANGED HERE
+        // FIXED: Retrieve email from the input field
+        const email = this.shadowRoot.getElementById('login-email').value
         const password = this.shadowRoot.getElementById('login-password').value
 
         const { data, error } = await authClient.signIn.email({
@@ -121,7 +127,6 @@ class RMLogin extends HTMLElement {
         if (error) throw new Error(error.message || 'Login failed')
 
         // Check if user object contains the custom flag
-        // Note: ensure 'user' configuration in better-auth includes 'requiresPasswordChange'
         if (data.user && data.user.requiresPasswordChange) {
           this.tempEmail = email
           this.tempPassword = password
@@ -148,7 +153,6 @@ class RMLogin extends HTMLElement {
 
         if (error) throw new Error(error.message || 'Failed to update password')
 
-        // The server hook (after:changePassword) handles clearing the flag
         const userPayload = data?.user || { email: this.tempEmail }
         this.finishLogin(userPayload)
       }

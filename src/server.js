@@ -9,6 +9,8 @@ import { auth } from './auth.js'
 import { db } from './db-setup.js' // Imports the DB and triggers table creation
 import { handleApiRoutes } from './routes/api.js'
 
+import { hashPassword } from 'better-auth/crypto'
+
 // Re-export db so existing models referencing 'server.js' don't break
 export { db }
 
@@ -119,6 +121,7 @@ async function handleAdminRoutes(req, path) {
         .prepare(
           `
         SELECT
+        id,
           name,
           email,
           createdAt,
@@ -138,6 +141,72 @@ async function handleAdminRoutes(req, path) {
     } catch (error) {
       console.error('Fetch Users Error:', error)
       return new Response(JSON.stringify({ error: 'Failed to fetch users' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
+  // --- ROUTE: POST /api/admin/reset-password ---
+  // Usage: Admin resets a user's password and sets the force-change flag
+  // Inside handleAdminRoutes function in src/server.js
+
+  if (path === '/api/admin/reset-password' && req.method === 'POST') {
+    try {
+      // 1. Check Session & Role
+      const session = await auth.api.getSession({ headers: req.headers })
+
+      if (!session || session.user.role !== 'admin') {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      const body = await req.json()
+      const { userId, newPassword } = body
+
+      if (!userId || !newPassword) {
+        return new Response(JSON.stringify({ error: 'Missing userId or newPassword' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      // 2. Hash Password (Use Bun's native password hashing)
+      // FIX: Hash the variable 'newPassword', not the string literal 'newPassword'
+      const hashedPassword = await hashPassword(newPassword)
+
+      // 3. Update 'account' table directly
+      // FIX: Use db.prepare().run() (Bun syntax) instead of db.run()
+      // NOTE: This SQL assumes the user already has a 'credential' entry.
+      // If they strictly use OAuth (Google/GitHub), this UPDATE will affect 0 rows.
+      const accountUpdate = db
+        .prepare(`UPDATE account SET password = ? WHERE userId = ? AND providerId = 'credential'`)
+        .run(hashedPassword, userId)
+
+      // Optional: Handle case where user had no password credential before (e.g. Google login only)
+      if (accountUpdate.changes === 0) {
+        // Insert a new credential row if update failed
+        const now = new Date().toISOString()
+        db.prepare(
+          `
+           INSERT INTO account (id, userId, accountId, providerId, password, createdAt, updatedAt)
+           VALUES (?, ?, ?, 'credential', ?, ?, ?)
+         `,
+        ).run(crypto.randomUUID(), userId, userId, hashedPassword, now, now)
+      }
+
+      // 4. Update 'user' table flag
+      db.prepare('UPDATE user SET requiresPasswordChange = 1 WHERE id = ?').run(userId)
+
+      return new Response(JSON.stringify({ success: true, message: 'Password reset successful' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    } catch (error) {
+      console.error('Reset Password Error:', error)
+      return new Response(JSON.stringify({ error: error.message || 'Failed to reset password' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       })

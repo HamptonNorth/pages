@@ -1,91 +1,101 @@
-// version 3.1 Gemini 2.5 Pro
-// rm-button.js
-import { LitElement, html, css, unsafeCSS } from 'lit'
-import tailwindStyles from '../../public/styles/output.css' with { type: 'text' }
+// public/components/rm-button.js
+// version 1.0 Gemini 2.0 Flash
+// Changes:
+// - Implemented ElementInternals for native form association.
+// - Handles type="submit" to trigger parent form requestSubmit().
+// - Uses Shadow DOM with Tailwind link.
+
+import { LitElement, html, css } from 'lit'
 
 export class RmButton extends LitElement {
+  // 1. Enable Form Association
+  static formAssociated = true
+
   static properties = {
-    type: { type: String },
-    variant: { type: String, reflect: true },
-    size: { type: String, reflect: true },
-    disabled: { type: Boolean, reflect: true },
+    variant: { type: String }, // 'default', 'outline', 'disabled', 'danger'
+    type: { type: String }, // 'button', 'submit', 'reset'
+    loading: { type: Boolean },
+    loadingText: { type: String, attribute: 'loading-text' },
+    disabled: { type: Boolean },
   }
-
-  static styles = [
-    unsafeCSS(tailwindStyles),
-    css`
-      :host {
-        display: inline-block;
-      }
-
-      :host([disabled]) {
-        pointer-events: none;
-      }
-    `,
-  ]
 
   constructor() {
     super()
-    this.type = 'button'
+    // 2. Attach Internals to interact with parent forms
+    this.internals = this.attachInternals()
+
     this.variant = 'default'
-    this.size = 'md'
+    this.type = 'button'
+    this.loading = false
+    this.loadingText = 'Loading...'
     this.disabled = false
   }
 
-  get _sizeClasses() {
-    const sizes = {
-      xx: 'px-1 py-1 text-xs rounded-full',
-      xs: 'px-2 py-1 text-xs rounded-sm',
-      sm: 'px-2 py-1.5 text-xs rounded-sm',
-      md: 'px-2.5 py-2 text-sm rounded-md',
-      lg: 'px-3.5 py-3 text-base rounded-lg',
+  // Handle the internal button click
+  _handleClick(e) {
+    // If this is a submit button and we are inside a form, submit it!
+    if (this.type === 'submit' && this.internals.form) {
+      // requestSubmit() triggers the form's submit event and validation
+      this.internals.form.requestSubmit()
     }
-    return sizes[this.size] ?? sizes.md
-  }
-
-  get _variantClasses() {
-    if (this.disabled) {
-      return 'bg-primary-400 text-primary-200 cursor-not-allowed opacity-50'
-    }
-
-    // if (this.outline) {
-    //   return 'bg-primary-400 text-primary-200 cursor-not-allowed opacity-50'
-    // }
-
-    // class="hover:bg-primary-50 text-primary-700 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-gray-300 focus:outline-none"
-
-    const variants = {
-      // Default: Primary palette
-      default: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
-
-      // Secondary: Mapped to Secondary-500 as requested
-      secondary: 'bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-400',
-
-      outline: `bg-white text-primary-700 hover:bg-primary-50 focus:ring-primary-300 focus:outline-none border border-primary-300`,
-      ghost: `bg-white text-primary-700 hover:bg-primary-50 focus:ring-primary-300 focus:outline-none `,
-      xghost: `bg-white text-primary-500 hover:bg-primary-50 focus:ring-primary-300 focus:outline-none`,
-
-      // Danger: Mapped to Error1
-      // Note: Using brightness-90 for hover as explicit darker error shade wasn't provided
-      danger: 'bg-error1 text-white hover:brightness-90 focus:ring-error2',
-    }
-    return variants[this.variant] ?? variants.default
   }
 
   render() {
-    const classes = [
-      this._sizeClasses,
-      this._variantClasses,
-      'font-semibold transition-colors duration-200',
-      'focus:outline-none focus:ring-2 focus:ring-offset-2',
-      this.disabled ? '' : 'cursor-pointer',
-    ].join(' ')
+    const isDestructive = this.variant === 'danger'
+    const isOutline = this.variant === 'outline'
+    const isDisabled = this.disabled || this.variant === 'disabled' || this.loading
+
+    // Base classes
+    let classes =
+      'flex items-center justify-center rounded px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed '
+
+    // Variant logic (Tailwind)
+    if (isDisabled) {
+      classes += 'bg-gray-100 text-gray-400 cursor-not-allowed '
+    } else if (isOutline) {
+      classes +=
+        'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-primary-500 '
+    } else if (isDestructive) {
+      classes += 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 '
+    } else {
+      // Default Primary
+      classes += 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 '
+    }
 
     return html`
-      <button type="${this.type}" class="${classes}" ?disabled=${this.disabled} part="base">
-        <slot name="prefix"></slot>
-        <slot></slot>
-        <slot name="suffix"></slot>
+      <link rel="stylesheet" href="/styles/output.css" />
+
+      <button
+        type="${this.type}"
+        class="${classes}"
+        ?disabled="${isDisabled}"
+        @click="${this._handleClick}"
+      >
+        ${this.loading
+          ? html`
+              <svg
+                class="mr-2 -ml-1 h-4 w-4 animate-spin text-current"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              ${this.loadingText}
+            `
+          : html`<slot></slot>`}
       </button>
     `
   }

@@ -1,16 +1,22 @@
 // public/components/rm-reset-password-modal.js
-// version 1.0 Gemini 2.0 Flash
+// version 1.3 Gemini 2.0 Flash
+// Changes:
+// - Reverted to using standard type="submit" on rm-button.
+// - Removed manual @click handler and hidden submit button.
+// - Relies on rm-button's new 'formAssociated' capability.
+
 import { LitElement, html, css } from 'lit'
 import { validatePassword } from '../auth-validation.js'
+import './rm-button.js' // Ensure the button is imported
 
 export class RmResetPasswordModal extends LitElement {
   static properties = {
     isOpen: { type: Boolean },
-    user: { type: Object }, // The user object passed from the list
+    user: { type: Object },
     _isLoading: { state: true },
     _errorMessage: { state: true },
     _successMessage: { state: true },
-    _password: { state: true }, // Only tracking password locally, other data comes from 'user' prop
+    _password: { state: true },
     _passwordError: { state: true },
   }
 
@@ -42,7 +48,6 @@ export class RmResetPasswordModal extends LitElement {
   }
 
   updated(changedProperties) {
-    // When modal opens, regenerate password and clear messages
     if (changedProperties.has('isOpen') && this.isOpen) {
       this._resetFormState()
     }
@@ -81,7 +86,6 @@ export class RmResetPasswordModal extends LitElement {
 
   _getMailtoLink() {
     if (!this.user) return '#'
-
     const subject = encodeURIComponent('Password Reset for BunStarter')
     const body = encodeURIComponent(
       `Hello ${this.user.name || 'User'},
@@ -99,13 +103,16 @@ Please log in and change your password immediately.`,
 
   async _handleSubmit(e) {
     e.preventDefault()
-    if (!this.user || !this.user.id) return
+
+    if (!this.user || !this.user.id) {
+      this._errorMessage = 'User ID is missing'
+      return
+    }
 
     this._isLoading = true
     this._errorMessage = ''
     this._successMessage = ''
 
-    // Client-Side Validation
     const validationError = validatePassword(this._password)
     if (validationError) {
       this._passwordError = validationError
@@ -114,7 +121,6 @@ Please log in and change your password immediately.`,
     }
 
     try {
-      // Call our custom server route
       const response = await fetch('/api/admin/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -132,7 +138,6 @@ Please log in and change your password immediately.`,
 
       this._successMessage = 'Password reset successfully!'
 
-      // Delay closing
       setTimeout(() => {
         this._close()
       }, 1500)
@@ -160,7 +165,6 @@ Please log in and change your password immediately.`,
       ? 'opacity-100 pointer-events-auto visible'
       : 'opacity-0 pointer-events-none invisible'
 
-    // Safety check if user data hasn't loaded yet
     const userData = this.user || { name: '', email: '', role: '' }
 
     return html`
@@ -315,20 +319,15 @@ Please log in and change your password immediately.`,
             </div>
 
             <div class="mt-8 flex justify-end gap-3">
-              <button
-                type="button"
-                @click="${this._close}"
-                class="rounded bg-gray-100 px-4 py-2 font-medium text-gray-700 transition duration-200 hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
+              <rm-button variant="outline" @click="${this._close}"> Cancel </rm-button>
+              <rm-button
                 type="submit"
-                ?disabled="${this._isLoading || !!this._passwordError}"
-                class="bg-primary-500 hover:bg-primary-600 rounded px-4 py-2 font-bold text-white transition duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+                ?loading="${this._isLoading}"
+                loading-text="Saving..."
+                variant="${!!this._passwordError ? 'disabled' : 'default'}"
               >
-                ${this._isLoading ? 'Saving...' : 'Reset Password'}
-              </button>
+                Reset Password
+              </rm-button>
             </div>
           </form>
         </div>
