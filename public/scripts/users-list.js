@@ -112,8 +112,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const htmlRows = users
       .map((user) => {
         // Format dates safely
-        const created = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'
-        const updated = user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : '-'
+        const created = user.createdAt
+          ? new Date(user.createdAt).toLocaleString('en-GB', {
+              dateStyle: 'short',
+              timeStyle: 'short',
+            })
+          : '-'
+        const updated = user.updatedAt
+          ? new Date(user.updatedAt).toLocaleString('en-GB', {
+              dateStyle: 'short',
+              timeStyle: 'short',
+            })
+          : '-'
         const pwChange = user.requiresPasswordChange ? 'Yes' : 'No'
         const name = user.name || '-'
         const email = user.email || '-'
@@ -135,12 +145,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           data-user="${safeUserData}"
           title="Right-click for options"
         >
-          <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">${name}</td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${email}</td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 capitalize">${role}</td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${created}</td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${updated}</td>
-          <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${pwChange}</td>
+          <td class="whitespace-nowrap py-4 pl-2 pr-3 text-xs font-medium text-gray-900 sm:pl-6">${name}</td>
+          <td class="whitespace-nowrap px-3 py-2 text-xs text-gray-500">${email}</td>
+          <td class="whitespace-nowrap px-3 py-2 text-xs text-gray-500 capitalize">${role}</td>
+          <td class="whitespace-nowrap px-3 py-2 text-xs text-gray-500">${created}</td>
+          <td class="whitespace-nowrap px-3 py-2 text-xs text-gray-500">${updated}</td>
+          <td class="whitespace-nowrap px-3 py-2 text-xs text-gray-500 text-center">${pwChange}</td>
         </tr>
       `
       })
