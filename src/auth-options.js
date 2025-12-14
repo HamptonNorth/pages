@@ -43,6 +43,9 @@ export const authOptions = {
     enabled: true,
   },
   user: {
+    deleteUser: {
+      enabled: true,
+    },
     additionalFields: {
       requiresPasswordChange: {
         type: 'boolean',

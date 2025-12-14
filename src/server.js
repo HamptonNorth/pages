@@ -213,6 +213,48 @@ async function handleAdminRoutes(req, path) {
     }
   }
 
+  // --- DELETE USER (NEW) ---
+  if (path === '/api/admin/delete-user' && req.method === 'POST') {
+    try {
+      const session = await auth.api.getSession({ headers: req.headers })
+      if (!session || session.user.role !== 'admin') {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      const body = await req.json()
+      const { userId } = body
+
+      if (!userId) {
+        return new Response(JSON.stringify({ error: 'Missing userId' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+
+      // better-auth removeUser handles cascading deletes
+      const result = await auth.api.removeUser({
+        body: { userId },
+        headers: req.headers,
+      })
+
+      if (result.error) throw new Error(result.error.message)
+
+      return new Response(JSON.stringify({ success: true, message: 'User deleted' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    } catch (error) {
+      console.error('Delete User Error:', error)
+      return new Response(JSON.stringify({ error: error.message || 'Failed to delete user' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
   // --- ROUTE: POST /api/admin/seed ---
   // Usage: Creates the initial Admin user if one does not exist.
   if (path === '/api/admin/seed' && req.method === 'POST') {

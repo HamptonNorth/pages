@@ -1,13 +1,21 @@
 // public/scripts/users-list.js
-// version 1.2 Gemini 2.0 Flash
+// version 1.3 Gemini 2.0 Flash
 // Changes:
-// - Updated contextmenu handler to dispatch 'request-password-reset' to the window
-// - Removed direct DOM manipulation of the modal
+// - Implemented custom right-click context menu logic
+// - Handles 'Reset Password' and 'Delete User' via global events
+// - Hides menu on document click
 
 document.addEventListener('DOMContentLoaded', async () => {
   const usersContainer = document.getElementById('usersResult')
   const loadingMessage = document.getElementById('loadingMessage')
   const errorMessage = document.getElementById('errorMessage')
+
+  // Context Menu Elements
+  const contextMenu = document.getElementById('userContextMenu')
+  const ctxResetBtn = document.getElementById('ctxResetPassword')
+  const ctxDeleteBtn = document.getElementById('ctxDeleteUser')
+
+  let currentTargetUser = null
 
   // Helper to safely escape JSON for insertion into data attribute
   const escapeHtml = (str) => {
@@ -18,6 +26,68 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;')
   }
+
+  // --- Context Menu Functions ---
+
+  const hideContextMenu = () => {
+    if (contextMenu) {
+      contextMenu.classList.add('hidden')
+    }
+    currentTargetUser = null
+  }
+
+  const showContextMenu = (e, userData) => {
+    if (!contextMenu) return
+
+    currentTargetUser = userData
+
+    // Position menu at mouse coordinates
+    contextMenu.style.top = `${e.clientY}px`
+    contextMenu.style.left = `${e.clientX}px`
+
+    contextMenu.classList.remove('hidden')
+  }
+
+  // Global click listener to close menu when clicking elsewhere
+  document.addEventListener('click', hideContextMenu)
+
+  // Prevent context menu from closing if clicking inside it
+  if (contextMenu) {
+    contextMenu.addEventListener('click', (e) => e.stopPropagation())
+  }
+
+  // Button Handlers
+  if (ctxResetBtn) {
+    ctxResetBtn.addEventListener('click', () => {
+      if (currentTargetUser) {
+        window.dispatchEvent(
+          new CustomEvent('request-password-reset', {
+            detail: currentTargetUser,
+            bubbles: true,
+            composed: true,
+          }),
+        )
+      }
+      hideContextMenu()
+    })
+  }
+
+  if (ctxDeleteBtn) {
+    ctxDeleteBtn.addEventListener('click', () => {
+      if (currentTargetUser) {
+        window.dispatchEvent(
+          new CustomEvent('request-delete-user', {
+            detail: currentTargetUser,
+            bubbles: true,
+            composed: true,
+          }),
+        )
+      }
+      hideContextMenu()
+    })
+  }
+
+  // --- Fetch Users ---
 
   try {
     const response = await fetch('/api/admin/users')
@@ -63,7 +133,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <tr
           class="hover:bg-primary-50 transition-colors cursor-pointer user-row"
           data-user="${safeUserData}"
-          title="Right-click to reset password"
+          title="Right-click for options"
         >
           <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">${name}</td>
           <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${email}</td>
@@ -78,7 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     usersContainer.innerHTML = htmlRows
 
-    // Attach Right Click Event Listeners
+    // Attach Right Click Event Listeners to Rows
     const rows = document.querySelectorAll('.user-row')
     rows.forEach((row) => {
       row.addEventListener('contextmenu', (e) => {
@@ -88,18 +158,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           // Parse user data from the row
           const userData = JSON.parse(row.getAttribute('data-user'))
 
-          // Dispatch global event for the header to pick up
-          window.dispatchEvent(
-            new CustomEvent('request-password-reset', {
-              detail: userData,
-              bubbles: true,
-              composed: true,
-            }),
-          )
-
-          console.log(`Requested password reset for: ${userData.email}`)
+          showContextMenu(e, userData)
         } catch (err) {
-          console.error('Error parsing user data for modal:', err)
+          console.error('Error parsing user data for menu:', err)
         }
       })
     })
