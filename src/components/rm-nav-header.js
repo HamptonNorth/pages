@@ -1,8 +1,15 @@
 // public/components/rm-nav-header.js
-// version 1.1 Gemini 2.0 Flash
+// version 1.2 Gemini 2.0 Flash
+// Changes:
+// - Imported rm-reset-password-modal.js
+// - Added state for reset password modal (isOpen, user)
+// - Added global event listener 'request-password-reset' to open modal from anywhere
+// - Rendered <rm-reset-password-modal> in the DOM
+
 import { LitElement, html, nothing } from 'lit'
 import { authClient } from '../auth-client.js'
 import './rm-add-user-modal.js'
+import './rm-reset-password-modal.js' // Import the reset modal
 
 export class RmHeader extends LitElement {
   static properties = {
@@ -12,6 +19,11 @@ export class RmHeader extends LitElement {
     _isCountriesOpen: { state: true },
     _isSignOutModalOpen: { state: true },
     _isAddUserModalOpen: { state: true },
+
+    // New State for Reset Password
+    _isResetPasswordModalOpen: { state: true },
+    _resetPasswordUser: { state: true },
+
     isSignedIn: { type: Boolean },
     userRole: { type: String },
   }
@@ -25,6 +37,9 @@ export class RmHeader extends LitElement {
     this._isSignOutModalOpen = false
     this._isAddUserModalOpen = false
 
+    this._isResetPasswordModalOpen = false
+    this._resetPasswordUser = null
+
     this.isSignedIn = false
     this.userRole = null
   }
@@ -37,13 +52,26 @@ export class RmHeader extends LitElement {
     super.connectedCallback()
     window.addEventListener('auth-changed', this._handleAuthChange.bind(this))
 
-    // RULE 1: Use better-auth API to determine session status
+    // Global Event Listener: Allow any component to trigger the reset modal
+    window.addEventListener('request-password-reset', this._handleResetPasswordRequest.bind(this))
+
     await this._checkSession()
   }
 
   disconnectedCallback() {
     window.removeEventListener('auth-changed', this._handleAuthChange.bind(this))
+    window.removeEventListener(
+      'request-password-reset',
+      this._handleResetPasswordRequest.bind(this),
+    )
     super.disconnectedCallback()
+  }
+
+  _handleResetPasswordRequest(e) {
+    // Expects e.detail to be the user object { id, name, email, role }
+    this._resetPasswordUser = e.detail || null
+    this._isMenuOpen = false // Close nav menu if open
+    this._isResetPasswordModalOpen = true
   }
 
   async _checkSession() {
@@ -52,7 +80,6 @@ export class RmHeader extends LitElement {
 
       if (data) {
         this.isSignedIn = true
-        // Assuming the role is stored on the user object in the session
         this.userRole = data.user.role || 'user'
       } else {
         this.isSignedIn = false
@@ -65,11 +92,8 @@ export class RmHeader extends LitElement {
     }
   }
 
-  // Handle events from other components (like immediate login updates)
   _handleAuthChange(e) {
     this.isSignedIn = e.detail.signedIn
-    // If we just logged in via event, we might need to fetch the role
-    // or pass it in the event detail. For safety, we re-check session.
     if (this.isSignedIn) {
       this._checkSession()
     } else {
@@ -114,6 +138,11 @@ export class RmHeader extends LitElement {
     this._isAddUserModalOpen = false
   }
 
+  closeResetPasswordModal() {
+    this._isResetPasswordModalOpen = false
+    this._resetPasswordUser = null
+  }
+
   openSignOutModal() {
     this._isMenuOpen = false
     this._isSignOutModalOpen = true
@@ -125,15 +154,11 @@ export class RmHeader extends LitElement {
 
   async performSignOut() {
     try {
-      // Use better-auth client for sign out
       await authClient.signOut()
-
       localStorage.removeItem('user_email')
-
       this.isSignedIn = false
       this.userRole = null
       this._isSignOutModalOpen = false
-
       window.location.href = '/'
     } catch (error) {
       console.error('Sign out failed', error)
@@ -164,7 +189,6 @@ export class RmHeader extends LitElement {
       return `/menu-test.html?area=${area}&text=${encodeURIComponent(text)}`
     }
 
-    // RULE 5: Check specifically for admin role
     const isAdmin = this.isSignedIn && this.userRole === 'admin'
 
     return html`
@@ -200,6 +224,7 @@ export class RmHeader extends LitElement {
           <div class="flex items-center gap-2 sm:gap-4">
             <nav class="mr-2 hidden items-center gap-6 text-sm sm:flex">
               <a href="/" class="${getHeaderLinkClass('/')}">Home</a>
+
               <div class="relative">
                 <button
                   @click="${this.toggleCountries}"
@@ -250,7 +275,6 @@ export class RmHeader extends LitElement {
                 @click="${this.toggleApps}"
                 class="text-primary-300 hover:bg-primary-600 rounded p-1 hover:text-white focus:outline-none"
                 aria-label="Apps"
-                title="Applications"
               >
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -361,11 +385,6 @@ export class RmHeader extends LitElement {
                               Add new user
                             </button>
                             <a
-                              href="${getTestLink('user_admin', 'Reset password')}"
-                              class="hover:bg-primary-100 block px-4 py-2 text-sm"
-                              >Reset password</a
-                            >
-                            <a
                               href="/users-list.html"
                               class="hover:bg-primary-100 block px-4 py-2 text-sm"
                               >List users</a
@@ -409,7 +428,6 @@ export class RmHeader extends LitElement {
               class="fixed inset-0 z-40 bg-black/50 transition-opacity"
               @click="${this.toggleDrawer}"
             ></div>
-
             <aside class="fixed top-0 left-0 z-50 h-full w-60 overflow-y-auto bg-white shadow-2xl">
               <div
                 class="border-primary-200 bg-primary-50 flex items-center justify-between border-b p-4"
@@ -490,8 +508,16 @@ export class RmHeader extends LitElement {
           `
         : nothing}
 
-      <rm-add-user-modal .isOpen="${this._isAddUserModalOpen}" @close="${this.closeAddUserModal}">
-      </rm-add-user-modal>
+      <rm-add-user-modal
+        .isOpen="${this._isAddUserModalOpen}"
+        @close="${this.closeAddUserModal}"
+      ></rm-add-user-modal>
+
+      <rm-reset-password-modal
+        .isOpen="${this._isResetPasswordModalOpen}"
+        .user="${this._resetPasswordUser}"
+        @close-modal="${this.closeResetPasswordModal}"
+      ></rm-reset-password-modal>
     `
   }
 }

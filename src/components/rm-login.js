@@ -1,4 +1,4 @@
-// version 3.4 Gemini 2.5 Pro (Stage 3 - Password Change Flow)
+// version 3.5 Gemini 2.0 Flash - Fixed Duplicate ID
 // public/components/rm-login.js
 
 import { authClient } from '../auth-client.js'
@@ -37,10 +37,8 @@ class RMLogin extends HTMLElement {
             <input type="email" id="email" required placeholder="you@company.com"
               class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
           </div>
-
-          <div class="mb-6" id="password-group">
-            <label for="password" id="password-label" class="block mb-2 text-gray-600 text-sm font-medium">Password</label>
-            <input type="password" id="password" required placeholder="••••••••"
+            <label for="login-password" id="password-label" class="block mb-2 text-gray-600 text-sm font-medium">Password</label>
+            <input type="password" id="login-password" required placeholder="••••••••"
               class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
           </div>
 
@@ -112,9 +110,8 @@ class RMLogin extends HTMLElement {
 
     try {
       if (!this.isChangePasswordMode) {
-        // --- SIGN IN ---
-        const email = this.shadowRoot.getElementById('email').value
-        const password = this.shadowRoot.getElementById('password').value
+        // UPDATED: ID CHANGED HERE
+        const password = this.shadowRoot.getElementById('login-password').value
 
         const { data, error } = await authClient.signIn.email({
           email,
