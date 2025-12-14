@@ -1,3 +1,4 @@
+// public/scripts/users-list.js
 // version 1.2 Gemini 2.0 Flash
 // Changes:
 // - Updated contextmenu handler to dispatch 'request-password-reset' to the window
@@ -6,6 +7,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const usersContainer = document.getElementById('usersResult')
   const loadingMessage = document.getElementById('loadingMessage')
+  const errorMessage = document.getElementById('errorMessage')
+
   // Helper to safely escape JSON for insertion into data attribute
   const escapeHtml = (str) => {
     return str
@@ -37,6 +40,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const htmlRows = users
+      .map((user) => {
+        // Format dates safely
         const created = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'
         const updated = user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : '-'
         const pwChange = user.requiresPasswordChange ? 'Yes' : 'No'
@@ -76,6 +81,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Attach Right Click Event Listeners
     const rows = document.querySelectorAll('.user-row')
     rows.forEach((row) => {
+      row.addEventListener('contextmenu', (e) => {
+        e.preventDefault() // Prevent default browser context menu
 
         try {
           // Parse user data from the row
