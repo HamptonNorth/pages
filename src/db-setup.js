@@ -157,7 +157,7 @@ export function initialiseTestCountries(tableName = 'test_countries') {
       (99, 'PRY', 'Paraguay', 'Republic of Paraguay', 'Paraguayan Guarani', 'PYG', '.py', 6.9, 47.4),
       (100, 'BHR', 'Bahrain', 'Kingdom of Bahrain', 'Bahraini Dinar', 'BHD', '.bh', 1.5, 47.4)
     ;`)
-  console.log(`   - Created ${tableName}`)
+  console.log(`   - Created and populated ${tableName} `)
 }
 
 export function initialiseTestProducts(tableName = 'test_products') {
@@ -239,7 +239,7 @@ export function initialiseTestProducts(tableName = 'test_products') {
 
   try {
     insertTransaction(productsToInsert)
-    console.log(`${tableName} populated.`)
+    console.log(`   - Created and populated ${tableName} `)
   } catch (error) {
     console.error('Insert transaction failed:', error)
   }

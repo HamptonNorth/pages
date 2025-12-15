@@ -46,3 +46,6 @@ public/components/client-components.js
 
 # ignore data (SQLite files)
 data/
+
+# better-auth migration scripts
+better-auth_migrations/*.sql

@@ -1,10 +1,11 @@
 // src/auth-options.js
+// version 1.3 Gemini 2.0 Flash
+// Changes:
+// - Added 'tempPasswordExpiresAt' to user.additionalFields.
+
 import { admin } from 'better-auth/plugins'
 import { APIError } from 'better-auth/api'
 import { validatePassword } from './auth-validation.js'
-
-// ❌ REMOVED: import { db } ...
-// ❌ REMOVED: passwordResetPlugin (Moved to src/auth.js)
 
 /**
  * Pure Logic Plugin: Strong Password Validation
@@ -46,8 +47,6 @@ export const authOptions = {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      // Optional: Add scope if you need more than email/profile
-      // scope: ["profile", "email"],
     },
     github: {
       clientId: process.env.GITHUB_CLIENT_ID,
@@ -64,8 +63,12 @@ export const authOptions = {
         required: false,
         defaultValue: false,
       },
+      // NEW: Store when the temporary password expires
+      tempPasswordExpiresAt: {
+        type: 'date',
+        required: false,
+      },
     },
   },
-  // Only include plugins that work EVERYWHERE
   plugins: [admin(), passwordValidationPlugin],
 }

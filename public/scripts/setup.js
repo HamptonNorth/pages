@@ -1,7 +1,9 @@
 // public/scripts/setup.js
-// version 1.2 Gemini 2.5 Pro
+// version 1.4 Gemini 2.5 Pro
 // Changes:
-// - Added validation for GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET.
+// - FIXED: Closes DB connection before spawning server to prevent locking.
+// - FIXED: Enabled server logging (stdio: 'inherit') to debug 500 errors.
+// - FIXED: Omitted 'tempPasswordExpiresAt' in payload instead of sending null.
 
 import Database from 'better-sqlite3'
 import { execSync, spawn } from 'child_process'
@@ -37,12 +39,6 @@ if (!ADMIN_PASSWORD) missingVars.push('ADMIN_PASSWORD')
 if (!ADMIN_NAME) missingVars.push('ADMIN_NAME')
 if (!PORT) missingVars.push('PORT')
 
-// Warn/Error for Social Keys
-if (!GOOGLE_CLIENT_ID) missingVars.push('GOOGLE_CLIENT_ID')
-if (!GOOGLE_CLIENT_SECRET) missingVars.push('GOOGLE_CLIENT_SECRET')
-if (!GITHUB_CLIENT_ID) missingVars.push('GITHUB_CLIENT_ID')
-if (!GITHUB_CLIENT_SECRET) missingVars.push('GITHUB_CLIENT_SECRET')
-
 if (missingVars.length > 0) {
   console.error('\n❌ Error: Missing Environment Variables.')
   console.error(`   Checked for .env at: ${envPath}`)
@@ -52,7 +48,6 @@ if (missingVars.length > 0) {
 } else {
   console.log('.env variables loaded successfully.')
   console.log('   - ADMIN_NAME:', ADMIN_NAME)
-  console.log('   - Social Keys: Google & GitHub Set')
 }
 
 // 1. Create DB Directory & File
@@ -66,7 +61,6 @@ console.log(`✅ Database created at: ${dbPath}`)
 // 2. Run Better-Auth CLI (Generate & Migrate)
 console.log('📦 Running Better-Auth Migrations...')
 try {
-  // Calculate path relative to process.cwd()
   const absConfigPath = join(__dirname, 'node-auth-config.js')
   const configPath = relative(process.cwd(), absConfigPath)
 
@@ -78,10 +72,7 @@ try {
     env: { ...process.env },
   }
 
-  // Generate (Updates schema.json based on auth-options.js)
   execSync(`npx @better-auth/cli generate --config ${configPath}`, execOptions)
-
-  // Migrate (Applies schema changes to sqlite)
   execSync(`npx @better-auth/cli migrate --config ${configPath}`, execOptions)
   console.log('✅ Auth tables created/updated successfully.')
 } catch (error) {
@@ -101,16 +92,22 @@ try {
   if (!existing) {
     console.log('   Starting temporary server to handle API request...')
 
+    // CRITICAL FIX: Close the setup script's DB connection BEFORE spawning the server.
+    // This prevents "Database Locked" errors when the server tries to write to the same file.
+    db.close()
+    console.log('   (Closed local DB connection to release locks)')
+
     // 1. Start the server in the background
     const serverProcess = spawn('bun', ['src/server.js'], {
       cwd: projectRoot,
-      stdio: 'ignore',
+      // CRITICAL FIX: 'inherit' allows us to see the server's console logs/errors
+      stdio: ['ignore', 'inherit', 'inherit'],
       detached: false,
       env: { ...process.env },
     })
 
     // 2. Wait for server to boot
-    await wait(3000)
+    await wait(5000)
 
     try {
       console.log('   Sending Sign Up request...')
@@ -122,15 +119,20 @@ try {
           email: ADMIN_EMAIL,
           password: ADMIN_PASSWORD,
           name: ADMIN_NAME,
-          data: { requiresPasswordChange: false },
+          data: {
+            requiresPasswordChange: false,
+            // Note: Omitted tempPasswordExpiresAt (better than sending null)
+          },
         }),
       })
 
       if (response.ok) {
         console.log('✅ Admin user created successfully via API.')
 
-        // 2. Manually promote to Admin via direct DB access
-        const updateInfo = db
+        // Re-open DB connection for the final manual update
+        const dbFinal = new Database(dbPath)
+
+        const updateInfo = dbFinal
           .prepare("UPDATE user SET role = 'admin' WHERE email = ?")
           .run(ADMIN_EMAIL)
 
@@ -139,6 +141,7 @@ try {
         } else {
           console.error('❌ Failed to promote user to admin in DB.')
         }
+        dbFinal.close()
       } else {
         const errText = await response.text()
         console.error(`❌ API Error: ${response.status} - ${errText}`)
@@ -147,12 +150,12 @@ try {
       console.error(`❌ Could not connect to localhost:${PORT}`)
       console.error('   Details:', reqErr.message)
     } finally {
-      // 4. Kill the temporary server
       serverProcess.kill()
       console.log('   Temporary server stopped.')
     }
   } else {
     console.log('   Admin user already exists (Skipping).')
+    db.close()
   }
 } catch (err) {
   console.error('❌ Seeding failed:', err.message)

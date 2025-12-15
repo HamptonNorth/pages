@@ -1,3 +1,9 @@
+// public/components/rm-add-user-modal.js
+// version 1.1 Gemini 2.0 Flash
+// Changes:
+// - Added logic to calculate 'tempPasswordExpiresAt' based on env var.
+// - Passing 'tempPasswordExpiresAt' in createUser payload.
+
 import { LitElement, html, css } from 'lit'
 import { authClient } from '../auth-client.js' // Adjust path if needed
 import { validatePassword } from '../auth-validation.js' // Adjust path if needed
@@ -9,7 +15,7 @@ export class RmAddUserModal extends LitElement {
     _errorMessage: { state: true },
     _successMessage: { state: true },
     _formData: { state: true },
-    _passwordError: { state: true }, // New state for live validation feedback
+    _passwordError: { state: true },
   }
 
   static styles = css`
@@ -17,7 +23,6 @@ export class RmAddUserModal extends LitElement {
       display: block;
       font-family: sans-serif;
     }
-    /* Simple utility classes for Lit Shadow DOM */
     .text-red-600 {
       color: #dc2626;
     }
@@ -37,7 +42,6 @@ export class RmAddUserModal extends LitElement {
     this._successMessage = ''
     this._passwordError = null
 
-    // Initialize with a generated password that MEETS the new criteria
     this._formData = {
       name: '',
       email: '',
@@ -47,29 +51,20 @@ export class RmAddUserModal extends LitElement {
     }
   }
 
-  /**
-   * Generates a random 12-char password that guarantees:
-   * 1 Upper, 1 Number, mixed case, no ambiguous chars.
-   */
   _generateStrongPassword() {
     const length = 12
-    // Guaranteed sets
     const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
     const numbers = '23456789'
     const all = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
 
     let result = ''
-
-    // Ensure at least 1 upper and 1 number to pass validation
     result += upper.charAt(Math.floor(Math.random() * upper.length))
     result += numbers.charAt(Math.floor(Math.random() * numbers.length))
 
-    // Fill rest randomly
     for (let i = 2; i < length; i++) {
       result += all.charAt(Math.floor(Math.random() * all.length))
     }
 
-    // Shuffle the result so the required chars aren't always at the start
     return result
       .split('')
       .sort(() => 0.5 - Math.random())
@@ -79,8 +74,6 @@ export class RmAddUserModal extends LitElement {
   _regeneratePassword() {
     const newPass = this._generateStrongPassword()
     this._formData = { ...this._formData, password: newPass }
-
-    // Clear any previous validation errors since we know this one is valid
     this._passwordError = null
     this.requestUpdate()
   }
@@ -92,7 +85,6 @@ export class RmAddUserModal extends LitElement {
       [name]: type === 'checkbox' ? checked : value,
     }
 
-    // Live validation for password field
     if (name === 'password') {
       this._passwordError = validatePassword(value)
     }
@@ -122,7 +114,6 @@ Please log in and change your password immediately.`,
     this._errorMessage = ''
     this._successMessage = ''
 
-    // 1. Client-Side Validation check before sending
     const validationError = validatePassword(this._formData.password)
     if (validationError) {
       this._passwordError = validationError
@@ -131,6 +122,16 @@ Please log in and change your password immediately.`,
     }
 
     try {
+      // 1. Calculate Expiration
+      // process.env.TEMP_PASSWORD_LAPSE_HOURS is injected by Bun.build in server.js
+      const hours = parseInt(process.env.TEMP_PASSWORD_LAPSE_HOURS || '48')
+      let expiresAt = null
+
+      if (this._formData.requiresPasswordChange) {
+        expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000)
+      }
+
+      // 2. Create User
       const { data, error } = await authClient.admin.createUser({
         name: this._formData.name,
         email: this._formData.email,
@@ -138,6 +139,8 @@ Please log in and change your password immediately.`,
         role: this._formData.role,
         data: {
           requiresPasswordChange: this._formData.requiresPasswordChange,
+          // 3. Send the calculated expiration date to the DB
+          tempPasswordExpiresAt: expiresAt,
         },
       })
 
@@ -155,13 +158,11 @@ Please log in and change your password immediately.`,
         }),
       )
 
-      // Delay closing so user sees success message
       setTimeout(() => {
         this._resetForm()
         this._close()
       }, 1500)
     } catch (err) {
-      // 2. Meaningful Server Error
       this._errorMessage = err.message || 'Failed to create user.'
     } finally {
       this._isLoading = false
