@@ -27,8 +27,6 @@ export class RmHead extends LitElement {
       document.title = this.pageTitle
     }
 
-    this.addMetaTag('charset', 'UTF-8')
-    this.addMetaTag('viewport', 'width=device-width, initial-scale=1.0')
     this.addMetaTag('description', 'Bun starter template')
     this.addMetaTag('author', 'RNC')
     this.addMetaTag('keywords', 'Bun 1.3 bun-serve tailwind tailwindcss Lit SQLite')
