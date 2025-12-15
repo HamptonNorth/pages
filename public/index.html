@@ -13,33 +13,43 @@
     <rm-default-container>
       <rm-nav-header class="block"></rm-nav-header>
 
-      <main class="mt-4">
+      <main class="mx-8 mt-6 max-w-3xl">
         <article>
           <div class="text-primary-700 mt-2 ml-8 text-4xl font-semibold">Welcome</div>
           <section>
             <div class="text-primary-600 mx-8 mt-8 mb-4 text-2xl">Section Title</div>
 
-            <div class="text-primary-600 mx-8 my-2 text-base">
-              A home page for testing the bun-starter code
+            <div class="text-primary-600 mx-8 my-4 text-base">
+              <span class="text-primary-900 bg-primary-50 rounded-lg p-2">bun-starter</span> is an
+              application to be used as a starting template for other production applications. The
+              pages are intended to illustrate usage. For instance View All Countries illustrates a
+              get api call, Search Countries illustrates a get api call passing a paramter whilst
+              the product pages illustrate POST api calls. You get the idea. testing bun
             </div>
 
-            <div class="text-primary-600 mx-8 my-2 text-base">
-              The stack to build bunstarter is:
+            <div class="text-primary-600 mx-8 my-4 text-base">
+              The stack used to build bunstarter is:
               <ul class="mx-8 my-4 list-disc">
-                <li class="">Bun</li>
-                <li class="">Lit (reduce boilerplate for components)</li>
+                <li class="">Bun 1.3.4</li>
+                <li class="">Lit (to reduce boilerplate for components)</li>
                 <li class="">SQLite for persistent storage</li>
                 <li class="">TailwindCSS</li>
+                <li class="">better-auth library</li>
               </ul>
               The Bun app is built as a combination static file server and API server using
               bunserve(). The TailwindCSS colours used have are coded as a custom theme with a
-              primary and secondary pallette along with custom error colours and highlights.
+              primary and secondary pallette along with custom error colours and highlights. These
+              can be viwed from the About page.
+            </div>
+            <div class="text-primary-600 mx-8 my-4 text-base">
+              Authentication, using the better-auth library, assumes an in house application where
+              the admin user allocates new users and passwords
             </div>
             <div class="text-primary-600 mx-8 my-2 text-base">
-              Releases tagged 0.1.4 and above in gitHub, add authentication using the better-auth
-              library.
+              A script is inculded to set up the SQLite database, create a default admin user and
+              poulate the test tables for countries and products.
             </div>
-            <div class="text-primary-600 mx-8 my-2 text-base">
+            <div class="text-primary-600 mx-8 my-4 text-base">
               The
               <span class="text-secondary-700 underline"
                 ><a
@@ -48,7 +58,7 @@
                   >readme.md</a
                 ></span
               >
-              file contains install and set up notes. It will open in a new tab.
+              file contains more details. It will open in a new tab.
             </div>
           </section>
         </article>
