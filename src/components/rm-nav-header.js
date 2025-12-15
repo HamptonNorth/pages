@@ -386,8 +386,42 @@ export class RmHeader extends LitElement {
                   Close
                 </button>
               </div>
+
               <div class="flex flex-col py-2">
                 <a href="/" class="${getDrawerLinkClass('/')}">Home</a>
+
+                <a href="/products.html" class="${getDrawerLinkClass('/products.html')}"
+                  >Products</a
+                >
+                <a href="/about.html" class="${getDrawerLinkClass('/about.html')}">About</a>
+
+                <div
+                  class="text-primary-500 bg-primary-50 mt-2 px-4 py-2 text-xs font-bold tracking-wider uppercase"
+                >
+                  Countries
+                </div>
+                <a href="/countries.html" class="${getDrawerLinkClass('/countries.html')} pl-8"
+                  >View all countries</a
+                >
+                <a
+                  href="/countries-search.html"
+                  class="${getDrawerLinkClass('/countries-search.html')} pl-8"
+                  >Search countries</a
+                >
+
+                <div
+                  class="text-primary-500 bg-primary-50 mt-2 px-4 py-2 text-xs font-bold tracking-wider uppercase"
+                >
+                  Resources
+                </div>
+                <a href="/colours.html" class="${getDrawerLinkClass('/colours.html')} pl-8"
+                  >Colour swatches</a
+                >
+                <a
+                  href="/component-variants.html"
+                  class="${getDrawerLinkClass('/component-variants.html')} pl-8"
+                  >Custom components</a
+                >
               </div>
             </aside>`
         : nothing}
