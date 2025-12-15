@@ -13,17 +13,23 @@
     <rm-default-container>
       <rm-nav-header class="block"></rm-nav-header>
 
-      <main class="mt-4 w-full max-w-4xl px-4">
+      <main class="mx-auto mt-4 w-full max-w-4xl px-4">
         <article>
-          <div class="text-primary-700 mt-2 ml-8 text-4xl font-semibold">Products</div>
+          <div class="text-primary-700 mt-2 text-3xl font-semibold md:ml-8 md:text-4xl">
+            Products
+          </div>
           <section>
-            <div class="text-primary-600 mx-8 mt-8 mb-4 text-2xl">Add, amend and delete</div>
+            <div class="text-primary-600 mt-8 mb-4 text-xl md:mx-8 md:text-2xl">
+              Add, amend and delete
+            </div>
 
-            <div class="ml-8"><rm-button id="getProductsBtn"> Get Products </rm-button></div>
-            <div id="allProductsResponse" class="mx-8"></div>
+            <div class="md:ml-8">
+              <rm-button id="getProductsBtn"> View all Products </rm-button>
+            </div>
+            <div id="allProductsResponse" class="md:mx-8"></div>
           </section>
 
-          <section class="pt-8 pl-8">
+          <section class="pt-8 md:pl-8">
             <div class="mb-6 w-full max-w-2xl">
               <h3 class="text-primary-700 mb-3 text-lg font-semibold">Select Mode:</h3>
               <div class="flex gap-6">
@@ -62,8 +68,10 @@
             </div>
           </section>
 
-          <section class="pt-4 pl-8">
-            <div class="bg-primary-200/10 w-full max-w-2xl rounded-sm p-8 shadow-xs">
+          <section class="pt-4 md:pl-8">
+            <div
+              class="bg-primary-200/10 relative w-full max-w-2xl rounded-sm p-4 shadow-xs md:p-8"
+            >
               <h2 id="formTitle" class="text-primary-700 mb-6 text-2xl font-bold">
                 Add New Product
               </h2>
@@ -118,7 +126,7 @@
                     id="product_description"
                     name="description"
                     required
-                    class="border-primary-300 focus:ring-primary-500 w-full flex-1 rounded-md border bg-red-100 px-4 py-2 focus:border-transparent focus:ring-2 focus:outline-none"
+                    class="border-primary-300 focus:ring-primary-500 w-full flex-1 rounded-md border px-4 py-2 focus:border-transparent focus:ring-2 focus:outline-none"
                     placeholder="Enter product description"
                   />
                 </div>
