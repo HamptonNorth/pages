@@ -11,7 +11,7 @@
   <body class="bg-primary-50">
     <rm-default-container>
       <rm-nav-header class="block"></rm-nav-header>
-      <main class="mt-4 w-4xl">
+      <main class="mt-4 w-full">
         <article>
           <div class="text-primary-700 mt-2 ml-8 text-4xl font-semibold">Countries</div>
           <section>
@@ -25,21 +25,23 @@
               Official Name fields.
             </div>
 
-            <div class="text-primary-600 mx-8 my-2 flex text-base">
-              <div class="flex">
-                <div class="focus-within:relative">
-                  <input
-                    id="searchTerm"
-                    type="text"
-                    name="searchTerm"
-                    required
-                    placeholder="Search countries"
-                    class="text-primary-700 outline-primary-300 placeholder:text-primary-400 focus:outline-primary-600 w-xs rounded-sm bg-white py-1.5 pr-3 pl-4 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6"
-                  />
-                </div>
+            <div
+              class="text-primary-600 mx-8 my-2 flex flex-col items-start gap-4 text-base sm:flex-row sm:items-center"
+            >
+              <div class="w-full focus-within:relative sm:w-auto">
+                <input
+                  id="searchTerm"
+                  type="text"
+                  name="searchTerm"
+                  required
+                  placeholder="Search countries"
+                  class="text-primary-700 outline-primary-300 placeholder:text-primary-400 focus:outline-primary-600 w-full max-w-[340px] rounded-sm bg-white py-1.5 pr-3 pl-4 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:w-xs sm:text-sm/6"
+                />
               </div>
-              <rm-button id="searchCountriesBtn" size="sm" class="ml-8">Search Countries</rm-button>
-              <div id="searchError" class="text-error1 mt-2 ml-4 text-sm font-semibold"></div>
+
+              <rm-button id="searchCountriesBtn" size="sm">Search Countries</rm-button>
+
+              <div id="searchError" class="text-error1 text-sm font-semibold"></div>
             </div>
             <div id="countriesResult" class="mx-8 mt-4 text-xs"></div>
           </section>

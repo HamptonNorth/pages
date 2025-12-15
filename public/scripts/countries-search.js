@@ -47,32 +47,33 @@ async function searchCountries() {
     } else {
       // resultDiv.innerHTML = JSON.stringify(countries)
       resultDiv.innerHTML = `
-        <div class=""> Countries containing:  <span class="pl-2 font-semibold text-sm">${term}</span>
-          <table class="min-w-full divide-y divide-slate-200 mt-4 text-xs">
-            <thead class="bg-slate-50">
-              <tr>
-                <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase">ISO Code</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase">ISO Name</th>
-                <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase">Official Name</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-slate-100 ">
+              <div class=""> Countries containing:  <span class="pl-2 font-semibold text-sm">${term}</span>
 
-
-              ${countries
-                .map(
-                  (c) => `
-                <tr>
-                  <td class="px-4 py-1 text-xs text-slate-700 font-light ">${c.iso_code}</td>
-                  <td class="px-4 py-1 text-xs text-slate-700 font-light">${c.iso_name}</td>
-                  <td class="px-4 py-1 text-xs text-slate-700 font-light">${c.official_state_name}</td>
-                </tr>
-              `,
-                )
-                .join('')}
-            </tbody>
-          </table>
-        `
+                <div class="overflow-x-auto w-full border border-slate-200 rounded-lg shadow-sm mt-4">
+                  <table class="min-w-full divide-y divide-slate-200 text-xs">
+                    <thead class="bg-slate-50">
+                      <tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">ISO Code</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">ISO Name</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-slate-700 uppercase whitespace-nowrap">Official Name</th>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-slate-100 ">
+                      ${countries
+                        .map(
+                          (c) => `
+                        <tr>
+                          <td class="px-4 py-1 text-xs text-slate-700 font-light whitespace-nowrap">${c.iso_code}</td>
+                          <td class="px-4 py-1 text-xs text-slate-700 font-light whitespace-nowrap">${c.iso_name}</td>
+                          <td class="px-4 py-1 text-xs text-slate-700 font-light whitespace-nowrap">${c.official_state_name}</td>
+                        </tr>
+                      `,
+                        )
+                        .join('')}
+                    </tbody>
+                  </table>
+                </div> </div>
+              `
     }
   } catch (error) {
     resultDiv.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`
