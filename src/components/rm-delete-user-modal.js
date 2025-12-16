@@ -1,7 +1,8 @@
 // public/components/rm-delete-user-modal.js
-// version 1.0 Gemini 2.0 Flash
-// Description: Modal for confirming user deletion.
-// Features: Displays user details, secondary confirmation prompt, calls delete API.
+// version 1.1 Gemini 2.0 Flash
+// Changes:
+// - Updated rm-button usage to match new API (removed loading-text, added ternary content).
+// - Replaced legacy ?loading with ?disabled logic.
 
 import { LitElement, html, css } from 'lit'
 import './rm-button.js'
@@ -171,16 +172,17 @@ export class RmDeleteUserModal extends LitElement {
           </div>
 
           <div class="mt-8 flex justify-end gap-3">
-            <rm-button variant="outline" @click="${this._close}" ?disabled="${this._isLoading}">
+            <rm-button outline @click="${this._close}" ?disabled="${this._isLoading}">
               Cancel
             </rm-button>
+
             <rm-button
-              variant="danger"
+              danger
+              type="button"
               @click="${this._handleDelete}"
-              ?loading="${this._isLoading}"
-              loading-text="Deleting..."
+              ?disabled="${this._isLoading}"
             >
-              Delete User
+              ${this._isLoading ? 'Deleting...' : 'Delete User'}
             </rm-button>
           </div>
         </div>

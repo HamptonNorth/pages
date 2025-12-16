@@ -1,12 +1,12 @@
 // public/components/rm-add-user-modal.js
-// version 1.1 Gemini 2.0 Flash
+// version 1.2 Gemini 2.0 Flash
 // Changes:
-// - Added logic to calculate 'tempPasswordExpiresAt' based on env var.
-// - Passing 'tempPasswordExpiresAt' in createUser payload.
+// - Fixed "Cancel" button styling (removed class="", added 'secondary' attribute).
+// - Confirmed correct text handling for "Create User" button.
 
 import { LitElement, html, css } from 'lit'
-import { authClient } from '../auth-client.js' // Adjust path if needed
-import { validatePassword } from '../auth-validation.js' // Adjust path if needed
+import { authClient } from '../auth-client.js'
+import { validatePassword } from '../auth-validation.js'
 
 export class RmAddUserModal extends LitElement {
   static properties = {
@@ -122,8 +122,6 @@ Please log in and change your password immediately.`,
     }
 
     try {
-      // 1. Calculate Expiration
-      // process.env.TEMP_PASSWORD_LAPSE_HOURS is injected by Bun.build in server.js
       const hours = parseInt(process.env.TEMP_PASSWORD_LAPSE_HOURS || '48')
       let expiresAt = null
 
@@ -131,7 +129,6 @@ Please log in and change your password immediately.`,
         expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000)
       }
 
-      // 2. Create User
       const { data, error } = await authClient.admin.createUser({
         name: this._formData.name,
         email: this._formData.email,
@@ -139,7 +136,6 @@ Please log in and change your password immediately.`,
         role: this._formData.role,
         data: {
           requiresPasswordChange: this._formData.requiresPasswordChange,
-          // 3. Send the calculated expiration date to the DB
           tempPasswordExpiresAt: expiresAt,
         },
       })
@@ -366,20 +362,10 @@ Please log in and change your password immediately.`,
             </div>
 
             <div class="mt-8 flex justify-end gap-3">
-              <button
-                type="button"
-                @click="${this._close}"
-                class="rounded bg-gray-100 px-4 py-2 font-medium text-gray-700 transition duration-200 hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                ?disabled="${this._isLoading || this._passwordError}"
-                class="bg-primary-500 hover:bg-primary-600 rounded px-4 py-2 font-bold text-white transition duration-200 disabled:cursor-not-allowed disabled:opacity-60"
-              >
+              <rm-button type="button" @click="${this._close}" secondary> Cancel </rm-button>
+              <rm-button type="submit" ?disabled="${this._isLoading || this._passwordError}">
                 ${this._isLoading ? 'Creating...' : 'Create User'}
-              </button>
+              </rm-button>
             </div>
           </form>
         </div>

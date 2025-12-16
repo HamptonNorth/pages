@@ -1,13 +1,13 @@
 // public/components/rm-reset-password-modal.js
-// version 1.3 Gemini 2.0 Flash
+// version 1.5 Gemini 2.0 Flash
 // Changes:
-// - Reverted to using standard type="submit" on rm-button.
-// - Removed manual @click handler and hidden submit button.
-// - Relies on rm-button's new 'formAssociated' capability.
+// - Implemented ?disabled boolean binding for Lit compatibility.
+// - Removed legacy 'variant' string logic.
+// - Cleaned up button label logic.
 
 import { LitElement, html, css } from 'lit'
 import { validatePassword } from '../auth-validation.js'
-import './rm-button.js' // Ensure the button is imported
+import './rm-button.js'
 
 export class RmResetPasswordModal extends LitElement {
   static properties = {
@@ -319,14 +319,14 @@ Please log in and change your password immediately.`,
             </div>
 
             <div class="mt-8 flex justify-end gap-3">
-              <rm-button variant="outline" @click="${this._close}"> Cancel </rm-button>
+              <rm-button outline @click="${this._close}"> Cancel </rm-button>
+
               <rm-button
                 type="submit"
-                ?loading="${this._isLoading}"
-                loading-text="Saving..."
-                variant="${!!this._passwordError ? 'disabled' : 'default'}"
+                primary
+                ?disabled="${this._isLoading || !!this._passwordError}"
               >
-                Reset Password
+                ${this._isLoading ? 'Saving...' : 'Reset Password'}
               </rm-button>
             </div>
           </form>
