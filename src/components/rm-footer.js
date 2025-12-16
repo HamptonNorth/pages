@@ -46,7 +46,7 @@ export class RmFooter extends LitElement {
 
   render() {
     const year = new Date().getFullYear()
-    const versionText = 'version 0.8.0'
+    const versionText = 'version 0.8.1'
 
     return html`
       <link rel="stylesheet" href="/styles/output.css" />
