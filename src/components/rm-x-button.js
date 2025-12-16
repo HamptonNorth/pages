@@ -1,11 +1,3 @@
-// version 1.1 Gemini 2.0 Flash
-// rm-x-button.js
-// A dedicated "Close / X" button component.
-// Updates:
-// - Increased icon stroke width (1.5 -> 2.5) for better visibility.
-// - Darkened default text color (gray-400 -> gray-500).
-// - 'circle' variant now uses a transparent background by default, applying bg-gray-100 only on hover.
-
 class RmXButton extends HTMLElement {
   constructor() {
     super()
@@ -83,7 +75,7 @@ class RmXButton extends HTMLElement {
 
     const iconSize = this.getIconSize()
 
-    // Updated SVG: stroke-width="2.5" (was 1.5) for a bolder look
+    // stroke-width="2.5"  for a bolder look
     btn.innerHTML = `
             <svg class="${iconSize}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />

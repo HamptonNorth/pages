@@ -1,8 +1,4 @@
 // public/components/rm-nav-header.js
-// version 1.4 Gemini 2.0 Flash
-// Changes:
-// - Imported rm-delete-user-modal.js
-// - Added state/handlers for Delete User modal
 
 import { LitElement, html, nothing } from 'lit'
 import { authClient } from '../auth-client.js'

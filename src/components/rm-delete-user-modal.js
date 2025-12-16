@@ -1,9 +1,3 @@
-// public/components/rm-delete-user-modal.js
-// version 1.1 Gemini 2.0 Flash
-// Changes:
-// - Updated rm-button usage to match new API (removed loading-text, added ternary content).
-// - Replaced legacy ?loading with ?disabled logic.
-
 import { LitElement, html, css } from 'lit'
 import './rm-button.js'
 

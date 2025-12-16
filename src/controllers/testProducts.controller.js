@@ -1,6 +1,6 @@
 import {
   getAllTestProductsData,
-  getTestProductByIdData, // Import new function for checking existence
+  getTestProductByIdData,
   addTestProductData,
   updateTestProductData,
   deleteTestProductData,
@@ -8,7 +8,7 @@ import {
 
 /**
  * Gets all non-deleted test products.
- * Errors are caught by the central error handler in api.js.
+ * Errors are caught by the central error handler in src/routes/api.js.
  */
 export function getAllTestProducts() {
   // Business logic here (if any)

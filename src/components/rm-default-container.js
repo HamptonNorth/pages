@@ -1,6 +1,3 @@
-// version 1.0 Gemini 2.5 Pro
-// public/components/rm-default-container.js
-
 import { LitElement, html } from 'lit'
 
 export class RmDefaultContainer extends LitElement {
@@ -13,7 +10,7 @@ export class RmDefaultContainer extends LitElement {
         Container Logic:
         - min-h-screen: Ensures the container takes at least the full height of the viewport.
         - w-full: Takes available width up to the max-width.
-        - max-w-[1200px]: Restricts width on large monitors as requested.
+        - max-w-[1200px]: Restricts width on large monitors
         - min-w-[320px]: Ensures readable layout on small mobiles
         - mx-auto: Centers the container within the viewport (provides the whitespace on sides).
         - bg-white: Defines the content area background.

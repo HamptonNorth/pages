@@ -1,8 +1,4 @@
-// version 1.1 Gemini Pro
-import {
-  getAllTestCountriesData,
-  searchTestCountriesData,
-} from "../models/testCountries.model.js";
+import { getAllTestCountriesData, searchTestCountriesData } from '../models/testCountries.model.js'
 
 /**
  * Gets all test countries.
@@ -10,8 +6,8 @@ import {
  */
 export function getAllTestCountries() {
   // Business logic here (if any)
-  const countries = getAllTestCountriesData();
-  return Response.json(countries);
+  const countries = getAllTestCountriesData()
+  return Response.json(countries)
 }
 
 /**
@@ -24,15 +20,15 @@ export function searchTestCountries(searchTerm) {
   // Validation (a 400 error) is not an exception, so it stays in the controller.
   if (!searchTerm) {
     return Response.json(
-      { error: "Search term is required" },
-      { status: 400 } // 400 Bad Request
-    );
+      { error: 'Search term is required' },
+      { status: 400 }, // 400 Bad Request
+    )
   }
 
   // Pass the search term to the model.
   // Any errors thrown from the model (e.g., db connection, query syntax)
-  // will now be caught by the central handler in api.js and returned as a 500 error.
-  const countries = searchTestCountriesData(searchTerm);
+  // will be caught by the central handler in src/routes/api.js and returned as a 500 error.
+  const countries = searchTestCountriesData(searchTerm)
 
-  return Response.json(countries);
+  return Response.json(countries)
 }

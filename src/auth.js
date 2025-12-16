@@ -1,10 +1,3 @@
-// src/auth.js
-// version 1.8 Gemini 2.5 Pro
-// Changes:
-// - FIXED: Added safety check for 'ctx.body' in 'before' hook to prevent crashes.
-// - FIXED: Quoted table name "user" in SQL query for safety.
-// - Added debug logs to trace login validation.
-
 import { betterAuth } from 'better-auth'
 import { authOptions } from './auth-options.js'
 import { db } from './db-setup.js' // Bun:sqlite database instance
@@ -42,7 +35,7 @@ const bunPasswordResetPlugin = {
 const tempPasswordPlugin = {
   id: 'temp-password-plugin',
   hooks: {
-    // 1. BLOCK LOGIN if password has lapsed
+    //  BLOCK LOGIN if password has lapsed
     before: [
       {
         matcher: (context) => context.path.includes('/sign-in/email'),
@@ -78,12 +71,12 @@ const tempPasswordPlugin = {
             // Re-throw APIErrors (like Forbidden), log others
             if (err instanceof APIError) throw err
             console.error('❌ [TempPasswordPlugin] Error checking expiry:', err)
-            // We don't block login on DB error, but we log it
+            // Don't block login on DB error, but log it
           }
         },
       },
     ],
-    // 2. SET EXPIRATION automatically when a new user is created
+    // SET EXPIRATION automatically when a new user is created
     after: [
       {
         matcher: (context) => context.path.includes('/sign-up/email'),
@@ -114,7 +107,7 @@ const tempPasswordPlugin = {
             const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
 
             try {
-              // Only set if not already set (modal might have set it via `data` param)
+              // Only set if not already set
               // But strictly updating here ensures consistency if `data` was missed
               db.run(
                 'UPDATE "user" SET "tempPasswordExpiresAt" = COALESCE("tempPasswordExpiresAt", $date) WHERE "id" = $id',

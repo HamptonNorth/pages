@@ -1,6 +1,5 @@
 // Wait for the DOM content to be fully loaded before trying to access the element
 //
-//
 document.addEventListener('DOMContentLoaded', function () {
   const getCountriesButton = document.getElementById('getAllCountriesBtn')
   if (getCountriesButton) {
@@ -70,7 +69,7 @@ async function getAllCountries() {
   }
 }
 
-// A simple function that returns a Promise which resolves after a set duration.
+// function that returns a Promise which resolves after a set duration.
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }

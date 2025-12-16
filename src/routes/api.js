@@ -61,7 +61,7 @@ export async function handleApiRoutes(req, path) {
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
     })
   } catch (e) {
-    // This single block now handles all errors from all controller functions
+    // This single block  handles all errors from all controller functions
     console.error('API Route Error: ', e.message)
     // Return a generic server error response
     return Response.json({ error: 'Server error', details: e.message }, { status: 500 })

@@ -1,8 +1,4 @@
-// version 2.0 Gemini 2.0 Flash
 // rm-button.js
-// A refactored button component using Boolean attributes.
-// ARCHITECTURE CHANGE: Now applies styles directly to the host element.
-// This resolves all Lit/Framework synchronization issues by removing the internal wrapper.
 
 class RmButton extends HTMLElement {
   constructor() {
@@ -23,7 +19,7 @@ class RmButton extends HTMLElement {
       'outline',
       'ghost',
       'disabled',
-      'type', // We'll handle type manually for form submission
+      'type', // handled  manually for form submission
     ]
   }
 
@@ -65,7 +61,7 @@ class RmButton extends HTMLElement {
     if (type === 'submit') {
       const form = this.closest('form')
       if (form) {
-        // We use requestSubmit() to trigger native validation
+        // Use requestSubmit() to trigger native validation
         form.requestSubmit()
       }
     }
@@ -108,7 +104,7 @@ class RmButton extends HTMLElement {
   }
 
   render() {
-    // 1. Calculate Classes
+    //  Calculate Classes
     const base =
       'inline-flex items-center justify-center font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer select-none'
     const size = this.getSizeClasses()
@@ -126,13 +122,9 @@ class RmButton extends HTMLElement {
       this.setAttribute('tabindex', '0')
     }
 
-    // 2. Apply classes to the Host Element directly
-    // We clean up old classes first to avoid duplicates if re-rendering often
-    // But simplistic replacement is safer for this specific component
-    this.className = `${base} ${size} ${shape} ${style}`
+    // . Apply classes to the Host Element directly
 
-    // We do NOT touch this.innerHTML or children.
-    // Lit manages the children. We manage the container style.
+    this.className = `${base} ${size} ${shape} ${style}`
   }
 }
 

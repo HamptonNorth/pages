@@ -1,9 +1,3 @@
-// version 3.1 Gemini 2.5 Pro
-// APPROACH: Direct File Parsing
-// This component fetches '/styles/input.css' directly and parses the text.
-// This avoids all issues with Tailwind purging, browser computed styles, or circular dependencies.
-// Added gap-1 to flex container for visual separation.
-
 import { LitElement, html } from 'lit'
 
 export class RmColourSwatch extends LitElement {
@@ -12,7 +6,7 @@ export class RmColourSwatch extends LitElement {
     _hexValues: { state: true },
   }
 
-  // Shared cache so we only fetch the CSS file once for all components
+  // Shared cache - only fetch the CSS file once for all components
   static _cssCache = null
 
   constructor() {
@@ -56,8 +50,8 @@ export class RmColourSwatch extends LitElement {
     const newHexValues = {}
     const shades = this.getShades()
 
-    // 2. Parse variables for this specific palette
-    // logic: We look for "--color-{name}-?{shade}: #hex;"
+    //  Parse variables for this specific palette
+    // logic:  look for "--color-{name}-?{shade}: #hex;"
     shades.forEach((shade) => {
       // Determine variable name format based on palette type
       // Standard: --color-primary-50

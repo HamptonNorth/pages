@@ -1,17 +1,16 @@
-// src/db-setup.js
 import { Database } from 'bun:sqlite'
 import { resolve, dirname, join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { nowSQLiteFormat } from './utils.js'
 
-// 1. Resolve Path Robustly
+// Resolve Path
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const projectRoot = resolve(__dirname, '..')
 const dbPath = join(projectRoot, 'data', 'app3.db')
 
-// 2. FAIL FAST if DB is missing
+// Fail early if DB is missing
 if (!existsSync(dbPath)) {
   console.error(`\n❌ CRITICAL ERROR: Database not found at ${dbPath}`)
   console.error(
@@ -25,13 +24,13 @@ if (!existsSync(dbPath)) {
   process.exit(1)
 }
 
-// 3. Initialize Bun Database Connection
+// Initialize Bun Database Connection
 export const db = new Database(dbPath)
 console.log(`✅ Runtime DB Connected: ${dbPath}`)
 
-// 4. Legacy Table Checks (Countries/Test Users)
-// These run on every startup to ensure your app specific data is there
-// (Better-auth tables are handled by the Node script, so we ignore them here)
+// Test Table Checks (Countries/Test Users)
+// These run on every startup to ensure your app specific test data is available
+// (Better-auth tables are handled by the Node script, ignored them here)
 
 export function tableExists(tableName) {
   const query = db.query("SELECT name FROM sqlite_master WHERE type='table' AND name=?")

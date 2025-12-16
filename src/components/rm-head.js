@@ -1,6 +1,3 @@
-// version 2.0 Gemini 2.5 Pro
-// public/components/rm-head.js
-
 import { LitElement } from 'lit'
 
 export class RmHead extends LitElement {
@@ -8,8 +5,8 @@ export class RmHead extends LitElement {
     pageTitle: { type: String, attribute: 'page-title' },
   }
 
-  // CRITICAL: Keep this for rm-head.
-  // We need to manipulate the real document head, not a shadow root.
+  // Keep this for rm-head.
+  // manipulate the real document head, not a shadow root.
   createRenderRoot() {
     return this
   }

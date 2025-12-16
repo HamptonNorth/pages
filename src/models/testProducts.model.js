@@ -1,4 +1,3 @@
-// version 1.1 Gemini Pro
 import { db } from '../server.js'
 import { nowSQLiteFormat } from '../utils.js'
 
@@ -17,14 +16,14 @@ export function getAllTestProductsData() {
 /**
  * Gets a single product by their ID.
  * Used to check for existence before update/delete.
- * We also check that it's not already deleted.
+ * Also check it's not already deleted.
  */
 export function getTestProductByIdData(id) {
   const query = db.query(
     `SELECT id FROM test_products
      WHERE id = $id `,
   )
-  // .get() is the most efficient way to fetch a single row
+
   return query.get({ $id: id })
 }
 

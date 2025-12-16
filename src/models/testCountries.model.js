@@ -1,4 +1,3 @@
-// version 1.1 Gemini Pro
 import { db } from '../server.js'
 
 /**
@@ -6,17 +5,16 @@ import { db } from '../server.js'
  */
 export function getAllTestCountriesData() {
   const query = db.query(
-    `SELECT iso_code, iso_name, official_state_name, currency , population, gdp_billions_usd FROM test_countries ORDER BY gdp_billions_usd DESC`,
+    `SELECT iso_codex, iso_name, official_state_name, currency , population, gdp_billions_usd FROM test_countries ORDER BY gdp_billions_usd DESC`,
   )
   return query.all()
 }
 
 /**
  * Searches for test countries by name.
- * Uses named parameters for consistency.
+ * Uses named parameters
  */
 export function searchTestCountriesData(searchTerm) {
-  // Use named parameters ($) for consistency and maintainability
   const query = db.query(
     `SELECT iso_code, iso_name, official_state_name
     FROM test_countries

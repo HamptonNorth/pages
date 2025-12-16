@@ -6,7 +6,7 @@ import { authOptions } from '../../src/auth-options.js'
 // This file is used ONLY by the CLI tool via Node
 const db = new Database('data/app3.db')
 // Plugin to handle password reset logic
-// This keeps the hook logic isolated and safe from config merging bugs
+// Keeps the hook logic isolated and safe from config merging bugs
 // Plugin to handle password reset logic
 const passwordResetPlugin = {
   id: 'password-reset-plugin',

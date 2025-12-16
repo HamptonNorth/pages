@@ -1,5 +1,3 @@
-// src/auth-options.js
-// version 1.3 Gemini 2.0 Flash
 // Changes:
 // - Added 'tempPasswordExpiresAt' to user.additionalFields.
 
@@ -7,10 +5,6 @@ import { admin } from 'better-auth/plugins'
 import { APIError } from 'better-auth/api'
 import { validatePassword } from './auth-validation.js'
 
-/**
- * Pure Logic Plugin: Strong Password Validation
- * Safe to share between Node and Bun because it has no DB dependencies.
- */
 const passwordValidationPlugin = {
   id: 'password-validation-plugin',
   hooks: {

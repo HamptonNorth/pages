@@ -1,6 +1,3 @@
-// version 2.5 Gemini 2.5 Pro
-// public/components/rm-footer.js
-
 import { LitElement, html } from 'lit'
 import { authClient } from '../auth-client.js' // Import better-auth client
 
@@ -17,7 +14,7 @@ export class RmFooter extends LitElement {
   async connectedCallback() {
     super.connectedCallback()
 
-    // 1. Check better-auth session directly on load
+    // Check better-auth session directly on load
     try {
       const { data } = await authClient.getSession()
       if (data?.user) {
@@ -27,7 +24,7 @@ export class RmFooter extends LitElement {
       // Not logged in
     }
 
-    // 2. Listen for login events (immediate UI update without refresh)
+    // Listen for login events (immediate UI update without refresh)
     window.addEventListener('auth-changed', this._handleAuthChange)
   }
 

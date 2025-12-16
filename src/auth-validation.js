@@ -1,3 +1,8 @@
+// Common validation rules used through bunstarter
+// If you alter, search for client UI input hints and amend accordingly
+// e.g. Must be 8+ chars, include 1 uppercase & 1 number.
+// The error message is below
+
 export const PASSWORD_MIN_LENGTH = 8
 
 // Rule: Min 8 chars, at least 1 uppercase, at least 1 number

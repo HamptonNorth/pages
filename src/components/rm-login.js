@@ -1,10 +1,3 @@
-// public/components/rm-login.js
-// version 5.0 Gemini 2.5 Pro
-// Changes:
-// - Security Fix: Immediately signs user out if password change is required to prevent session hijacking via navigation.
-// - Logic Update: Re-authenticates silently before processing the password change.
-// - UX Improvement: Added Show/Hide password toggles for all password fields.
-
 import { authClient } from '../auth-client.js'
 
 class RMLogin extends HTMLElement {

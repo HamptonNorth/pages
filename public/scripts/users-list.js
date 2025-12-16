@@ -1,6 +1,3 @@
-// public/scripts/users-list.js
-// version 1.3 Gemini 2.0 Flash
-// Changes:
 // - Implemented custom right-click context menu logic
 // - Handles 'Reset Password' and 'Delete User' via global events
 // - Hides menu on document click

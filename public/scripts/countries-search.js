@@ -81,7 +81,7 @@ async function searchCountries() {
   }
 }
 
-// A simple function that returns a Promise which resolves after a set duration.
+// function that returns a Promise which resolves after a set duration.
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }

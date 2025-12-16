@@ -1,9 +1,3 @@
-// public/components/rm-add-user-modal.js
-// version 1.2 Gemini 2.0 Flash
-// Changes:
-// - Fixed "Cancel" button styling (removed class="", added 'secondary' attribute).
-// - Confirmed correct text handling for "Create User" button.
-
 import { LitElement, html, css } from 'lit'
 import { authClient } from '../auth-client.js'
 import { validatePassword } from '../auth-validation.js'

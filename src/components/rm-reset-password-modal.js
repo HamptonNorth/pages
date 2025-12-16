@@ -1,9 +1,4 @@
 // public/components/rm-reset-password-modal.js
-// version 1.5 Gemini 2.0 Flash
-// Changes:
-// - Implemented ?disabled boolean binding for Lit compatibility.
-// - Removed legacy 'variant' string logic.
-// - Cleaned up button label logic.
 
 import { LitElement, html, css } from 'lit'
 import { validatePassword } from '../auth-validation.js'

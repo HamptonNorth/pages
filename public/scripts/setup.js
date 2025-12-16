@@ -1,17 +1,10 @@
-// public/scripts/setup.js
-// version 1.4 Gemini 2.5 Pro
-// Changes:
-// - FIXED: Closes DB connection before spawning server to prevent locking.
-// - FIXED: Enabled server logging (stdio: 'inherit') to debug 500 errors.
-// - FIXED: Omitted 'tempPasswordExpiresAt' in payload instead of sending null.
-
 import Database from 'better-sqlite3'
 import { execSync, spawn } from 'child_process'
 import { mkdirSync, existsSync } from 'fs'
 import { dirname, resolve, join, relative } from 'path'
 import { fileURLToPath } from 'url'
 
-// 1. Setup Path Logic
+//  Setup Path Logic
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const projectRoot = resolve(__dirname, '..', '..')
@@ -21,7 +14,7 @@ const envPath = join(projectRoot, '.env')
 console.log('🚀 Starting System Setup...')
 console.log(`📂 Project Root determined as: ${projectRoot}`)
 
-// 0. Validation: Check for Environment Variables
+// Validation: Check for Environment Variables
 const {
   ADMIN_EMAIL,
   ADMIN_PASSWORD,
@@ -50,7 +43,7 @@ if (missingVars.length > 0) {
   console.log('   - ADMIN_NAME:', ADMIN_NAME)
 }
 
-// 1. Create DB Directory & File
+//  Create DB Directory & File
 if (!existsSync(dirname(dbPath))) {
   mkdirSync(dirname(dbPath), { recursive: true })
 }
@@ -58,7 +51,7 @@ const db = new Database(dbPath)
 db.pragma('journal_mode = WAL')
 console.log(`✅ Database created at: ${dbPath}`)
 
-// 2. Run Better-Auth CLI (Generate & Migrate)
+//  Run Better-Auth CLI (Generate & Migrate)
 console.log('📦 Running Better-Auth Migrations...')
 try {
   const absConfigPath = join(__dirname, 'node-auth-config.js')
@@ -80,7 +73,7 @@ try {
   process.exit(1)
 }
 
-// 3. Seed Admin User (via API)
+// Seed Admin User (via API)
 console.log(`👤 Seeding Admin User (${ADMIN_EMAIL})...`)
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -92,12 +85,12 @@ try {
   if (!existing) {
     console.log('   Starting temporary server to handle API request...')
 
-    // CRITICAL FIX: Close the setup script's DB connection BEFORE spawning the server.
+    // Close the setup script's DB connection BEFORE spawning the server.
     // This prevents "Database Locked" errors when the server tries to write to the same file.
     db.close()
     console.log('   (Closed local DB connection to release locks)')
 
-    // 1. Start the server in the background
+    //  Start the server in the background
     const serverProcess = spawn('bun', ['src/server.js'], {
       cwd: projectRoot,
       // CRITICAL FIX: 'inherit' allows us to see the server's console logs/errors
@@ -106,7 +99,7 @@ try {
       env: { ...process.env },
     })
 
-    // 2. Wait for server to boot
+    //  Wait for server to boot
     await wait(5000)
 
     try {
@@ -161,5 +154,5 @@ try {
   console.error('❌ Seeding failed:', err.message)
 }
 
-console.log('\n🎉 Setup Complete! You can now start the server normally.')
+console.log('\n Setup Complete! You can now start the server normally.')
 console.log(' e.g.  $ bun run dev')

@@ -1,8 +1,3 @@
-// src/server.js
-// version 1.8 Gemini 2.0 Flash
-// Changes:
-// - Added 'process.env.TEMP_PASSWORD_LAPSE_HOURS' to Bun.build defines.
-
 import { auth } from './auth.js'
 import { db } from './db-setup.js'
 import { handleApiRoutes } from './routes/api.js'
