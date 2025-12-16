@@ -319,9 +319,12 @@ Please log in and change your password immediately.`,
             </div>
 
             <div class="mt-8 flex justify-end gap-3">
-              <rm-button outline @click="${this._close}"> Cancel </rm-button>
+              <rm-button aria-label="Cancel reset user passwrod" outline @click="${this._close}">
+                Cancel
+              </rm-button>
 
               <rm-button
+                aria-label="Comfirm reset of user password"
                 type="submit"
                 primary
                 ?disabled="${this._isLoading || !!this._passwordError}"

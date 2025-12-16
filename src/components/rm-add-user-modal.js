@@ -362,8 +362,19 @@ Please log in and change your password immediately.`,
             </div>
 
             <div class="mt-8 flex justify-end gap-3">
-              <rm-button type="button" @click="${this._close}" secondary> Cancel </rm-button>
-              <rm-button type="submit" ?disabled="${this._isLoading || this._passwordError}">
+              <rm-button
+                aria-label="Add User cancel button"
+                type="button"
+                @click="${this._close}"
+                secondary
+              >
+                Cancel
+              </rm-button>
+              <rm-button
+                aria-label="Create user button"
+                type="submit"
+                ?disabled="${this._isLoading || this._passwordError}"
+              >
                 ${this._isLoading ? 'Creating...' : 'Create User'}
               </rm-button>
             </div>

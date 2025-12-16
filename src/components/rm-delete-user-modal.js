@@ -172,11 +172,17 @@ export class RmDeleteUserModal extends LitElement {
           </div>
 
           <div class="mt-8 flex justify-end gap-3">
-            <rm-button outline @click="${this._close}" ?disabled="${this._isLoading}">
+            <rm-button
+              aria-label="Cancel User deletion button"
+              outline
+              @click="${this._close}"
+              ?disabled="${this._isLoading}"
+            >
               Cancel
             </rm-button>
 
             <rm-button
+              aria-label="Confirm Delete User button"
               danger
               type="button"
               @click="${this._handleDelete}"
