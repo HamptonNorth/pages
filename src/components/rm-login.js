@@ -1,8 +1,9 @@
 // public/components/rm-login.js
-// version 3.8 Gemini 2.5 Pro
+// version 5.0 Gemini 2.5 Pro
 // Changes:
-// - Added 'Sign in with GitHub' button with SVG icon.
-// - Refactored 'handleGoogleSignIn' to generic 'handleSocialSignIn(provider)'.
+// - Security Fix: Immediately signs user out if password change is required to prevent session hijacking via navigation.
+// - Logic Update: Re-authenticates silently before processing the password change.
+// - UX Improvement: Added Show/Hide password toggles for all password fields.
 
 import { authClient } from '../auth-client.js'
 
@@ -26,6 +27,7 @@ class RMLogin extends HTMLElement {
       <style>
         :host { display: block; width: 100%; max-width: 24rem; margin: 0 auto; }
         .hidden { display: none !important; }
+        .cursor-pointer { cursor: pointer; }
       </style>
 
       <div class="bg-white p-8 rounded-lg shadow-md border border-gray-200">
@@ -43,21 +45,58 @@ class RMLogin extends HTMLElement {
 
           <div class="mb-6" id="password-group">
             <label for="login-password" id="password-label" class="block mb-2 text-gray-600 text-sm font-medium">Password</label>
-            <input type="password" id="login-password" required placeholder="••••••••"
-              class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
+            <div class="relative">
+              <input type="password" id="login-password" required placeholder="••••••••"
+                class="w-full p-3 pr-10 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
+              <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none" data-target="login-password">
+                <svg class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <svg class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.057 10.057 0 01-3.78 5.43L17.16 17.16m-2.15-2.15l-.88-.88" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div id="new-password-section" class="hidden">
              <div class="mb-4">
               <label for="new-password" class="block mb-2 text-gray-600 text-sm font-medium">New Password</label>
-              <input type="password" id="new-password" placeholder="New secure password"
-                class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
+              <div class="relative">
+                <input type="password" id="new-password" placeholder="New secure password"
+                  class="w-full p-3 pr-10 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
+                <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none" data-target="new-password">
+                  <svg class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <svg class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.057 10.057 0 01-3.78 5.43L17.16 17.16m-2.15-2.15l-.88-.88" />
+                  </svg>
+                </button>
+              </div>
+              <p id="new-password-hint" class="mt-1 text-xs text-gray-400">
+                Must be 8+ chars, include 1 uppercase & 1 number.
+              </p>
             </div>
 
              <div class="mb-6">
               <label for="confirm-password" class="block mb-2 text-gray-600 text-sm font-medium">Confirm New Password</label>
-              <input type="password" id="confirm-password" placeholder="Confirm new password"
-                class="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
+              <div class="relative">
+                <input type="password" id="confirm-password" placeholder="Confirm new password"
+                  class="w-full p-3 pr-10 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500 transition duration-200">
+                <button type="button" class="toggle-password absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none" data-target="confirm-password">
+                  <svg class="h-5 w-5 eye-open" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <svg class="h-5 w-5 eye-closed hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.057 10.057 0 01-3.78 5.43L17.16 17.16m-2.15-2.15l-.88-.88" />
+                  </svg>
+                </button>
+              </div>
+              <p id="confirm-password-error" class="hidden mt-1 text-xs text-red-600"></p>
             </div>
           </div>
 
@@ -114,6 +153,85 @@ class RMLogin extends HTMLElement {
     this.shadowRoot
       .getElementById('github-btn')
       .addEventListener('click', () => this.handleSocialSignIn('github'))
+
+    // Listen for typing to reset errors
+    const inputs = ['new-password', 'confirm-password']
+    inputs.forEach((id) => {
+      const el = this.shadowRoot.getElementById(id)
+      if (el) el.addEventListener('input', () => this.resetPasswordStyles(id))
+    })
+
+    // Password Toggle Listeners
+    const toggles = this.shadowRoot.querySelectorAll('.toggle-password')
+    toggles.forEach((btn) => {
+      btn.addEventListener('click', (e) => this.togglePasswordVisibility(e))
+    })
+  }
+
+  togglePasswordVisibility(e) {
+    const btn = e.currentTarget
+    const targetId = btn.getAttribute('data-target')
+    const input = this.shadowRoot.getElementById(targetId)
+    const eyeOpen = btn.querySelector('.eye-open')
+    const eyeClosed = btn.querySelector('.eye-closed')
+
+    if (input.type === 'password') {
+      input.type = 'text'
+      eyeOpen.classList.add('hidden')
+      eyeClosed.classList.remove('hidden')
+    } else {
+      input.type = 'password'
+      eyeOpen.classList.remove('hidden')
+      eyeClosed.classList.add('hidden')
+    }
+  }
+
+  // Helper to validate password complexity locally
+  validatePassword(password) {
+    if (!password) return 'Password is required'
+    if (password.length < 8) return 'Password must be at least 8 characters'
+    if (!/[A-Z]/.test(password)) return 'Password must contain at least 1 uppercase letter'
+    if (!/[0-9]/.test(password)) return 'Password must contain at least 1 number'
+    return null
+  }
+
+  // Visual helper: Set input to Error state
+  setPasswordError(inputId, message) {
+    const input = this.shadowRoot.getElementById(inputId)
+    // Add red border
+    input.classList.add('border-red-500', 'focus:ring-red-200', 'focus:border-red-500')
+    input.classList.remove('border-gray-300', 'focus:ring-primary-200', 'focus:border-primary-500')
+
+    // Handle specific hint text updates
+    if (inputId === 'new-password') {
+      const hint = this.shadowRoot.getElementById('new-password-hint')
+      hint.textContent = message
+      hint.classList.remove('text-gray-400')
+      hint.classList.add('text-red-600')
+    } else if (inputId === 'confirm-password') {
+      const errorMsg = this.shadowRoot.getElementById('confirm-password-error')
+      errorMsg.textContent = message
+      errorMsg.classList.remove('hidden')
+    }
+  }
+
+  // Visual helper: Reset input to Default state
+  resetPasswordStyles(inputId) {
+    const input = this.shadowRoot.getElementById(inputId)
+    if (!input) return
+
+    input.classList.remove('border-red-500', 'focus:ring-red-200', 'focus:border-red-500')
+    input.classList.add('border-gray-300', 'focus:ring-primary-200', 'focus:border-primary-500')
+
+    if (inputId === 'new-password') {
+      const hint = this.shadowRoot.getElementById('new-password-hint')
+      hint.textContent = 'Must be 8+ chars, include 1 uppercase & 1 number.'
+      hint.classList.add('text-gray-400')
+      hint.classList.remove('text-red-600')
+    } else if (inputId === 'confirm-password') {
+      const errorMsg = this.shadowRoot.getElementById('confirm-password-error')
+      errorMsg.classList.add('hidden')
+    }
   }
 
   enableChangePasswordMode() {
@@ -122,7 +240,8 @@ class RMLogin extends HTMLElement {
     this.shadowRoot.getElementById('form-title').textContent = 'Setup New Password'
     this.shadowRoot.getElementById('form-desc').textContent =
       'Administrator requires you to change your password.'
-    this.shadowRoot.getElementById('submit-btn').textContent = 'Update & Sign In'
+    const submitBtn = this.shadowRoot.getElementById('submit-btn')
+    submitBtn.textContent = 'Update & Sign In'
 
     this.shadowRoot.getElementById('new-password-section').classList.remove('hidden')
     this.shadowRoot.getElementById('email-group').classList.add('hidden')
@@ -136,6 +255,9 @@ class RMLogin extends HTMLElement {
     this.shadowRoot.getElementById('confirm-password').required = true
 
     this.showError(null)
+
+    // IMPORTANT: Re-enable button so user can submit the new password
+    submitBtn.disabled = false
   }
 
   showError(message) {
@@ -183,12 +305,16 @@ class RMLogin extends HTMLElement {
   async handleSubmit(e) {
     e.preventDefault()
     const submitBtn = this.shadowRoot.getElementById('submit-btn')
-    submitBtn.disabled = true
-    submitBtn.textContent = 'Processing...'
+
+    // Clear global error message
     this.showError(null)
 
     try {
       if (!this.isChangePasswordMode) {
+        // --- Normal Login Flow ---
+        submitBtn.disabled = true
+        submitBtn.textContent = 'Processing...'
+
         const email = this.shadowRoot.getElementById('login-email').value
         const password = this.shadowRoot.getElementById('login-password').value
 
@@ -202,20 +328,56 @@ class RMLogin extends HTMLElement {
         if (data.user && data.user.requiresPasswordChange) {
           this.tempEmail = email
           this.tempPassword = password
+
+          // SECURITY FIX: Immediately sign out.
+          // This prevents the user from navigating away and browsing the app
+          // with a valid session while still having a temporary password.
+          await authClient.signOut()
+
           this.enableChangePasswordMode()
           return
         }
 
         this.finishLogin(data.user)
       } else {
+        // --- Change Password Flow ---
         const newPassword = this.shadowRoot.getElementById('new-password').value
         const confirmPassword = this.shadowRoot.getElementById('confirm-password').value
 
-        if (newPassword !== confirmPassword) throw new Error('Passwords do not match')
-        if (newPassword.length < 8) throw new Error('Password must be at least 8 characters')
-        if (newPassword === this.tempPassword)
-          throw new Error('New password cannot be the same as temporary password')
+        // 1. Check Matching
+        if (newPassword !== confirmPassword) {
+          this.setPasswordError('confirm-password', 'Passwords do not match')
+          return // Stop submission
+        }
 
+        // 2. Check Complexity
+        const validationError = this.validatePassword(newPassword)
+        if (validationError) {
+          this.setPasswordError('new-password', validationError)
+          return // Stop submission
+        }
+
+        if (newPassword === this.tempPassword) {
+          this.showError('New password cannot be the same as temporary password')
+          return
+        }
+
+        // Validation Passed: Proceed to Submit
+        submitBtn.disabled = true
+        submitBtn.textContent = 'Processing...'
+
+        // 3. Re-Authenticate (Because we signed out earlier)
+        // We use the stored temporary credentials to establish a session strictly for the update.
+        const { error: signInError } = await authClient.signIn.email({
+          email: this.tempEmail,
+          password: this.tempPassword,
+        })
+
+        if (signInError) {
+          throw new Error('Session expired. Please reload and sign in again.')
+        }
+
+        // 4. Change Password
         const { data, error } = await authClient.changePassword({
           newPassword: newPassword,
           currentPassword: this.tempPassword,
@@ -236,7 +398,7 @@ class RMLogin extends HTMLElement {
 
       if (this.isChangePasswordMode) submitBtn.textContent = 'Update & Sign In'
       else submitBtn.textContent = 'Sign In'
-    } finally {
+
       submitBtn.disabled = false
     }
   }

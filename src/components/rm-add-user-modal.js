@@ -366,7 +366,7 @@ Please log in and change your password immediately.`,
                 aria-label="Add User cancel button"
                 type="button"
                 @click="${this._close}"
-                secondary
+                outline
               >
                 Cancel
               </rm-button>
