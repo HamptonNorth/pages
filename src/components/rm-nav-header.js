@@ -193,6 +193,7 @@ export class RmHeader extends LitElement {
         <div class="flex items-center justify-between px-4 py-3">
           <div class="flex items-center gap-2 sm:gap-4">
             <button
+              aria-label="Hamburger menu button to open drawer on mobile"
               @click="${this.toggleDrawer}"
               class="hover:bg-primary-600 rounded p-1 focus:outline-none sm:hidden"
             >
@@ -220,6 +221,7 @@ export class RmHeader extends LitElement {
               <a href="/" class="${getHeaderLinkClass('/')}">Home</a>
               <div class="relative">
                 <button
+                  aria-label="Button to access Countries sub menu"
                   @click="${this.toggleCountries}"
                   class="${this._isCountriesOpen
                     ? 'text-white'
@@ -261,6 +263,7 @@ export class RmHeader extends LitElement {
 
             <div class="relative hidden sm:block">
               <button
+                aria-label="Button to open View products and product maintenance "
                 @click="${this.toggleApps}"
                 class="text-primary-300 hover:bg-primary-600 rounded p-1 hover:text-white focus:outline-none"
               >
@@ -301,6 +304,7 @@ export class RmHeader extends LitElement {
 
             <div class="relative">
               <button
+                aria-label="Button to access admin sub menu - sign in  and sign out"
                 @click="${this.toggleMenu}"
                 class="hover:bg-primary-600 rounded p-1 focus:outline-none"
               >
@@ -334,6 +338,7 @@ export class RmHeader extends LitElement {
                               User admin
                             </div>
                             <button
+                              aria-label="Add new user button"
                               @click="${this.openAddUserModal}"
                               class="text-primary-800 hover:bg-primary-100 w-full px-4 py-2 text-left text-sm"
                             >
@@ -354,6 +359,7 @@ export class RmHeader extends LitElement {
                         : nothing}
                       ${this.isSignedIn
                         ? html`<button
+                            aria-label="Sign out button"
                             @click="${this.openSignOutModal}"
                             class="text-primary-800 hover:bg-primary-100 w-full px-4 py-2 text-left text-sm"
                           >
@@ -378,7 +384,11 @@ export class RmHeader extends LitElement {
                 class="border-primary-200 bg-primary-50 flex items-center justify-between border-b p-4"
               >
                 <span class="text-primary-700 font-bold">Menu</span
-                ><button @click="${this.toggleDrawer}" class="text-primary-500 hover:text-error1">
+                ><button
+                  arai-label="Close drawer on mobile"
+                  @click="${this.toggleDrawer}"
+                  class="text-primary-500 hover:text-error1"
+                >
                   Close
                 </button>
               </div>
@@ -433,6 +443,7 @@ export class RmHeader extends LitElement {
               <h3 class="text-lg font-bold text-gray-900">Confirm Sign Out</h3>
               <div class="mt-6 flex justify-end gap-3">
                 <button
+                  aria-label="Sign out button"
                   @click="${this.closeSignOutModal}"
                   class="rounded border border-gray-300 px-4 py-2"
                 >
