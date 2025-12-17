@@ -44,7 +44,7 @@ bun run dev
 ```
 
 ## Directory structure
-Project directory - not all code files are shown. Brief notes showing what's where. Using terminal, from the project root, run `tree -L 3 -I "node_modules|temp|.git|build|dist|__pycache__"~` to get the project structure
+Project directory - not all code files are shown. Brief notes showing what's where. Using terminal, from the project root, run `tree -L 3 -I "node_modules|temp|.git|build|dist|__pycache__"~` to get the project structure. Use `tree -d -L 3 -I "node_modules|temp|.git|build|dist|__pycache__"~` to get directories only.bun run build
 
 ```
 
@@ -104,7 +104,7 @@ Project directory - not all code files are shown. Brief notes showing what's whe
     │   └── testProducts.model.js
     ├── routes                                   <-- api routes
     │   └── api.js
-    ├── server.js                                <-- combined bun serve for front & back end
+    ├── server.js                                <-- combined bun serve and front end (entry point)
     └── utils.js                                     
 
 ```
@@ -118,8 +118,9 @@ ADMIN_NAME=jsmith
 ADMIN_EMAIL=jsmith@gmail.com
 # ADMIN_PASSWORD must be at least 8 characters, contain at least 1 uppercase letter and at least 1 number
 ADMIN_PASSWORD=Asd23bjh7
-BETTER_AUTH_SECRET=******************
 
+BETTER_AUTH_SECRET=******************
+BETTER_AUTH_URL=https://bunstarter.redmug.dev  # change for dev/production
 TEMP_PASSWORD_LAPSE_HOURS=48
 
 GOOGLE_CLIENT_ID=************************
@@ -178,6 +179,58 @@ The components are combined into a single `js` file `./public/components/client-
 
 ## Production deployment
 
+Obviously dependent of your set up. These are my notes for porting to a Linux server attached to my local network publicalyy accessed using Cloudflare tunnels. 
+
+To force the set up of a new database, delete the existing server side database.
+
+On dev system run:
+```bash
+bun run build
+```
+
+Move from dev (`~/code/bun-starter` dev root to `~/code/bun_starter` nuc2023 root) - note naming discrepency should be fixed!
+
+```text
+==== dev ====                            ==== prod ====
+/dist/serever.js               to      /dist/server.js
+/public                        to      /public
+/src                           to      /src
+.env                           to      .env 
+favicon.ico                    to      favicon.ico
+```
+
+Do not move any node directories/files from dev to production server. This would probaby cause version issues.
+
+Using `ssh rcollins@nuc2023` login to production server.
+
+Then stop the auto running the current server code by running `sudo systemctl stop bun-starter.service`
+
+Then cd to `~code/bun_starter` and to create a new database then run:
+```bash
+node --env-file=.env public/scripts/setup.js
+```
+
+It would be wise to ensure bi=oth dev and prouduction are running same versions,to run `bun update` followed by `bun upgrade` on both dev and production.
+
+Ensure .env contains `BETTER_AUTH_URL=https://bunstarter.redmug.dev`
+
+Ensure bothe Google and GitHub have the Authorised Javascript Origins and the Authorised redirect URI's set for the production server. (https://console.cloud.google.com and GitHub then Settings > Developer Settings > OAuth Apps.)
+
+Note that using standard GitHub OAuth App (the most common type for login), you cannot simply "add" a second URL to the same application as you can with Google. GitHub limits standard OAuth Apps to exactly one Authorization callback URL. Create a new GitHub Oauth app e.g bun-starter-production and the have 2 sets of .env variables, commenting out as appropriate.
+
+```bash
+# for dev http://localhost:3000/
+GITHUB_CLIENT_ID=*************
+GITHUB_CLIENT_SECRET=**********************************
+
+# for production https://bunstarter.redmug.dev/
+#GITHUB_CLIENT_ID=***********
+#GITHUB_CLIENT_SECRET=*************************************
+```
+
+On Cloudfalre, sign in and then for the domain, set dev mode = true and purge all cache (resets itself after 3 hrs fetch)
+
+Test
 ## Roadmap
 1) Improve mail:to links for communicating sign in details to new users or password reset details to existing users
 2) Add role based access control
