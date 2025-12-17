@@ -5,7 +5,7 @@ import { db } from '../server.js'
  */
 export function getAllTestCountriesData() {
   const query = db.query(
-    `SELECT iso_codex, iso_name, official_state_name, currency , population, gdp_billions_usd FROM test_countries ORDER BY gdp_billions_usd DESC`,
+    `SELECT iso_code, iso_name, official_state_name, currency , population, gdp_billions_usd FROM test_countries ORDER BY gdp_billions_usd DESC`,
   )
   return query.all()
 }
