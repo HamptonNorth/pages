@@ -34,6 +34,7 @@ const passwordValidationPlugin = {
 }
 
 export const authOptions = {
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
   emailAndPassword: {
     enabled: true,
   },
