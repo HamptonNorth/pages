@@ -1,11 +1,10 @@
-// version 2.0 Gemini 2.0 Flash
 // public/components/rm-nav-header.js
 
 import { LitElement, html, nothing } from 'lit'
 import { authClient } from '../auth-client.js'
 import './rm-add-user-modal.js'
 import './rm-reset-password-modal.js'
-import './rm-delete-user-modal.js'
+import './rm-delete-user-modal.js' // New import
 
 export class RmHeader extends LitElement {
   static properties = {
@@ -13,9 +12,6 @@ export class RmHeader extends LitElement {
     _isMenuOpen: { state: true },
     _isAppsOpen: { state: true },
     _isCountriesOpen: { state: true },
-    _isPagesOpen: { state: true },
-    _pageCategories: { state: true },
-
     _isSignOutModalOpen: { state: true },
     _isAddUserModalOpen: { state: true },
 
@@ -35,9 +31,6 @@ export class RmHeader extends LitElement {
     this._isMenuOpen = false
     this._isAppsOpen = false
     this._isCountriesOpen = false
-    this._isPagesOpen = false
-    this._pageCategories = [] // Now stores objects: { name: 'blog', sidebar: false }
-
     this._isSignOutModalOpen = false
     this._isAddUserModalOpen = false
 
@@ -59,11 +52,11 @@ export class RmHeader extends LitElement {
     super.connectedCallback()
     window.addEventListener('auth-changed', this._handleAuthChange.bind(this))
 
+    // Global Listeners for Context Menu actions
     window.addEventListener('request-password-reset', this._handleResetPasswordRequest.bind(this))
     window.addEventListener('request-delete-user', this._handleDeleteUserRequest.bind(this))
 
     await this._checkSession()
-    await this._fetchPageCategories()
   }
 
   disconnectedCallback() {
@@ -74,21 +67,6 @@ export class RmHeader extends LitElement {
     )
     window.removeEventListener('request-delete-user', this._handleDeleteUserRequest.bind(this))
     super.disconnectedCallback()
-  }
-
-  async _fetchPageCategories() {
-    try {
-      const response = await fetch('/api/pages-config')
-      if (response.ok) {
-        this._pageCategories = await response.json()
-      } else {
-        console.warn('Could not fetch pages config')
-        this._pageCategories = []
-      }
-    } catch (error) {
-      console.error('Error fetching pages config:', error)
-      this._pageCategories = []
-    }
   }
 
   _handleResetPasswordRequest(e) {
@@ -132,40 +110,25 @@ export class RmHeader extends LitElement {
   toggleDrawer() {
     this._isDrawerOpen = !this._isDrawerOpen
   }
-
   toggleMenu() {
     this._isMenuOpen = !this._isMenuOpen
     if (this._isMenuOpen) {
       this._isAppsOpen = false
       this._isCountriesOpen = false
-      this._isPagesOpen = false
     }
   }
-
   toggleApps() {
     this._isAppsOpen = !this._isAppsOpen
     if (this._isAppsOpen) {
       this._isMenuOpen = false
       this._isCountriesOpen = false
-      this._isPagesOpen = false
     }
   }
-
   toggleCountries() {
     this._isCountriesOpen = !this._isCountriesOpen
     if (this._isCountriesOpen) {
       this._isMenuOpen = false
       this._isAppsOpen = false
-      this._isPagesOpen = false
-    }
-  }
-
-  togglePages() {
-    this._isPagesOpen = !this._isPagesOpen
-    if (this._isPagesOpen) {
-      this._isMenuOpen = false
-      this._isAppsOpen = false
-      this._isCountriesOpen = false
     }
   }
 
@@ -224,7 +187,6 @@ export class RmHeader extends LitElement {
         : `${baseClass} text-primary-600 hover:bg-primary-100`
     }
     const isAdmin = this.isSignedIn && this.userRole === 'admin'
-    const hasPages = this._pageCategories && this._pageCategories.length > 0
 
     return html`
       <header class="bg-primary-700 relative z-30 text-white shadow-md">
@@ -300,52 +262,6 @@ export class RmHeader extends LitElement {
             </nav>
 
             <div class="relative hidden sm:block">
-              ${hasPages
-                ? html`
-                    <button
-                      aria-label="Button to access Pages and Blogs"
-                      @click="${this.togglePages}"
-                      class="text-primary-300 hover:bg-primary-600 mr-1 rounded p-1 hover:text-white focus:outline-none"
-                    >
-                      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 4.168 6.253v13C4.168 19.977 5.754 19.5 7.5 19.5S10.832 19.977 12 20.5m0-6.247v6.247m0-6.247C13.168 14.223 14.754 13.75 16.5 13.75s3.332.473 3.332 1.247v6.253C19.832 20.477 18.247 20 16.5 20s-3.332.477-4.168 1.253"
-                        ></path>
-                      </svg>
-                    </button>
-                    ${this._isPagesOpen
-                      ? html`
-                          <div
-                            class="fixed inset-0 z-40 cursor-default"
-                            @click="${() => (this._isPagesOpen = false)}"
-                          ></div>
-                          <div
-                            class="text-primary-800 absolute right-0 z-50 mt-2 w-56 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5"
-                          >
-                            <div
-                              class="border-primary-700 bg-primary-100 text-primary-500 border-b px-4 py-2 text-xs font-bold tracking-wider uppercase"
-                            >
-                              Pages
-                            </div>
-                            ${this._pageCategories.map(
-                              (cat) => html`
-                                <a
-                                  href="/pages/${cat.name}"
-                                  class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm capitalize"
-                                >
-                                  ${cat.name}
-                                </a>
-                              `,
-                            )}
-                          </div>
-                        `
-                      : nothing}
-                  `
-                : nothing}
-
               <button
                 aria-label="Button to open View products and product maintenance "
                 @click="${this.toggleApps}"
@@ -484,26 +400,6 @@ export class RmHeader extends LitElement {
                   >Products</a
                 >
                 <a href="/about.html" class="${getDrawerLinkClass('/about.html')}">About</a>
-
-                ${hasPages
-                  ? html`
-                      <div
-                        class="text-primary-500 bg-primary-50 mt-2 px-4 py-2 text-xs font-bold tracking-wider uppercase"
-                      >
-                        Pages
-                      </div>
-                      ${this._pageCategories.map(
-                        (cat) => html`
-                          <a
-                            href="/pages/${cat.name}"
-                            class="${getDrawerLinkClass(`/pages/${cat.name}`)} pl-8 capitalize"
-                          >
-                            ${cat.name}
-                          </a>
-                        `,
-                      )}
-                    `
-                  : nothing}
 
                 <div
                   class="text-primary-500 bg-primary-50 mt-2 px-4 py-2 text-xs font-bold tracking-wider uppercase"
