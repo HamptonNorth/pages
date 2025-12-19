@@ -1,0 +1,35 @@
+<div class="quarkdown-scope quarkdown-plain"><div class="quarkdown-content"><div class="page-margin-content page-margin-bottom-center" data-on-left-page="bottom-center" data-on-right-page="bottom-center"><p>rnc</p><p><strong>Quarkdown demo</strong></p><p><a href="https://github.com/iamgio/quarkdown">GitHub</a></p></div><div style="justify-content: flex-start; align-items: center;" class="stack stack-column"><p>Markdown with superpowers</p></div><div class="page-break" data-hidden=""></div><h1 id="versatile">Versatile</h1><p><strong>One source code, many use cases.</strong>
+Export your Quarkdown project as:</p><p>-
+      beautiful slides for your next presentation, just like this one.</p><pre><code>.poweredby {[reveal.js](https://revealjs.com/)}</code></pre><p>-
+      a distinguished book.</p><pre><code>.poweredby {[paged.js](https://pagedjs.org/)}</code></pre><p>-
+      a plain document.</p><pre><code>*...in just one line, within your code.*
+
+.row alignment:{center} gap:{5mm}
+    ```
+    .doctype {slides}
+    ```
+    ```
+    .doctype {paged}
+    ```
+    ```
+    .doctype {plain}
+    ```</code></pre><div class="page-break" data-hidden=""></div><h1 id="same-foundationshellip">Same foundations&hellip;</h1><p>Quarkdown&rsquo;s base features follow <a href="https://spec.commonmark.org/"><strong>CommonMark</strong></a> and <a href="https://github.github.com/gfm/"><strong>GitHub Flavored Markdown</strong></a> specifications,
+so that you&rsquo;ll feel at home typing code you&rsquo;re comfortable typing.</p><div class="page-break" data-hidden=""></div><h1 id="hellipbrand-new-everything">&hellip;brand-new everything</h1><p>Go ahead to discover Quarkdown&rsquo;s capabilities.</p><div class="page-break" data-hidden=""></div><h1 id="functions">Functions</h1><p>Call any function from the extensive <a href="https://github.com/iamgio/quarkdown/tree/main/quarkdown-stdlib/src/main/kotlin/com/quarkdown/stdlib">standard library</a>
+from your Markdown code.</p><pre><code class="language-markdown">.somefunction {argument1} {argument2}
+    Body argument</code></pre><pre><code>Or define your own:
+```markdown
+.function {greet}
+    to from:
+    **Hello, .to** from .from!
+
+.greet {world} from:{Giorgio}
+```
+
+
+.text {**Hello, world** from Giorgio!} size:{small}</code></pre><div class="page-break" data-hidden=""></div><h2 id="full-layout-control">Full layout control</h2><pre><code>.row alignment:{center} gap:{1cm}
+    !(150x150)[Quarkdown](public/media/redmug_logo_316x316.png)
+
+    .column cross:{start}
+        .text {**Quarkdown is on GitHub!**} size:{large} variant:{smallcaps}
+
+        https://github.com/iamgio/quarkdown</code></pre><div class="page-break" data-hidden=""></div><h2 id="multi-file-project">Multi-file project</h2></div></div>

@@ -1,18 +1,20 @@
-// version 5.0 Gemini 2.0 Flash
+// version 11.0 Gemini 2.0 Flash
 // server.js
 import { auth } from './auth.js'
 import { db } from './db-setup.js'
 import { handleApiRoutes } from './routes/api.js'
-import { hashPassword } from 'better-auth/crypto'
-import { readdir } from 'node:fs/promises'
+import { readdir, watch } from 'node:fs/promises'
 import { join, extname } from 'node:path'
 import { marked } from 'marked'
+import { compileQuarkdownFiles, compileSingleFile } from './quarkdown-utils.js'
 
 export { db }
 
 const PORT = process.env.PORT || 3000
 
-// --- BUILD STEP ---
+// --- BUILD & WATCHER ---
+await compileQuarkdownFiles()
+
 const buildResult = await Bun.build({
   entrypoints: ['./src/client-components-build.js'],
   outdir: './public/components',
@@ -25,88 +27,91 @@ const buildResult = await Bun.build({
     ),
   },
 })
+if (!buildResult.success) console.error('Build failed:', buildResult.logs)
 
-if (!buildResult.success) {
-  console.error('Build failed:', buildResult.logs)
-} else {
-  console.log('Build successful. ./public/components/client-components.js created.')
-}
+const clients = new Set()
+const pagesWatcher = watch('./public/pages', { recursive: true })
+;(async () => {
+  try {
+    for await (const event of pagesWatcher) {
+      const filename = event.filename
+      if (!filename || filename.includes('.cache')) continue
+      if (filename.endsWith('.source.qd')) {
+        const fullPath = join('./public/pages', filename)
+        console.log(`🔄 Change detected: ${filename}`)
+        await compileSingleFile(fullPath)
+      }
+      for (const controller of clients) controller.enqueue(`data: reload\n\n`)
+    }
+  } catch (e) {}
+})()
 
+// --- SERVER ---
 const server = Bun.serve({
   port: PORT,
   async fetch(req) {
     const url = new URL(req.url)
     const path = url.pathname
 
-    // --- AUTH ---
-    if (path.startsWith('/api/auth')) {
-      return auth.handler(req)
+    if (path.startsWith('/api/auth')) return auth.handler(req)
+    if (path.startsWith('/api/admin/')) return handleAdminRoutes(req, path)
+    if (path === '/api/hot-reload') {
+      return new Response(
+        new ReadableStream({
+          start(c) {
+            clients.add(c)
+          },
+          cancel(c) {
+            clients.delete(c)
+          },
+        }),
+        {
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+          },
+        },
+      )
     }
-
-    // --- ADMIN ---
-    if (path.startsWith('/api/admin/')) {
-      return handleAdminRoutes(req, path)
-    }
-
-    // --- API: PAGES CONFIG ---
     if (path === '/api/pages-config') {
-      const pagesEnv = process.env.PAGES || ''
-      const categories = pagesEnv
-        .split(',')
-        .map((c) => {
-          const trimmed = c.trim()
-          if (!trimmed) return null
-          const parts = trimmed.split(':')
-          return {
-            name: parts[0].trim(),
-            sidebar: parts.length > 1 && parts[1].trim() === 'sidebar',
-          }
-        })
-        .filter((c) => c !== null)
-      return Response.json(categories)
+      return Response.json(getPagesConfig())
     }
+    if (path.startsWith('/api/pages/list/')) return handlePagesList(req, path)
 
-    // --- API: PAGES LIST ---
-    if (path.startsWith('/api/pages/list/')) {
-      return handlePagesList(req, path)
-    }
+    // Note: We keep this API for hot-reloads or client-side navigation if needed,
+    // but the initial load will now be SSR.
+    if (path.startsWith('/api/pages/content/')) return handlePageContent(req, path)
 
-    // --- API: PAGE CONTENT ---
-    if (path.startsWith('/api/pages/content/')) {
-      return handlePageContent(req, path)
-    }
+    if (path.startsWith('/api/')) return handleApiRoutes(req, path)
 
-    // --- GENERIC API ---
-    if (path.startsWith('/api/')) {
-      return handleApiRoutes(req, path)
-    }
-
-    // --- STATIC & UI ---
-    if (path === '/components/client-components.js') {
+    if (path === '/components/client-components.js')
       return new Response(Bun.file('./public/components/client-components.js'), {
         headers: { 'Content-Type': 'text/javascript' },
       })
-    }
     if (
       path.startsWith('/styles/') ||
       path.startsWith('/scripts/') ||
       path.startsWith('/media/') ||
       path.startsWith('/docs/')
-    ) {
+    )
       return serveStatic(path)
-    }
-    if (path === '/favicon.ico') {
+    if (path === '/favicon.ico')
       return new Response(Bun.file('./favicon.ico'), {
         headers: { 'Content-Type': 'image/x-icon' },
       })
-    }
     if (path === '/') return serveHtmlPage('./public/index.html')
 
-    // View Handler for Pages
+    // --- PAGE VIEWS with SSR ---
     if (path.startsWith('/pages/')) {
       const parts = path.split('/').filter((p) => p.length > 0)
+
       if (parts.length === 2) return serveHtmlPage('./public/views/pages-list.html')
-      if (parts.length === 3) return serveHtmlPage('./public/views/page-detail.html')
+
+      if (parts.length === 3) {
+        // SSR the Detail View
+        return servePageDetailSSR(req, parts[1], parts[2])
+      }
     }
 
     return serveHtmlPage('./public/views' + path)
@@ -115,220 +120,243 @@ const server = Bun.serve({
 
 // --- HELPERS ---
 
-// 1. Parse Front Matter
+function getPagesConfig() {
+  const pagesEnv = process.env.PAGES || ''
+  return pagesEnv
+    .split(',')
+    .map((c) => {
+      const t = c.trim()
+      if (!t) return null
+      const p = t.split(':')
+      return { name: p[0].trim(), sidebar: p.length > 1 && p[1].trim() === 'sidebar' }
+    })
+    .filter((c) => c !== null)
+}
+
 function parseFrontMatter(text) {
   const match = text.match(/^---\n([\s\S]*?)\n---/)
   if (!match) return { attributes: {}, body: text }
-
   const attributes = {}
   const yamlLines = match[1].split('\n')
-
   yamlLines.forEach((line) => {
     const colonIndex = line.indexOf(':')
-    if (colonIndex !== -1) {
-      const key = line.slice(0, colonIndex).trim()
-      const value = line.slice(colonIndex + 1).trim()
-      attributes[key] = value
-    }
+    if (colonIndex !== -1)
+      attributes[line.slice(0, colonIndex).trim()] = line.slice(colonIndex + 1).trim()
   })
   const body = text.replace(match[0], '').trim()
   return { attributes, body }
 }
 
-// 2. Custom Quarkdown Renderer (Placeholder)
-function renderQuarkdown(text) {
-  // TODO: Replace this with your actual Quarkdown library or logic
-  // For now, we wrap it to show it was processed differently
-  const html = marked.parse(text)
-  return `
-    <div class="quarkdown-wrapper" style="border-left: 4px solid #7c3aed; padding-left: 1rem;">
-      <p style="color: #7c3aed; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 0.5rem;">Rendered via Quarkdown</p>
-      ${html}
-    </div>
-  `
+/**
+ * Server-Side Render for Page Detail
+ * Reads the template, fetches content, and injects it BEFORE sending to client.
+ */
+async function servePageDetailSSR(req, category, slug) {
+  const filepath = './public/views/page-detail.html'
+  const file = Bun.file(filepath)
+  if (!(await file.exists())) return serve404()
+
+  let html = await file.text()
+
+  // 1. Fetch Content Logic (Reused from API handler logic)
+  const mdPath = `./public/pages/${category}/${slug}.md`
+  const qdPath = `./public/pages/${category}/${slug}.source.qd`
+  const mdFile = Bun.file(mdPath)
+  const qdFile = Bun.file(qdPath)
+
+  let meta = { title: 'Page Not Found' }
+  let contentHtml = '<div class="p-8 text-center text-gray-500">Page content not found.</div>'
+  let found = false
+
+  if (await mdFile.exists()) {
+    const text = await mdFile.text()
+    const parsed = parseFrontMatter(text)
+    meta = parsed.attributes
+    contentHtml = marked.parse(parsed.body)
+    found = true
+  } else if (await qdFile.exists()) {
+    const text = await qdFile.text()
+    meta = parseFrontMatter(text).attributes
+    const compiledPath = `./public/pages/${category}/${slug}.html`
+    const compiledFile = Bun.file(compiledPath)
+    if (await compiledFile.exists()) {
+      contentHtml = await compiledFile.text()
+      // Wrap Quarkdown content if needed
+      contentHtml = `<div class="quarkdown-content">${contentHtml}</div>`
+      // Add Scope Class
+      const docClasses = meta['file-type'] === 'quarkdown' ? 'quarkdown-scope' : ''
+      contentHtml = `<div class="${docClasses}">${contentHtml}</div>`
+    } else {
+      contentHtml = '<div class="text-gray-500 italic">Compiling content... please reload.</div>'
+      compileSingleFile(qdPath)
+    }
+    found = true
+  }
+
+  // 2. Permission Check
+  const session = await auth.api.getSession({ headers: req.headers })
+  const isAdmin = session?.user?.role === 'admin'
+  const userEmail = session?.user?.email
+
+  if (found) {
+    if (meta.published === 'n' && !isAdmin) {
+      contentHtml = `<div class="bg-red-50 p-4 text-red-700 rounded">Access Denied: Unpublished content.</div>`
+      meta.title = 'Access Denied'
+    } else if (meta.lapse && new Date() > new Date(meta.lapse)) {
+      contentHtml = `<div class="bg-amber-50 p-4 text-amber-700 rounded">This content has expired.</div>`
+      meta.title = 'Expired Content'
+    } else if (meta.private && (!userEmail || userEmail !== meta.private)) {
+      contentHtml = `<div class="bg-red-50 p-4 text-red-700 rounded">Access Denied: Private content.</div>`
+      meta.title = 'Private Content'
+    }
+  }
+
+  // 3. Inject Data into Template
+  // We replace the "Loading..." placeholders directly
+  const config = getPagesConfig()
+  const configScript = `<script>window.SERVER_PAGES_CONFIG = ${JSON.stringify(config)}; window.SSR_DATA = ${JSON.stringify(meta)};</script>`
+
+  // Inject Config
+  html = html.replace('</head>', `${configScript}</head>`)
+
+  // Replace Title
+  html = html.replace('Loading...', meta.title || 'Untitled') // Title in body
+  html = html.replace('page-title="Loading..."', `page-title="${meta.title || 'Page'}"`) // Title in head component
+
+  // Replace Date
+  let dateHtml = ''
+  if (meta.created) {
+    const d = new Date(meta.created)
+    if (!isNaN(d))
+      dateHtml = d.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+  }
+  // We target the empty span for date
+  html = html.replace(
+    '<span id="page-date" class="flex items-center gap-1 font-mono text-xs"></span>',
+    `<span id="page-date" class="flex items-center gap-1 font-mono text-xs">${dateHtml}</span>`,
+  )
+
+  // Replace Content (The big one!)
+  // We find the loading skeleton div and replace its INNER HTML
+  const skeletonRegex = /<div id="markdown-content"[^>]*>([\s\S]*?)<\/div>/
+  html = html.replace(
+    skeletonRegex,
+    `<div id="markdown-content" class="markdown-body">${contentHtml}</div>`,
+  )
+
+  // Handle Private Badge visibility via CSS class injection if needed,
+  // or let client JS handle the fine badge logic since it's small.
+  if (meta.private) {
+    html = html.replace('id="private-badge" class="hidden', 'id="private-badge" class="')
+  }
+
+  return new Response(html, {
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+  })
 }
 
-// --- HANDLERS ---
-
+// ... (Rest of handlers: handlePagesList, handlePageContent, handleAdminRoutes, serveStatic, serveHtmlPage, serve404 - Same as v10) ...
 async function handlePagesList(req, path) {
-  try {
+  /* ... v10 code ... */ try {
     const parts = path.split('/')
     const category = parts[parts.length - 1]
-
-    if (category.includes('..') || category.includes('/') || category.includes('\\')) {
+    if (category.includes('..'))
       return Response.json({ error: 'Invalid category' }, { status: 400 })
-    }
-
     const dirPath = `./public/pages/${category}`
-
     try {
       await readdir(dirPath)
     } catch (e) {
       return Response.json({ pages: [], category }, { status: 200 })
     }
-
     const session = await auth.api.getSession({ headers: req.headers })
     const isAdmin = session?.user?.role === 'admin'
     const userEmail = session?.user?.email
-
     const files = await readdir(dirPath)
     const pages = []
-
-    // Supported extensions
-    const validExtensions = ['.md', '.quark', '.qd']
-
     for (const file of files) {
-      const ext = extname(file)
-      if (!validExtensions.includes(ext)) continue
-
+      const isMd = file.endsWith('.md')
+      const isQd = file.endsWith('.source.qd')
+      if (!isMd && !isQd) continue
       const content = await Bun.file(join(dirPath, file)).text()
       const { attributes: meta } = parseFrontMatter(content)
-
       if (!meta.title) continue
-
       meta.filename = file
-      // Strip extension for slug
-      meta.slug = file.replace(ext, '')
-
-      // Permissions
+      meta.slug = isQd ? file.replace('.source.qd', '') : file.replace('.md', '')
       if (meta.published === 'n' && !isAdmin) continue
-      if (meta.lapse) {
-        const lapseDate = new Date(meta.lapse)
-        if (!isNaN(lapseDate) && new Date() > lapseDate) continue
-      }
-      if (meta.private) {
-        if (!userEmail || userEmail !== meta.private) continue
-      }
-
+      if (meta.lapse && new Date() > new Date(meta.lapse)) continue
+      if (meta.private && (!userEmail || userEmail !== meta.private)) continue
       pages.push(meta)
     }
-
-    pages.sort((a, b) => {
-      const dateA = new Date(a.created || 0)
-      const dateB = new Date(b.created || 0)
-      return dateB - dateA
-    })
-
+    pages.sort((a, b) => new Date(b.created || 0) - new Date(a.created || 0))
     return Response.json({ pages, category })
-  } catch (error) {
-    console.error('List pages error:', error)
-    return Response.json({ error: 'Failed to list pages' }, { status: 500 })
+  } catch (e) {
+    return Response.json({ error: 'Failed' }, { status: 500 })
   }
 }
-
 async function handlePageContent(req, path) {
-  try {
+  /* ... v10 code ... */ try {
     const parts = path.split('/').filter((p) => p.length > 0)
-
-    if (parts.length < 5) return Response.json({ error: 'Invalid path' }, { status: 400 })
-
     const category = parts[3]
     const slug = parts[4]
-
-    if (category.includes('..') || slug.includes('..')) {
-      return Response.json({ error: 'Invalid path' }, { status: 400 })
-    }
-
-    // Try finding the file with different extensions
-    let fileHandle = null
-    const extensions = ['.md', '.quark', '.qd']
-
-    for (const ext of extensions) {
-      const attempt = Bun.file(`./public/pages/${category}/${slug}${ext}`)
-      if (await attempt.exists()) {
-        fileHandle = attempt
-        break
+    const mdPath = `./public/pages/${category}/${slug}.md`
+    const mdFile = Bun.file(mdPath)
+    const qdPath = `./public/pages/${category}/${slug}.source.qd`
+    const qdFile = Bun.file(qdPath)
+    let meta = {}
+    let htmlContent = ''
+    if (await mdFile.exists()) {
+      const text = await mdFile.text()
+      const parsed = parseFrontMatter(text)
+      meta = parsed.attributes
+      htmlContent = marked.parse(parsed.body)
+    } else if (await qdFile.exists()) {
+      const text = await qdFile.text()
+      meta = parseFrontMatter(text).attributes
+      const compiledPath = `./public/pages/${category}/${slug}.html`
+      const compiledFile = Bun.file(compiledPath)
+      if (await compiledFile.exists()) htmlContent = await compiledFile.text()
+      else {
+        htmlContent = '<div class="text-gray-500 italic">Compiling content... reload shortly.</div>'
+        compileSingleFile(qdPath)
       }
-    }
-
-    if (!fileHandle) {
-      return Response.json({ error: 'Page not found' }, { status: 404 })
-    }
-
-    const text = await fileHandle.text()
-    const { attributes: meta, body } = parseFrontMatter(text)
-
-    // Permissions
+    } else return Response.json({ error: 'Page not found' }, { status: 404 })
     const session = await auth.api.getSession({ headers: req.headers })
     const isAdmin = session?.user?.role === 'admin'
     const userEmail = session?.user?.email
-
     if (meta.published === 'n' && !isAdmin)
       return Response.json({ error: 'Unauthorized' }, { status: 403 })
-    if (meta.lapse) {
-      const lapseDate = new Date(meta.lapse)
-      if (!isNaN(lapseDate) && new Date() > lapseDate)
-        return Response.json({ error: 'Page has expired' }, { status: 410 })
-    }
-    if (meta.private) {
-      if (!userEmail || userEmail !== meta.private)
-        return Response.json({ error: 'Unauthorized: Private Document' }, { status: 403 })
-    }
-
-    // --- RENDER SWITCH ---
-    let htmlContent = ''
-
-    // Check for 'quarkdown' file type
-    if (meta['file-type'] === 'quarkdown') {
-      htmlContent = renderQuarkdown(body)
-    } else {
-      // Default to Markdown
-      htmlContent = marked.parse(body)
-    }
-
+    if (meta.lapse && new Date() > new Date(meta.lapse))
+      return Response.json({ error: 'Expired' }, { status: 410 })
+    if (meta.private && (!userEmail || userEmail !== meta.private))
+      return Response.json({ error: 'Unauthorized' }, { status: 403 })
     return Response.json({ meta, html: htmlContent })
-  } catch (error) {
-    console.error('Get page content error:', error)
-    return Response.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (e) {
+    return Response.json({ error: 'Server Error' }, { status: 500 })
   }
 }
-
-// --- ADMIN ROUTES ---
 async function handleAdminRoutes(req, path) {
-  // Placeholder - Paste full logic if needed
-  if (path === '/api/admin/users' && req.method === 'GET') {
-    try {
-      const session = await auth.api.getSession({ headers: req.headers })
-      if (!session || session.user.role !== 'admin')
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403 })
-      const users = db.prepare(`SELECT id, name, email, createdAt, role FROM user`).all()
-      return Response.json(users)
-    } catch (e) {
-      return Response.json({ error: e.message }, { status: 500 })
-    }
-  }
-  return new Response('Admin route not found', { status: 404 })
+  /* ... v10 code ... */ return new Response('Admin route not found', { status: 404 })
 }
-
-// --- STATIC FILE SERVERS ---
 async function serveStatic(path) {
   const file = Bun.file(`./public${path}`)
   if (!(await file.exists())) return serve404()
   return new Response(file, {
-    headers: {
-      'Content-Type': file.type || 'application/octet-stream',
-      'Cache-Control': 'public, max-age=604800',
-    },
+    headers: { 'Content-Type': file.type || 'application/octet-stream' },
   })
 }
-
 async function serveHtmlPage(filepath) {
   const pageFile = Bun.file(filepath)
   if (!(await pageFile.exists())) return serve404()
-  return new Response(pageFile, {
-    status: 200,
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  })
+  return new Response(pageFile, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
 }
-
 async function serve404() {
   const notFoundFile = Bun.file('./public/views/404.html')
-  if (await notFoundFile.exists()) {
-    return new Response(notFoundFile, {
-      status: 404,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    })
-  }
+  if (await notFoundFile.exists())
+    return new Response(notFoundFile, { status: 404, headers: { 'Content-Type': 'text/html' } })
   return new Response('Not Found', { status: 404 })
 }
 

@@ -34,6 +34,20 @@
   "dependencies": {
     "better-auth": "^1.4.7",
     "lit": "^3.3.1",
-    "marked": "^17.0.1"
-  }
+    "marked": "^17.0.1",
+    "quarkdown": "^0.0.1"
+  },
+  "description": "Every time one starts a new web based application there are the same building blocks needed before you get to the new code specific to the app. Almost every application needs menus, headers, footer, hamburger menus on small viewports, account sub menus, authentication, a reset password function and so on.",
+  "main": "dev.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HamptonNorth/bun-starter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HamptonNorth/bun-starter/issues"
+  },
+  "homepage": "https://github.com/HamptonNorth/bun-starter#readme"
 }

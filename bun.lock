@@ -8,6 +8,7 @@
         "better-auth": "^1.4.7",
         "lit": "^3.3.1",
         "marked": "^17.0.1",
+        "quarkdown": "^0.0.1",
       },
       "devDependencies": {
         "@eslint/css": "^0.14.1",
@@ -426,6 +427,8 @@
     "pump": ["pump@3.0.3", "", { "dependencies": { "end-of-stream": "^1.1.0", "once": "^1.3.1" } }, "sha512-todwxLMY7/heScKmntwQG8CXVkWUOdYxIvY2s0VWAAMh/nd8SoYiRaKjlr7+iCs984f2P8zvrfWcDDYVb73NfA=="],
 
     "punycode": ["punycode@2.3.1", "", {}, "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="],
+
+    "quarkdown": ["quarkdown@0.0.1", "", {}, "sha512-aX4ykibZGrZUQKmTcArRrc1IQFrzo4+Pp3t3RhsP6jnuGWyhAqON97VBNgNtbz6xs/aTfvWWSWYQ3cC2Vlybqg=="],
 
     "rc": ["rc@1.2.8", "", { "dependencies": { "deep-extend": "^0.6.0", "ini": "~1.3.0", "minimist": "^1.2.0", "strip-json-comments": "~2.0.1" }, "bin": { "rc": "./cli.js" } }, "sha512-y3bGgqKj3QBdxLbLkomlohkvsA8gdAiUQlSBJnBhfn+BPxg4bc62d8TcBW15wavDfgexCgccckhcZvywyQYPOw=="],
 

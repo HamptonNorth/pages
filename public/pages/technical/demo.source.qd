@@ -1,0 +1,162 @@
+---
+title: Demonstration quarkdown file
+summary: Letting ideas flow into your next presentation, paper or book. Markdown meets the power of LaTeX in this modern typesetting system
+created: 2025-09-12T10:35:00-00:00
+published: y
+file-type: quarkdown
+---
+
+.docname {Quarkdown demo}
+.docauthor {rnc}
+.doctype {plain}
+.doclang {English}
+.theme {darko} layout:{minimal}
+.autopagebreak maxdepth:{2}
+
+.footer
+    .docauthor
+
+    **.docname**
+
+    [GitHub](https://github.com/iamgio/quarkdown)
+
+
+.column
+
+
+    Markdown with superpowers
+
+# Versatile
+
+**One source code, many use cases.**
+Export your Quarkdown project as:
+
+.function {poweredby}
+    credits:
+    .text {powered by .credits} size:{tiny} variant:{smallcaps}
+
+-
+      beautiful slides for your next presentation, just like this one.
+      .poweredby {[reveal.js](https://revealjs.com/)}
+-
+      a distinguished book.
+      .poweredby {[paged.js](https://pagedjs.org/)}
+-
+      a plain document.
+
+
+
+
+    *...in just one line, within your code.*
+
+    .row alignment:{center} gap:{5mm}
+        ```
+        .doctype {slides}
+        ```
+        ```
+        .doctype {paged}
+        ```
+        ```
+        .doctype {plain}
+        ```
+
+# Same foundations...
+
+.var {downarrow}
+    .container padding:{6px 0 16px 0}
+        .text {↓} weight:{bold} size:{large}
+
+.var {rightarrow}
+    .text {->} weight:{bold} size:{large}
+
+Quarkdown's base features follow [**CommonMark**](https://spec.commonmark.org/) and [**GitHub Flavored Markdown**](https://github.github.com/gfm/) specifications,
+so that you'll feel at home typing code you're comfortable typing.
+
+<!-- Shows a Quarkdown source as *both* its code AND its visual output. -->
+<!-- Parameters: whether the output should be animated on interaction, -->
+<!-- and whether the output should be displayed slightly above than expected (resets heading margin) -->
+
+.function {sourceresult}
+    shrinkvertical? animated? horizontal? source:
+    .node
+    ---
+
+    .var {snippet}
+        .code {markdown}
+            .source
+
+    .var {ishorizontal} {.horizontal::otherwise {no}}
+
+    .var {output}
+        .container alignment:{center} fullwidth:{yes}
+            .downarrow
+
+        .var {voffset} {.shrinkvertical::ifpresent {@lambda .1::multiply {-1}}::otherwise {0}}
+
+        .container textalignment:{center} margin:{.voffset 0 0 0} fullwidth:{yes}
+            .source
+
+    .ifnot {.ishorizontal}
+        .snippet
+
+        .let {.animated::otherwise {no}}
+            .if {.1}
+
+                    .output
+            .ifnot {.1}
+                .output
+
+    .if {.ishorizontal}
+        .row alignment:{spacearound}
+            .snippet
+
+            .rightarrow
+
+            .container textalignment:{center} width:{50%}
+                .source
+
+
+    ### Diving into _Quarkdown_
+
+    Somebody once said:
+    > Write once, run **anywhere**.
+
+# ...brand-new everything
+
+Go ahead to discover Quarkdown's capabilities.
+
+# Functions
+
+Call any function from the extensive [standard library](https://github.com/iamgio/quarkdown/tree/main/quarkdown-stdlib/src/main/kotlin/com/quarkdown/stdlib)
+from your Markdown code.
+
+```markdown
+.somefunction {argument1} {argument2}
+    Body argument
+```
+
+
+    Or define your own:
+    ```markdown
+    .function {greet}
+        to from:
+        **Hello, .to** from .from!
+
+    .greet {world} from:{Giorgio}
+    ```
+
+
+    .text {**Hello, world** from Giorgio!} size:{small}
+
+## Full layout control
+
+
+    .row alignment:{center} gap:{1cm}
+        !(150x150)[Quarkdown](public/media/redmug_logo_316x316.png)
+
+        .column cross:{start}
+            .text {**Quarkdown is on GitHub!**} size:{large} variant:{smallcaps}
+
+            https://github.com/iamgio/quarkdown
+
+## Multi-file project
