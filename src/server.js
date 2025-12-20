@@ -1,20 +1,17 @@
-// version 11.0 Gemini 2.0 Flash
+// version 13.0 Gemini 2.0 Flash
 // server.js
 import { auth } from './auth.js'
 import { db } from './db-setup.js'
 import { handleApiRoutes } from './routes/api.js'
 import { readdir, watch } from 'node:fs/promises'
-import { join, extname } from 'node:path'
+import { join } from 'node:path'
 import { marked } from 'marked'
-import { compileQuarkdownFiles, compileSingleFile } from './quarkdown-utils.js'
 
 export { db }
 
 const PORT = process.env.PORT || 3000
 
-// --- BUILD & WATCHER ---
-await compileQuarkdownFiles()
-
+// --- BUILD STEP (Client Components Only) ---
 const buildResult = await Bun.build({
   entrypoints: ['./src/client-components-build.js'],
   outdir: './public/components',
@@ -29,18 +26,15 @@ const buildResult = await Bun.build({
 })
 if (!buildResult.success) console.error('Build failed:', buildResult.logs)
 
+// --- HOT RELOAD WATCHER ---
 const clients = new Set()
 const pagesWatcher = watch('./public/pages', { recursive: true })
 ;(async () => {
   try {
     for await (const event of pagesWatcher) {
       const filename = event.filename
-      if (!filename || filename.includes('.cache')) continue
-      if (filename.endsWith('.source.qd')) {
-        const fullPath = join('./public/pages', filename)
-        console.log(`🔄 Change detected: ${filename}`)
-        await compileSingleFile(fullPath)
-      }
+      if (!filename) continue
+      // Notify clients on any change in pages directory
       for (const controller of clients) controller.enqueue(`data: reload\n\n`)
     }
   } catch (e) {}
@@ -49,12 +43,15 @@ const pagesWatcher = watch('./public/pages', { recursive: true })
 // --- SERVER ---
 const server = Bun.serve({
   port: PORT,
+  idleTimeout: 255, // Keep high for SSE
   async fetch(req) {
     const url = new URL(req.url)
     const path = url.pathname
 
     if (path.startsWith('/api/auth')) return auth.handler(req)
     if (path.startsWith('/api/admin/')) return handleAdminRoutes(req, path)
+
+    // Hot Reload Stream
     if (path === '/api/hot-reload') {
       return new Response(
         new ReadableStream({
@@ -74,13 +71,13 @@ const server = Bun.serve({
         },
       )
     }
+
     if (path === '/api/pages-config') {
       return Response.json(getPagesConfig())
     }
     if (path.startsWith('/api/pages/list/')) return handlePagesList(req, path)
 
-    // Note: We keep this API for hot-reloads or client-side navigation if needed,
-    // but the initial load will now be SSR.
+    // API for fetching content (Client-side fallback)
     if (path.startsWith('/api/pages/content/')) return handlePageContent(req, path)
 
     if (path.startsWith('/api/')) return handleApiRoutes(req, path)
@@ -89,6 +86,7 @@ const server = Bun.serve({
       return new Response(Bun.file('./public/components/client-components.js'), {
         headers: { 'Content-Type': 'text/javascript' },
       })
+
     if (
       path.startsWith('/styles/') ||
       path.startsWith('/scripts/') ||
@@ -96,22 +94,19 @@ const server = Bun.serve({
       path.startsWith('/docs/')
     )
       return serveStatic(path)
+
     if (path === '/favicon.ico')
       return new Response(Bun.file('./favicon.ico'), {
         headers: { 'Content-Type': 'image/x-icon' },
       })
+
     if (path === '/') return serveHtmlPage('./public/index.html')
 
     // --- PAGE VIEWS with SSR ---
     if (path.startsWith('/pages/')) {
       const parts = path.split('/').filter((p) => p.length > 0)
-
       if (parts.length === 2) return serveHtmlPage('./public/views/pages-list.html')
-
-      if (parts.length === 3) {
-        // SSR the Detail View
-        return servePageDetailSSR(req, parts[1], parts[2])
-      }
+      if (parts.length === 3) return servePageDetailSSR(req, parts[1], parts[2])
     }
 
     return serveHtmlPage('./public/views' + path)
@@ -149,7 +144,7 @@ function parseFrontMatter(text) {
 
 /**
  * Server-Side Render for Page Detail
- * Reads the template, fetches content, and injects it BEFORE sending to client.
+ * Reads template, fetches MD content, and injects it.
  */
 async function servePageDetailSSR(req, category, slug) {
   const filepath = './public/views/page-detail.html'
@@ -158,11 +153,9 @@ async function servePageDetailSSR(req, category, slug) {
 
   let html = await file.text()
 
-  // 1. Fetch Content Logic (Reused from API handler logic)
+  // 1. Fetch Content Logic (Markdown Only)
   const mdPath = `./public/pages/${category}/${slug}.md`
-  const qdPath = `./public/pages/${category}/${slug}.source.qd`
   const mdFile = Bun.file(mdPath)
-  const qdFile = Bun.file(qdPath)
 
   let meta = { title: 'Page Not Found' }
   let contentHtml = '<div class="p-8 text-center text-gray-500">Page content not found.</div>'
@@ -173,23 +166,6 @@ async function servePageDetailSSR(req, category, slug) {
     const parsed = parseFrontMatter(text)
     meta = parsed.attributes
     contentHtml = marked.parse(parsed.body)
-    found = true
-  } else if (await qdFile.exists()) {
-    const text = await qdFile.text()
-    meta = parseFrontMatter(text).attributes
-    const compiledPath = `./public/pages/${category}/${slug}.html`
-    const compiledFile = Bun.file(compiledPath)
-    if (await compiledFile.exists()) {
-      contentHtml = await compiledFile.text()
-      // Wrap Quarkdown content if needed
-      contentHtml = `<div class="quarkdown-content">${contentHtml}</div>`
-      // Add Scope Class
-      const docClasses = meta['file-type'] === 'quarkdown' ? 'quarkdown-scope' : ''
-      contentHtml = `<div class="${docClasses}">${contentHtml}</div>`
-    } else {
-      contentHtml = '<div class="text-gray-500 italic">Compiling content... please reload.</div>'
-      compileSingleFile(qdPath)
-    }
     found = true
   }
 
@@ -211,19 +187,14 @@ async function servePageDetailSSR(req, category, slug) {
     }
   }
 
-  // 3. Inject Data into Template
-  // We replace the "Loading..." placeholders directly
+  // 3. Inject Data
   const config = getPagesConfig()
   const configScript = `<script>window.SERVER_PAGES_CONFIG = ${JSON.stringify(config)}; window.SSR_DATA = ${JSON.stringify(meta)};</script>`
 
-  // Inject Config
   html = html.replace('</head>', `${configScript}</head>`)
+  html = html.replace('Loading...', meta.title || 'Untitled')
+  html = html.replace('page-title="Loading..."', `page-title="${meta.title || 'Page'}"`)
 
-  // Replace Title
-  html = html.replace('Loading...', meta.title || 'Untitled') // Title in body
-  html = html.replace('page-title="Loading..."', `page-title="${meta.title || 'Page'}"`) // Title in head component
-
-  // Replace Date
   let dateHtml = ''
   if (meta.created) {
     const d = new Date(meta.created)
@@ -234,22 +205,17 @@ async function servePageDetailSSR(req, category, slug) {
         day: 'numeric',
       })
   }
-  // We target the empty span for date
   html = html.replace(
     '<span id="page-date" class="flex items-center gap-1 font-mono text-xs"></span>',
     `<span id="page-date" class="flex items-center gap-1 font-mono text-xs">${dateHtml}</span>`,
   )
 
-  // Replace Content (The big one!)
-  // We find the loading skeleton div and replace its INNER HTML
   const skeletonRegex = /<div id="markdown-content"[^>]*>([\s\S]*?)<\/div>/
   html = html.replace(
     skeletonRegex,
     `<div id="markdown-content" class="markdown-body">${contentHtml}</div>`,
   )
 
-  // Handle Private Badge visibility via CSS class injection if needed,
-  // or let client JS handle the fine badge logic since it's small.
   if (meta.private) {
     html = html.replace('id="private-badge" class="hidden', 'id="private-badge" class="')
   }
@@ -259,87 +225,93 @@ async function servePageDetailSSR(req, category, slug) {
   })
 }
 
-// ... (Rest of handlers: handlePagesList, handlePageContent, handleAdminRoutes, serveStatic, serveHtmlPage, serve404 - Same as v10) ...
+// --- API HANDLERS ---
+
 async function handlePagesList(req, path) {
-  /* ... v10 code ... */ try {
+  try {
     const parts = path.split('/')
     const category = parts[parts.length - 1]
     if (category.includes('..'))
       return Response.json({ error: 'Invalid category' }, { status: 400 })
+
     const dirPath = `./public/pages/${category}`
     try {
       await readdir(dirPath)
     } catch (e) {
       return Response.json({ pages: [], category }, { status: 200 })
     }
+
     const session = await auth.api.getSession({ headers: req.headers })
     const isAdmin = session?.user?.role === 'admin'
     const userEmail = session?.user?.email
+
     const files = await readdir(dirPath)
     const pages = []
+
     for (const file of files) {
-      const isMd = file.endsWith('.md')
-      const isQd = file.endsWith('.source.qd')
-      if (!isMd && !isQd) continue
+      if (!file.endsWith('.md')) continue
+
       const content = await Bun.file(join(dirPath, file)).text()
       const { attributes: meta } = parseFrontMatter(content)
+
       if (!meta.title) continue
       meta.filename = file
-      meta.slug = isQd ? file.replace('.source.qd', '') : file.replace('.md', '')
+      meta.slug = file.replace('.md', '')
+
       if (meta.published === 'n' && !isAdmin) continue
       if (meta.lapse && new Date() > new Date(meta.lapse)) continue
       if (meta.private && (!userEmail || userEmail !== meta.private)) continue
+
       pages.push(meta)
     }
+
     pages.sort((a, b) => new Date(b.created || 0) - new Date(a.created || 0))
     return Response.json({ pages, category })
   } catch (e) {
     return Response.json({ error: 'Failed' }, { status: 500 })
   }
 }
+
 async function handlePageContent(req, path) {
-  /* ... v10 code ... */ try {
+  try {
     const parts = path.split('/').filter((p) => p.length > 0)
     const category = parts[3]
     const slug = parts[4]
+
     const mdPath = `./public/pages/${category}/${slug}.md`
     const mdFile = Bun.file(mdPath)
-    const qdPath = `./public/pages/${category}/${slug}.source.qd`
-    const qdFile = Bun.file(qdPath)
+
     let meta = {}
     let htmlContent = ''
+
     if (await mdFile.exists()) {
       const text = await mdFile.text()
       const parsed = parseFrontMatter(text)
       meta = parsed.attributes
       htmlContent = marked.parse(parsed.body)
-    } else if (await qdFile.exists()) {
-      const text = await qdFile.text()
-      meta = parseFrontMatter(text).attributes
-      const compiledPath = `./public/pages/${category}/${slug}.html`
-      const compiledFile = Bun.file(compiledPath)
-      if (await compiledFile.exists()) htmlContent = await compiledFile.text()
-      else {
-        htmlContent = '<div class="text-gray-500 italic">Compiling content... reload shortly.</div>'
-        compileSingleFile(qdPath)
-      }
-    } else return Response.json({ error: 'Page not found' }, { status: 404 })
+    } else {
+      return Response.json({ error: 'Page not found' }, { status: 404 })
+    }
+
     const session = await auth.api.getSession({ headers: req.headers })
     const isAdmin = session?.user?.role === 'admin'
     const userEmail = session?.user?.email
+
     if (meta.published === 'n' && !isAdmin)
       return Response.json({ error: 'Unauthorized' }, { status: 403 })
     if (meta.lapse && new Date() > new Date(meta.lapse))
       return Response.json({ error: 'Expired' }, { status: 410 })
     if (meta.private && (!userEmail || userEmail !== meta.private))
       return Response.json({ error: 'Unauthorized' }, { status: 403 })
+
     return Response.json({ meta, html: htmlContent })
   } catch (e) {
     return Response.json({ error: 'Server Error' }, { status: 500 })
   }
 }
+
 async function handleAdminRoutes(req, path) {
-  /* ... v10 code ... */ return new Response('Admin route not found', { status: 404 })
+  return new Response('Admin route not found', { status: 404 })
 }
 async function serveStatic(path) {
   const file = Bun.file(`./public${path}`)

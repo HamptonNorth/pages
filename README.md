@@ -237,3 +237,16 @@ Test
 3) Add middleware to bun server to 'guard' specified routes
 
 On a longer timescale, adding a blog (auto index from page header yaml front matter, auto build pages from markdown files in known directory)
+
+
+# Heading
+This is some test markdown to check HTML rendering
+
+### Lists
+* `rm file.txt` 
+* `rm -i file` (Ask confirm) 
+* ⚠️ `rm -rf folder` (Force delete) 
+
+1. Numbered list
+21. **`awk`** — Text processing.
+    * `awk '{print $1}' file.txt` (Print 1st column)
