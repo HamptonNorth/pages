@@ -20,8 +20,9 @@ This project provides a scaffolded fully working application that ships with mos
 - Example components built with Lit, Javascript and Tailwind CSS
 - Set up scripts to create database, create and populate better-auth tables and sample test data tables
 - Responsive UI, works on mobile but examples designed for desktop apps
+- A blog like **Pages** markdown to to HTML static pages section (think really simple Jekyl). Front matter supports indexing, auto lapsing, privacy and GitHub/Tailwind prose styling. Multiple categories set up from `.env` file.
 
-My hope is, faced with a new web application, I can clone this stater template, hack out the bits that are not need then add the missing user requirements. If it's quicker than starting from scratch, I'll take that as a win.
+Faced with a new web application, clone this stater template, hack out the bits that are not need then add the missing user requirements. If it's quicker than starting from scratch, I'll take that as a win.
 
 ## Software stack
 - Javascript with ES6 node_modules
@@ -30,11 +31,15 @@ My hope is, faced with a new web application, I can clone this stater template, 
 - Tailwind CSS 
 - SQLite
 - Better-auth library for authentication
+- marked for markdown to HTML in `/pages` 
 
 
 ## Development set up
-To clone that repository into your `~/code` directory:
+To clone that repository into say your `~/code` directory:
+
 1. Navigate to your working directory
+
 ```bash
+# Step 1
 cd ~/code
 ```

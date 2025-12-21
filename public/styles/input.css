@@ -1,6 +1,7 @@
 /* version 1.0 Gemini 2.5 Pro */
 /* Add this to your main CSS input file */
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 @theme {
   /* Primary Palette (Standard 50-900) */

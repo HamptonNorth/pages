@@ -1,15 +1,17 @@
 ---
-title: markdown tables
-summary: Adding tables to a markdown document
-created: 2025-12-12T10:35:00-00:00
+title: markdown tables for prose
+summary: Adding tables to a markdown document (styled by TailwindCSS prose class)
+created: 2025-12-12T10:35
 published: y
 file-type: markdown
-style: github
+style: tailwind
 ---
 
 # mardown tables
 
 You can create tables with pipes | and hyphens -. Hyphens are used to create each column's header, while pipes separate each column. You must include a blank line before your table in order for it to correctly render. 
+
+Note this page does not have the GitHub flavour set. `style:tailwind` in the front matter. The Tailwind `prose` class is better for text content pages. `style:github` in fron matter works best for technical content and content with tables.
 
 ```markdown
 

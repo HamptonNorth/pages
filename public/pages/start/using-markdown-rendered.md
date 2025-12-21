@@ -1,7 +1,7 @@
 ---
 title: Using mardown (example code rendered)
 summary: A gentle introduction to markdown
-created: 2025-12-12T10:35:00-00:00
+created: 2025-12-21T01:01:00    
 published: y
 file-type: markdown
 style: github

@@ -1,4 +1,4 @@
-// version 13.0 Gemini 2.0 Flash
+// version 14.4 Claude Opus 4.5
 // server.js
 import { auth } from './auth.js'
 import { db } from './db-setup.js'
@@ -34,7 +34,6 @@ const pagesWatcher = watch('./public/pages', { recursive: true })
     for await (const event of pagesWatcher) {
       const filename = event.filename
       if (!filename) continue
-      // Notify clients on any change in pages directory
       for (const controller of clients) controller.enqueue(`data: reload\n\n`)
     }
   } catch (e) {}
@@ -43,7 +42,7 @@ const pagesWatcher = watch('./public/pages', { recursive: true })
 // --- SERVER ---
 const server = Bun.serve({
   port: PORT,
-  idleTimeout: 255, // Keep high for SSE
+  idleTimeout: 255,
   async fetch(req) {
     const url = new URL(req.url)
     const path = url.pathname
@@ -51,7 +50,6 @@ const server = Bun.serve({
     if (path.startsWith('/api/auth')) return auth.handler(req)
     if (path.startsWith('/api/admin/')) return handleAdminRoutes(req, path)
 
-    // Hot Reload Stream
     if (path === '/api/hot-reload') {
       return new Response(
         new ReadableStream({
@@ -76,10 +74,7 @@ const server = Bun.serve({
       return Response.json(getPagesConfig())
     }
     if (path.startsWith('/api/pages/list/')) return handlePagesList(req, path)
-
-    // API for fetching content (Client-side fallback)
     if (path.startsWith('/api/pages/content/')) return handlePageContent(req, path)
-
     if (path.startsWith('/api/')) return handleApiRoutes(req, path)
 
     if (path === '/components/client-components.js')
@@ -128,6 +123,10 @@ function getPagesConfig() {
     .filter((c) => c !== null)
 }
 
+/**
+ * Parse YAML-like front matter from markdown files
+ * Trims both keys and values to handle whitespace
+ */
 function parseFrontMatter(text) {
   const match = text.match(/^---\n([\s\S]*?)\n---/)
   if (!match) return { attributes: {}, body: text }
@@ -135,8 +134,11 @@ function parseFrontMatter(text) {
   const yamlLines = match[1].split('\n')
   yamlLines.forEach((line) => {
     const colonIndex = line.indexOf(':')
-    if (colonIndex !== -1)
-      attributes[line.slice(0, colonIndex).trim()] = line.slice(colonIndex + 1).trim()
+    if (colonIndex !== -1) {
+      const key = line.slice(0, colonIndex).trim()
+      const value = line.slice(colonIndex + 1).trim()
+      attributes[key] = value
+    }
   })
   const body = text.replace(match[0], '').trim()
   return { attributes, body }
@@ -144,7 +146,7 @@ function parseFrontMatter(text) {
 
 /**
  * Server-Side Render for Page Detail
- * Reads template, fetches MD content, and injects it.
+ * Uses placeholder tokens for reliable string replacement
  */
 async function servePageDetailSSR(req, category, slug) {
   const filepath = './public/views/page-detail.html'
@@ -153,12 +155,14 @@ async function servePageDetailSSR(req, category, slug) {
 
   let html = await file.text()
 
-  // 1. Fetch Content Logic (Markdown Only)
+  // 1. Fetch markdown content
   const mdPath = `./public/pages/${category}/${slug}.md`
   const mdFile = Bun.file(mdPath)
 
-  let meta = { title: 'Page Not Found' }
-  let contentHtml = '<div class="p-8 text-center text-gray-500">Page content not found.</div>'
+  let meta = { title: 'The markdown content was not found' }
+  let contentHtml = `<div class="p-8 text-lg text-center text-error1">At: </div>`
+  contentHtml += `<div class="p-4 font-mono text-center text-error1">${mdPath} </div>`
+
   let found = false
 
   if (await mdFile.exists()) {
@@ -169,7 +173,7 @@ async function servePageDetailSSR(req, category, slug) {
     found = true
   }
 
-  // 2. Permission Check
+  // 2. Permission checks
   const session = await auth.api.getSession({ headers: req.headers })
   const isAdmin = session?.user?.role === 'admin'
   const userEmail = session?.user?.email
@@ -187,35 +191,60 @@ async function servePageDetailSSR(req, category, slug) {
     }
   }
 
-  // 3. Inject Data
+  // 3. Prepare replacement values
   const config = getPagesConfig()
-  const configScript = `<script>window.SERVER_PAGES_CONFIG = ${JSON.stringify(config)}; window.SSR_DATA = ${JSON.stringify(meta)};</script>`
+  const pageTitle = meta.title || 'Untitled'
 
-  html = html.replace('</head>', `${configScript}</head>`)
-  html = html.replace('Loading...', meta.title || 'Untitled')
-  html = html.replace('page-title="Loading..."', `page-title="${meta.title || 'Page'}"`)
+  // Escape HTML special characters in title for safe insertion
+  const escapedTitle = pageTitle
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 
+  // Format date if available
   let dateHtml = ''
   if (meta.created) {
     const d = new Date(meta.created)
-    if (!isNaN(d))
+    if (!isNaN(d)) {
       dateHtml = d.toLocaleDateString(undefined, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
       })
+    }
   }
-  html = html.replace(
-    '<span id="page-date" class="flex items-center gap-1 font-mono text-xs"></span>',
-    `<span id="page-date" class="flex items-center gap-1 font-mono text-xs">${dateHtml}</span>`,
-  )
 
-  const skeletonRegex = /<div id="markdown-content"[^>]*>([\s\S]*?)<\/div>/
-  html = html.replace(
-    skeletonRegex,
-    `<div id="markdown-content" class="markdown-body">${contentHtml}</div>`,
-  )
+  // 4. Inject config script into head
+  const configScript = `<script>window.SERVER_PAGES_CONFIG = ${JSON.stringify(config)}; window.SSR_DATA = ${JSON.stringify(meta)};</script>`
+  html = html.replace('</head>', `${configScript}</head>`)
 
+  // 5. Replace placeholders with actual content
+  html = html.replace('{{PAGE_TITLE_ATTR}}', escapedTitle)
+  html = html.replace('{{PAGE_TITLE_TEXT}}', escapedTitle)
+  html = html.replace('{{PAGE_DATE}}', dateHtml)
+  html = html.replace('<!--MARKDOWN_CONTENT-->', contentHtml)
+
+  // 6. Add github-style class if specified in front matter
+  // FIXED: Use regex to handle any attribute order in the HTML
+  // This matches the div with id="markdown-content" and prepends github-style to its class
+  if (meta.style === 'github') {
+    // Try both possible attribute orders
+    if (html.includes('id="markdown-content" class="')) {
+      html = html.replace(
+        'id="markdown-content" class="',
+        'id="markdown-content" class="github-style ',
+      )
+    } else if (html.includes('class="') && html.includes('id="markdown-content"')) {
+      // Use regex for flexible matching
+      html = html.replace(
+        /(<div\s+)([^>]*)(id="markdown-content")([^>]*)(class=")([^"]*)/,
+        '$1$2$3$4$5github-style $6',
+      )
+    }
+  }
+
+  // 7. Show private badge if applicable
   if (meta.private) {
     html = html.replace('id="private-badge" class="hidden', 'id="private-badge" class="')
   }
@@ -290,7 +319,7 @@ async function handlePageContent(req, path) {
       meta = parsed.attributes
       htmlContent = marked.parse(parsed.body)
     } else {
-      return Response.json({ error: 'Page not found' }, { status: 404 })
+      return Response.json({ error: 'The markdon file requested was not found.' }, { status: 404 })
     }
 
     const session = await auth.api.getSession({ headers: req.headers })
@@ -313,6 +342,7 @@ async function handlePageContent(req, path) {
 async function handleAdminRoutes(req, path) {
   return new Response('Admin route not found', { status: 404 })
 }
+
 async function serveStatic(path) {
   const file = Bun.file(`./public${path}`)
   if (!(await file.exists())) return serve404()
@@ -320,11 +350,13 @@ async function serveStatic(path) {
     headers: { 'Content-Type': file.type || 'application/octet-stream' },
   })
 }
+
 async function serveHtmlPage(filepath) {
   const pageFile = Bun.file(filepath)
   if (!(await pageFile.exists())) return serve404()
   return new Response(pageFile, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
 }
+
 async function serve404() {
   const notFoundFile = Bun.file('./public/views/404.html')
   if (await notFoundFile.exists())

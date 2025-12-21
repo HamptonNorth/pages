@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- version 14.6 Claude Opus 4.5 -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,7 +12,6 @@
   <body class="bg-primary-50">
     <rm-default-container>
       <rm-nav-header class="block"></rm-nav-header>
-
       <main class="mt-4 w-full">
         <article>
           <div class="mx-auto max-w-3xl px-4">
@@ -25,17 +25,9 @@
               Browse our latest articles and updates
             </div>
           </div>
-
           <section>
             <div id="status-container" class="mx-auto mb-4 hidden max-w-3xl px-4"></div>
-
-            <div id="pages-container" class="mx-auto flex max-w-3xl flex-col gap-3 px-4">
-              <div class="flex animate-pulse flex-col gap-2">
-                <div class="bg-primary-100 h-5 w-1/3 rounded"></div>
-                <div class="bg-primary-50 h-3 w-2/3 rounded"></div>
-              </div>
-            </div>
-
+            <div id="pages-container" class="mx-auto flex max-w-3xl flex-col gap-3 px-4"></div>
             <div
               id="load-more-container"
               class="mx-auto mt-6 mb-8 hidden max-w-3xl px-4 text-center"
@@ -45,133 +37,211 @@
           </section>
         </article>
       </main>
-
       <rm-footer></rm-footer>
     </rm-default-container>
-
     <script>
-      // State
-      let allPages = []
-      let visibleCount = 25
-      const INCREMENT = 25
+      // State variables
+      var allPages = []
+      var visibleCount = 15
+      var INCREMENT = 15
 
-      const pathParts = window.location.pathname.split('/').filter((p) => p)
-      const category = pathParts.length >= 2 ? pathParts[1] : ''
+      // Extract category from URL path
+      var pathParts = window.location.pathname.split('/').filter(function (p) {
+        return p
+      })
+      var category = pathParts[1] || ''
 
-      const container = document.getElementById('pages-container')
-      const loadMoreBtn = document.getElementById('btn-load-more')
-      const loadMoreContainer = document.getElementById('load-more-container')
-      const titleEl = document.getElementById('category-title')
-      const statusEl = document.getElementById('status-container')
-      const headEl = document.querySelector('rm-head')
-
-      async function init() {
-        if (!category) {
-          titleEl.textContent = 'Category Not Found'
-          showStatus('Invalid URL structure.', 'error')
-          container.innerHTML = ''
-          return
-        }
-
-        const displayCategory = category.charAt(0).toUpperCase() + category.slice(1)
-        titleEl.textContent = displayCategory
-        if (headEl) headEl.setAttribute('page-title', `${displayCategory} - Pages`)
-
-        try {
-          const res = await fetch(`/api/pages/list/${category}`)
-          if (!res.ok) throw new Error('Failed to fetch pages')
-
-          const data = await res.json()
-          allPages = data.pages || []
-          render()
-        } catch (err) {
-          console.error(err)
-          container.innerHTML = ''
-          showStatus('Unable to load pages. Please try again later.', 'error')
-        }
-      }
-
+      /**
+       * Format ISO 8601 date string to readable format
+       * Handles: 2025-12-12T10:35:00-00:00 or 2025-12-12T00:00:00
+       */
       function formatDate(isoString) {
         if (!isoString) return ''
-        const d = new Date(isoString)
-        return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+        try {
+          var d = new Date(isoString)
+          if (isNaN(d.getTime())) return ''
+          return d.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })
+        } catch (e) {
+          return ''
+        }
       }
 
-      function showStatus(msg, type) {
-        statusEl.classList.remove('hidden')
-        statusEl.innerHTML = `<div class="p-3 rounded text-sm ${type === 'error' ? 'bg-red-50 text-red-700' : 'bg-primary-100 text-primary-700'}">${msg}</div>`
+      /**
+       * Parse date string to timestamp for sorting
+       * Returns 0 if date is invalid (sorts to end)
+       */
+      function getDateTimestamp(dateStr) {
+        if (!dateStr) return 0
+        try {
+          var ts = new Date(dateStr).getTime()
+          return isNaN(ts) ? 0 : ts
+        } catch (e) {
+          return 0
+        }
       }
 
-      function render() {
-        container.innerHTML = ''
+      /**
+       * Check if a page is marked as sticky
+       * Front matter: sticky: true (or yes, y, 1)
+       */
+      function isSticky(page) {
+        if (!page || !page.sticky) return false
+        var val = String(page.sticky).toLowerCase().trim()
+        return val === 'true' || val === 'yes' || val === 'y' || val === '1'
+      }
 
-        if (allPages.length === 0) {
-          showStatus('No published pages found in this category.', 'info')
+      /**
+       * Sort pages:
+       * 1. Sticky pages first (sorted by created date, newest first)
+       * 2. Non-sticky pages second (sorted by created date, newest first)
+       */
+      function sortPages(pages) {
+        if (!Array.isArray(pages)) return []
+
+        // Create a copy to avoid mutating original
+        var sorted = pages.slice()
+
+        sorted.sort(function (a, b) {
+          var aSticky = isSticky(a)
+          var bSticky = isSticky(b)
+
+          // Sticky pages come first
+          if (aSticky && !bSticky) return -1
+          if (!aSticky && bSticky) return 1
+
+          // Within same group, sort by created date (newest first)
+          var dateA = getDateTimestamp(a.created)
+          var dateB = getDateTimestamp(b.created)
+          return dateB - dateA
+        })
+
+        return sorted
+      }
+
+      /**
+       * Initialize the page list
+       */
+      function init() {
+        if (!category) {
+          document.getElementById('category-title').textContent = 'Category Not Found'
           return
         }
 
-        const toShow = allPages.slice(0, visibleCount)
+        // Set category title
+        document.getElementById('category-title').textContent =
+          category.charAt(0).toUpperCase() + category.slice(1)
 
-        toShow.forEach((page) => {
-          const linkUrl = `/pages/${category}/${page.slug}`
-          const article = document.createElement('div')
+        fetch('/api/pages/list/' + category)
+          .then(function (res) {
+            if (!res.ok) throw new Error('Failed to fetch')
+            return res.json()
+          })
+          .then(function (data) {
+            allPages = data.pages || []
 
-          article.className = `
-            group relative bg-white p-4 rounded-md border border-primary-100 shadow-sm
-            hover:shadow-md hover:border-primary-300 transition-all duration-200
-          `
+            // Sort: sticky first, then by date within each group
+            allPages = sortPages(allPages)
 
-          let badges = ''
-          if (page.private) {
-            // Reverted to Pill style: rounded-full, distinct padding
-            badges += `<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">Private</span>`
-          }
+            render()
+          })
+          .catch(function (err) {
+            console.error('Error loading pages:', err)
+            document.getElementById('pages-container').innerHTML =
+              '<p class="text-red-600">Failed to load pages. Please try again.</p>'
+          })
+      }
 
-          const dateStr = formatDate(page.created)
+      /**
+       * Render the page list
+       */
+      function render() {
+        var container = document.getElementById('pages-container')
+        var loadMoreContainer = document.getElementById('load-more-container')
 
-          article.innerHTML = `
-            <a href="${linkUrl}" class="block focus:outline-none">
-                <div class="flex justify-between items-center gap-4">
-                    <div class="flex-grow min-w-0">
-                        <h2 class="text-lg font-bold text-primary-800 group-hover:text-primary-600 truncate leading-tight flex items-center">
-                            ${page.title || 'Untitled'}
-                            ${badges}
-                        </h2>
+        container.innerHTML = ''
 
-                        <p class="mt-1 text-sm text-primary-600 line-clamp-2">
-                            ${page.summary || ''}
-                        </p>
+        // Show message if no pages
+        if (!allPages || allPages.length === 0) {
+          container.innerHTML = '<p class="text-primary-500">No pages found in this category.</p>'
+          loadMoreContainer.classList.add('hidden')
+          return
+        }
 
-                        <div class="mt-2 flex items-center gap-3 text-xs text-primary-400 font-mono">
-                           ${dateStr ? `<span>${dateStr}</span>` : ''}
-                        </div>
-                    </div>
+        // Render visible pages
+        var pagesToShow = allPages.slice(0, visibleCount)
 
-                    <div class="hidden sm:flex items-center gap-1 text-secondary-600 font-semibold text-sm group-hover:text-secondary-700 transition-colors whitespace-nowrap pl-2">
-                         <span>Read</span>
-                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                         </svg>
-                    </div>
-                </div>
-            </a>
-          `
+        pagesToShow.forEach(function (page) {
+          var article = document.createElement('div')
+          article.className =
+            'group relative bg-white p-4 rounded-md border border-primary-100 shadow-sm hover:shadow-md transition-all'
+
+          // Private badge
+          var privateBadge = page.private
+            ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">Private</span>'
+            : ''
+
+          // Sticky indicator (pin icon)
+          var stickyBadge = isSticky(page)
+            ? '<span class="mr-2 text-primary-500" title="Pinned"><svg class="w-4 h-4 inline" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 5a3 3 0 015-2.236A3 3 0 0114.83 6H16a2 2 0 110 4h-5V9a1 1 0 10-2 0v1H4a2 2 0 110-4h1.17C5.06 5.687 5 5.35 5 5zm4 1V5a1 1 0 10-2 0v1h2zm3 0a1 1 0 10-2 0v1h2V6z" clip-rule="evenodd"/><path d="M9 11H3v5a2 2 0 002 2h4v-7zm2 7h4a2 2 0 002-2v-5h-6v7z"/></svg></span>'
+            : ''
+
+          // Format date
+          var dateStr = formatDate(page.created)
+          var dateHtml = dateStr
+            ? '<span class="text-xs text-primary-400 font-mono">' + dateStr + '</span>'
+            : ''
+
+          article.innerHTML =
+            '<a href="/pages/' +
+            category +
+            '/' +
+            page.slug +
+            '" class="block">' +
+            '<div class="flex justify-between items-center gap-4">' +
+            '<div class="flex-grow min-w-0">' +
+            '<h2 class="text-lg font-bold text-primary-800 group-hover:text-primary-600 truncate leading-tight flex items-center">' +
+            stickyBadge +
+            (page.title || 'Untitled') +
+            privateBadge +
+            '</h2>' +
+            '<p class="text-sm text-primary-600 mt-1 line-clamp-2">' +
+            (page.summary || '') +
+            '</p>' +
+            '<div class="mt-2 hidden">' +
+            dateHtml +
+            ' use to debug date sort!</div>' +
+            '</div>' +
+            '<div class="hidden sm:flex items-center gap-1 text-secondary-600 font-semibold text-sm group-hover:text-secondary-700 transition-colors whitespace-nowrap pl-2">' +
+            '<span>Read</span>' +
+            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>' +
+            '</svg>' +
+            '</div>' +
+            '</div>' +
+            '</a>'
+
           container.appendChild(article)
         })
 
+        // Show/hide load more button
         if (allPages.length > visibleCount) {
           loadMoreContainer.classList.remove('hidden')
-          loadMoreBtn.textContent = `Show More`
         } else {
           loadMoreContainer.classList.add('hidden')
         }
       }
 
-      loadMoreBtn.addEventListener('click', () => {
+      // Load more button handler
+      document.getElementById('btn-load-more').addEventListener('click', function () {
         visibleCount += INCREMENT
         render()
       })
 
+      // Initialize on page load
       init()
     </script>
   </body>

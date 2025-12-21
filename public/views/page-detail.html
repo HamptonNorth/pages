@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- version 14.3 Claude Opus 4.5 -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -8,27 +9,288 @@
     <link rel="stylesheet" href="/styles/rm.css" />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-light.min.css"
-    />
-    <link
-      rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
     />
 
     <script type="module" src="/components/client-components.js"></script>
-    <rm-head page-title="Loading..."></rm-head>
+    <rm-head page-title="{{PAGE_TITLE_ATTR}}"></rm-head>
 
     <style>
-      .markdown-body {
+      /*
+       * ==========================================================================
+       * BASE STYLES - Always applied
+       * ==========================================================================
+       */
+      #markdown-content {
         box-sizing: border-box;
         min-width: 200px;
         max-width: 100%;
         margin: 0 auto;
         padding: 1rem 0;
+      }
+
+      /*
+       * ==========================================================================
+       * GITHUB STYLE - Applied when front matter has: style: github
+       * Uses !important where needed to override Tailwind prose defaults
+       * ==========================================================================
+       */
+
+      /* --- HEADINGS --- */
+      #markdown-content.github-style h1,
+      #markdown-content.github-style h2 {
+        padding-bottom: 0.3em !important;
+        border-bottom: 1px solid #d1d9e0 !important;
+        margin-bottom: 16px !important;
+      }
+
+      #markdown-content.github-style h1 {
+        font-size: 2em !important;
+        margin-top: 24px !important;
+        font-weight: 600 !important;
+      }
+
+      #markdown-content.github-style h2 {
+        font-size: 1.5em !important;
+        margin-top: 24px !important;
+        font-weight: 600 !important;
+      }
+
+      #markdown-content.github-style h3 {
+        font-size: 1.25em !important;
+        margin-top: 24px !important;
+        font-weight: 600 !important;
+      }
+
+      #markdown-content.github-style h4 {
+        font-size: 1em !important;
+        margin-top: 24px !important;
+        font-weight: 600 !important;
+      }
+
+      /* --- CODE --- */
+      #markdown-content.github-style pre {
+        background-color: #f6f8fa !important;
+        border-radius: 6px !important;
+        padding: 16px !important;
+        overflow-x: auto !important;
+        font-size: 85% !important;
+        line-height: 1.45 !important;
+        margin: 16px 0 !important;
+      }
+
+      #markdown-content.github-style code {
+        font-family:
+          ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace !important;
+        font-size: 85% !important;
+      }
+
+      #markdown-content.github-style :not(pre) > code {
+        background-color: rgba(175, 184, 193, 0.2) !important;
+        padding: 0.2em 0.4em !important;
+        border-radius: 6px !important;
+        font-size: 85% !important;
+        color: inherit !important;
+      }
+
+      /* --- BLOCKQUOTES --- */
+      #markdown-content.github-style blockquote {
+        border-left: 4px solid #d1d9e0 !important;
+        color: #656d76 !important;
+        padding: 0 1em !important;
+        margin: 16px 0 !important;
+        background: transparent !important;
+      }
+
+      #markdown-content.github-style blockquote p {
+        color: #656d76 !important;
+      }
+
+      /* --- TABLES --- */
+      #markdown-content.github-style table {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        width: auto !important;
+        max-width: 100% !important;
+        overflow: auto !important;
+        margin: 16px 0 !important;
+        display: table !important;
+      }
+
+      #markdown-content.github-style thead {
+        background-color: transparent !important;
+      }
+      /* --- TABLES --- */
+      #markdown-content.github-style table {
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        width: auto !important;
+        max-width: 100% !important;
+        overflow: auto !important;
+        margin: 16px 0 !important;
+        display: table !important;
+      }
+
+      #markdown-content.github-style thead {
         background-color: transparent !important;
       }
 
-      /* Copy Button Styles */
+      #markdown-content.github-style th {
+        font-weight: 600 !important;
+        background-color: #f6f8fa !important;
+        border: 1px solid #d1d9e0 !important;
+        padding: 6px 13px !important;
+      }
+
+      #markdown-content.github-style td {
+        border: 1px solid #d1d9e0 !important;
+        padding: 6px 13px !important;
+      }
+
+      #markdown-content.github-style tr {
+        background-color: #ffffff !important;
+        border-top: 1px solid #d1d9e0 !important;
+      }
+
+      #markdown-content.github-style tr:nth-child(2n) {
+        background-color: #f6f8fa !important;
+      }
+
+      #markdown-content.github-style tbody tr:first-child {
+        border-top: none !important;
+      }
+
+      /* Table alignment - respect markdown alignment syntax */
+      /* marked generates align="left|center|right" attributes */
+      #markdown-content.github-style th[align='left'],
+      #markdown-content.github-style td[align='left'] {
+        text-align: left !important;
+      }
+
+      #markdown-content.github-style th[align='center'],
+      #markdown-content.github-style td[align='center'] {
+        text-align: center !important;
+      }
+
+      #markdown-content.github-style th[align='right'],
+      #markdown-content.github-style td[align='right'] {
+        text-align: right !important;
+      }
+
+      #markdown-content.github-style td {
+        border: 1px solid #d1d9e0 !important;
+        padding: 6px 13px !important;
+      }
+
+      #markdown-content.github-style tr {
+        background-color: #ffffff !important;
+        border-top: 1px solid #d1d9e0 !important;
+      }
+
+      #markdown-content.github-style tr:nth-child(2n) {
+        background-color: #f6f8fa !important;
+      }
+
+      #markdown-content.github-style tbody tr:first-child {
+        border-top: none !important;
+      }
+
+      /* --- HORIZONTAL RULES --- */
+      #markdown-content.github-style hr {
+        height: 0.25em !important;
+        padding: 0 !important;
+        margin: 24px 0 !important;
+        background-color: #d1d9e0 !important;
+        border: 0 !important;
+      }
+
+      /* --- LISTS --- */
+      #markdown-content.github-style ul,
+      #markdown-content.github-style ol {
+        padding-left: 2em !important;
+        margin: 16px 0 !important;
+      }
+
+      #markdown-content.github-style ul {
+        list-style-type: disc !important;
+      }
+
+      #markdown-content.github-style ol {
+        list-style-type: decimal !important;
+      }
+
+      #markdown-content.github-style li {
+        margin-top: 0.25em !important;
+        color: #1f2328 !important;
+      }
+
+      /* GitHub uses dark markers - override Tailwind's gray markers */
+      #markdown-content.github-style ul > li::marker {
+        color: #1f2328 !important;
+      }
+
+      #markdown-content.github-style ol > li::marker {
+        color: #1f2328 !important;
+        font-weight: normal !important;
+      }
+
+      /* Nested lists */
+      #markdown-content.github-style ul ul,
+      #markdown-content.github-style ol ul {
+        list-style-type: circle !important;
+        margin: 0 !important;
+      }
+
+      #markdown-content.github-style ul ul ul,
+      #markdown-content.github-style ol ul ul {
+        list-style-type: square !important;
+      }
+
+      #markdown-content.github-style ol ol,
+      #markdown-content.github-style ul ol {
+        list-style-type: lower-roman !important;
+        margin: 0 !important;
+      }
+
+      /* --- PARAGRAPHS --- */
+      #markdown-content.github-style p {
+        margin: 16px 0 !important;
+        color: #1f2328 !important;
+      }
+
+      /* --- IMAGES --- */
+      #markdown-content.github-style img {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        background-color: #ffffff !important;
+      }
+
+      /* --- LINKS --- */
+      #markdown-content.github-style a {
+        color: #0969da !important;
+        text-decoration: none !important;
+      }
+
+      #markdown-content.github-style a:hover {
+        text-decoration: underline !important;
+      }
+
+      /* --- STRONG/BOLD --- */
+      #markdown-content.github-style strong {
+        font-weight: 600 !important;
+        color: inherit !important;
+      }
+
+      /* --- EMPHASIS/ITALIC --- */
+      #markdown-content.github-style em {
+        font-style: italic !important;
+      }
+
+      /*
+       * ==========================================================================
+       * COPY BUTTON STYLES
+       * ==========================================================================
+       */
       .code-wrapper {
         position: relative;
       }
@@ -37,11 +299,11 @@
         top: 6px;
         right: 6px;
         background: rgba(255, 255, 255, 0.8);
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        padding: 2px 6px;
-        font-size: 10px;
-        color: #4b5563;
+        border: 1px solid #d1d9e0;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        color: #656d76;
         cursor: pointer;
         transition: all 0.2s;
         display: none;
@@ -62,12 +324,16 @@
       }
 
       @media (max-width: 767px) {
-        .markdown-body {
+        #markdown-content {
           padding: 15px 0;
         }
       }
 
-      /* --- PRINT STYLES --- */
+      /*
+       * ==========================================================================
+       * PRINT STYLES
+       * ==========================================================================
+       */
       @media print {
         rm-nav-header,
         rm-footer,
@@ -85,7 +351,7 @@
         #layout-wrapper,
         main,
         article,
-        .markdown-body {
+        #markdown-content {
           display: block !important;
           width: 100% !important;
           height: auto !important;
@@ -100,16 +366,13 @@
     </style>
   </head>
   <body class="bg-primary-50 flex min-h-screen flex-col">
-    <rm-default-container class="flex flex-grow flex-col">
-      <rm-nav-header class="block flex-shrink-0"></rm-nav-header>
+    <rm-default-container class="flex grow flex-col">
+      <rm-nav-header class="block shrink-0"></rm-nav-header>
 
-      <div
-        id="layout-wrapper"
-        class="relative flex w-full flex-grow flex-col items-start md:flex-row"
-      >
+      <div id="layout-wrapper" class="relative flex w-full grow flex-col items-start md:flex-row">
         <aside
           id="sidebar-col"
-          class="border-primary-200 hidden w-full flex-shrink-0 self-stretch border-r bg-gray-50/50 md:sticky md:top-0 md:h-auto md:min-h-[calc(100vh-64px)] md:w-56"
+          class="border-primary-200 hidden w-full shrink-0 self-stretch border-r bg-gray-50/50 md:sticky md:top-0 md:h-auto md:min-h-[calc(100vh-64px)] md:w-56"
         >
           <div
             id="mobile-menu-trigger"
@@ -149,13 +412,13 @@
           </div>
         </aside>
 
-        <main class="w-full min-w-0 flex-grow bg-white pb-12">
+        <main class="w-full min-w-0 grow bg-white pb-12">
           <article>
             <div class="border-primary-100 border-b px-6 pt-8 pb-4 md:px-12">
               <a
                 id="top-back-link"
                 href="#"
-                class="text-primary-500 hover:text-primary-700 mb-4 hidden inline-block text-sm font-medium"
+                class="text-primary-500 hover:text-primary-700 mb-4 hidden text-sm font-medium"
                 >&larr; Back to list</a
               >
               <div class="flex items-start justify-between gap-4">
@@ -163,7 +426,7 @@
                   id="page-title"
                   class="text-primary-800 mb-3 text-3xl leading-tight font-bold tracking-tight md:text-4xl"
                 >
-                  Loading...
+                  {{PAGE_TITLE_TEXT}}
                 </h1>
                 <button
                   id="btn-print"
@@ -183,7 +446,9 @@
                 </button>
               </div>
               <div class="text-primary-500 mt-2 flex flex-wrap items-center gap-4 text-sm">
-                <span id="page-date" class="flex items-center gap-1 font-mono text-xs"></span>
+                <span id="page-date" class="flex items-center gap-1 font-mono text-xs"
+                  >{{PAGE_DATE}}</span
+                >
                 <span
                   id="private-badge"
                   class="hidden rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800"
@@ -194,11 +459,11 @@
 
             <div class="mt-6 px-6 md:px-12">
               <div id="status-container" class="mb-4 hidden"></div>
-              <div id="markdown-content" class="markdown-body">
-                <div class="max-w-2xl animate-pulse space-y-4">
-                  <div class="h-4 w-3/4 rounded bg-gray-200"></div>
-                  <div class="h-4 w-full rounded bg-gray-200"></div>
-                </div>
+              <div
+                id="markdown-content"
+                class="prose prose-slate prose-pre:bg-transparent prose-code:before:content-none prose-code:after:content-none max-w-none"
+              >
+                <!--MARKDOWN_CONTENT-->
               </div>
             </div>
           </article>
@@ -209,13 +474,18 @@
 
     <script>
       ;(function () {
-        const config = window.SERVER_PAGES_CONFIG || []
-        const pathParts = window.location.pathname.split('/').filter((p) => p)
-        const category = pathParts.length >= 2 ? pathParts[1] : ''
-        const currentCat = config.find((c) => c.name === category)
-        const hasSidebar = currentCat && currentCat.sidebar
-        const sidebarCol = document.getElementById('sidebar-col')
-        const topBackLink = document.getElementById('top-back-link')
+        var config = window.SERVER_PAGES_CONFIG || []
+        var pathParts = window.location.pathname.split('/').filter(function (p) {
+          return p
+        })
+        var category = pathParts.length >= 2 ? pathParts[1] : ''
+        var currentCat = config.find(function (c) {
+          return c.name === category
+        })
+        var hasSidebar = currentCat && currentCat.sidebar
+        var sidebarCol = document.getElementById('sidebar-col')
+        var topBackLink = document.getElementById('top-back-link')
+
         if (hasSidebar) {
           if (sidebarCol) sidebarCol.classList.remove('hidden')
           if (topBackLink) topBackLink.classList.add('hidden')
@@ -230,107 +500,149 @@
     <script>
       document.addEventListener('DOMContentLoaded', init)
 
-      const pathParts = window.location.pathname.split('/').filter((p) => p)
-      const category = pathParts.length >= 2 ? pathParts[1] : ''
-      const slug = pathParts.length >= 3 ? pathParts[2] : ''
-      const navTree = document.getElementById('nav-tree')
-      const sidebarBackLink = document.getElementById('sidebar-back-link')
-      const topBackLink = document.getElementById('top-back-link')
-      const contentEl = document.getElementById('markdown-content')
+      var pathParts = window.location.pathname.split('/').filter(function (p) {
+        return p
+      })
+      var category = pathParts.length >= 2 ? pathParts[1] : ''
+      var slug = pathParts.length >= 3 ? pathParts[2] : ''
+      var navTree = document.getElementById('nav-tree')
+      var sidebarBackLink = document.getElementById('sidebar-back-link')
+      var topBackLink = document.getElementById('top-back-link')
+      var contentEl = document.getElementById('markdown-content')
 
-      async function init() {
+      function init() {
         if (category) {
-          const listUrl = `/pages/${category}`
+          var listUrl = '/pages/' + category
           if (sidebarBackLink) sidebarBackLink.href = listUrl
           if (topBackLink) {
             topBackLink.href = listUrl
-            topBackLink.textContent = `← Back to ${category}`
+            topBackLink.textContent = '\u2190 Back to ' + category
           }
         }
 
-        const config = window.SERVER_PAGES_CONFIG || []
-        const currentCat = config.find((c) => c.name === category)
+        var config = window.SERVER_PAGES_CONFIG || []
+        var currentCat = config.find(function (c) {
+          return c.name === category
+        })
         if (currentCat && currentCat.sidebar) {
           loadSidebarLinks()
         }
 
         if (!window.SSR_DATA) {
-          await loadPageContent()
+          loadPageContent()
         } else {
-          contentEl.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el))
+          contentEl.querySelectorAll('pre code').forEach(function (el) {
+            hljs.highlightElement(el)
+          })
           addCopyButtons()
         }
 
         if (window.EventSource) {
-          const evtSource = new EventSource('/api/hot-reload')
-          evtSource.onmessage = (e) => {
+          var evtSource = new EventSource('/api/hot-reload')
+          evtSource.onmessage = function (e) {
             if (e.data === 'reload') window.location.reload()
           }
         }
       }
 
-      async function loadSidebarLinks() {
+      function loadSidebarLinks() {
         if (!navTree) return
-        try {
-          const res = await fetch(`/api/pages/list/${category}`)
-          if (!res.ok) return
-          const data = await res.json()
-          const pages = data.pages || []
-          let html = ''
-          pages.forEach((p) => {
-            const isActive = p.slug === slug
-            const baseClass =
-              'block py-1.5 px-3 rounded text-sm transition-colors duration-200 leading-snug'
-            const activeClass =
-              'bg-white text-primary-700 font-bold shadow-sm ring-1 ring-primary-100'
-            const inactiveClass = 'text-gray-600 hover:bg-white hover:text-primary-700'
-            html += `<a href="/pages/${category}/${p.slug}" class="${baseClass} ${isActive ? activeClass : inactiveClass}">${p.title || 'Untitled'}</a>`
+        fetch('/api/pages/list/' + category)
+          .then(function (res) {
+            if (!res.ok) throw new Error('Failed')
+            return res.json()
           })
-          navTree.innerHTML = html
-        } catch (e) {}
+          .then(function (data) {
+            var pages = data.pages || []
+            var html = ''
+            pages.forEach(function (p) {
+              var isActive = p.slug === slug
+              var baseClass =
+                'block py-1.5 px-3 rounded text-sm transition-colors duration-200 leading-snug'
+              var activeClass =
+                'bg-white text-primary-700 font-bold shadow-sm ring-1 ring-primary-100'
+              var inactiveClass = 'text-gray-600 hover:bg-white hover:text-primary-700'
+              html +=
+                '<a href="/pages/' +
+                category +
+                '/' +
+                p.slug +
+                '" class="' +
+                baseClass +
+                ' ' +
+                (isActive ? activeClass : inactiveClass) +
+                '">' +
+                (p.title || 'Untitled') +
+                '</a>'
+            })
+            navTree.innerHTML = html
+          })
+          .catch(function (e) {
+            console.error('Sidebar load error:', e)
+          })
       }
 
-      async function loadPageContent() {
-        try {
-          const res = await fetch(`/api/pages/content/${category}/${slug}`)
-          if (!res.ok) throw new Error('Error loading page')
-          const data = await res.json()
-          document.getElementById('page-title').textContent = data.meta.title
-          contentEl.innerHTML = data.html
-          contentEl.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el))
-          addCopyButtons()
-        } catch (e) {}
+      function loadPageContent() {
+        fetch('/api/pages/content/' + category + '/' + slug)
+          .then(function (res) {
+            if (!res.ok) throw new Error('Error loading page')
+            return res.json()
+          })
+          .then(function (data) {
+            document.getElementById('page-title').textContent = data.meta.title
+            contentEl.innerHTML = data.html
+
+            if (data.meta.style === 'github') {
+              contentEl.classList.add('github-style')
+            } else {
+              contentEl.classList.remove('github-style')
+            }
+
+            contentEl.querySelectorAll('pre code').forEach(function (el) {
+              hljs.highlightElement(el)
+            })
+            addCopyButtons()
+          })
+          .catch(function (e) {
+            console.error('Content load error:', e)
+          })
       }
 
       function addCopyButtons() {
         if (!contentEl) return
-        const codeBlocks = contentEl.querySelectorAll('pre')
-        codeBlocks.forEach((pre) => {
-          const wrapper = document.createElement('div')
+        var codeBlocks = contentEl.querySelectorAll('pre')
+        codeBlocks.forEach(function (pre) {
+          var wrapper = document.createElement('div')
           wrapper.className = 'code-wrapper'
           pre.parentNode.insertBefore(wrapper, pre)
           wrapper.appendChild(pre)
-          const btn = document.createElement('button')
+
+          var btn = document.createElement('button')
           btn.className = 'copy-btn'
           btn.textContent = 'Copy'
-          btn.addEventListener('click', async () => {
-            const code = pre.querySelector('code').innerText
-            try {
-              await navigator.clipboard.writeText(code)
-              btn.textContent = 'Copied!'
-              btn.classList.add('copied')
-              setTimeout(() => {
-                btn.textContent = 'Copy'
-                btn.classList.remove('copied')
-              }, 2000)
-            } catch (err) {}
+          btn.addEventListener('click', function () {
+            var codeEl = pre.querySelector('code')
+            var code = codeEl ? codeEl.innerText : pre.innerText
+            navigator.clipboard
+              .writeText(code)
+              .then(function () {
+                btn.textContent = 'Copied!'
+                btn.classList.add('copied')
+                setTimeout(function () {
+                  btn.textContent = 'Copy'
+                  btn.classList.remove('copied')
+                }, 2000)
+              })
+              .catch(function (err) {
+                console.error('Copy failed:', err)
+              })
           })
           wrapper.appendChild(btn)
         })
       }
 
       window.toggleMobileMenu = function () {
-        const content = document.getElementById('sidebar-content')
+        var content = document.getElementById('sidebar-content')
         if (content) content.classList.toggle('hidden')
       }
     </script>

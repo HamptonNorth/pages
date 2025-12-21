@@ -145,15 +145,8 @@ Combine commands to create workflows.
 
 ---
 
-
-# Heading
-This is some test markdown to check HTML rendering
-
-### Lists
-* `rm file.txt` 
-* `rm -i file` (Ask confirm) 
-* ⚠️ `rm -rf folder` (Force delete) 
-
-1. Numbered list
-21. **`awk`** — Text processing.
-    * `awk '{print $1}' file.txt` (Print 1st column)
+## other useful stuff
+To get the external IP address
+```bash
+curl ifconfig.me
+```
