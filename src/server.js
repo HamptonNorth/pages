@@ -1,4 +1,4 @@
-// version 14.4 Claude Opus 4.5
+// version 14.5 Gemini 3 Flash
 // server.js
 import { auth } from './auth.js'
 import { db } from './db-setup.js'
@@ -40,6 +40,8 @@ const pagesWatcher = watch('./public/pages', { recursive: true })
 })()
 
 // --- SERVER ---
+//
+
 const server = Bun.serve({
   port: PORT,
   idleTimeout: 255,
@@ -47,8 +49,9 @@ const server = Bun.serve({
     const url = new URL(req.url)
     const path = url.pathname
 
-    if (path.startsWith('/api/auth')) return auth.handler(req)
-    if (path.startsWith('/api/admin/')) return handleAdminRoutes(req, path)
+    // UPDATED: Pass both /api/auth and /api/admin to the better-auth handler
+    // This allows the admin plugin to handle the list-users request
+    if (path.startsWith('/api/auth') || path.startsWith('/api/admin')) return auth.handler(req)
 
     if (path === '/api/hot-reload') {
       return new Response(
@@ -123,10 +126,6 @@ function getPagesConfig() {
     .filter((c) => c !== null)
 }
 
-/**
- * Parse YAML-like front matter from markdown files
- * Trims both keys and values to handle whitespace
- */
 function parseFrontMatter(text) {
   const match = text.match(/^---\n([\s\S]*?)\n---/)
   if (!match) return { attributes: {}, body: text }
@@ -144,10 +143,6 @@ function parseFrontMatter(text) {
   return { attributes, body }
 }
 
-/**
- * Server-Side Render for Page Detail
- * Uses placeholder tokens for reliable string replacement
- */
 async function servePageDetailSSR(req, category, slug) {
   const filepath = './public/views/page-detail.html'
   const file = Bun.file(filepath)
@@ -155,7 +150,6 @@ async function servePageDetailSSR(req, category, slug) {
 
   let html = await file.text()
 
-  // 1. Fetch markdown content
   const mdPath = `./public/pages/${category}/${slug}.md`
   const mdFile = Bun.file(mdPath)
 
@@ -173,7 +167,6 @@ async function servePageDetailSSR(req, category, slug) {
     found = true
   }
 
-  // 2. Permission checks
   const session = await auth.api.getSession({ headers: req.headers })
   const isAdmin = session?.user?.role === 'admin'
   const userEmail = session?.user?.email
@@ -191,18 +184,15 @@ async function servePageDetailSSR(req, category, slug) {
     }
   }
 
-  // 3. Prepare replacement values
   const config = getPagesConfig()
   const pageTitle = meta.title || 'Untitled'
 
-  // Escape HTML special characters in title for safe insertion
   const escapedTitle = pageTitle
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
 
-  // Format date if available
   let dateHtml = ''
   if (meta.created) {
     const d = new Date(meta.created)
@@ -215,28 +205,21 @@ async function servePageDetailSSR(req, category, slug) {
     }
   }
 
-  // 4. Inject config script into head
   const configScript = `<script>window.SERVER_PAGES_CONFIG = ${JSON.stringify(config)}; window.SSR_DATA = ${JSON.stringify(meta)};</script>`
   html = html.replace('</head>', `${configScript}</head>`)
 
-  // 5. Replace placeholders with actual content
   html = html.replace('{{PAGE_TITLE_ATTR}}', escapedTitle)
   html = html.replace('{{PAGE_TITLE_TEXT}}', escapedTitle)
   html = html.replace('{{PAGE_DATE}}', dateHtml)
   html = html.replace('<!--MARKDOWN_CONTENT-->', contentHtml)
 
-  // 6. Add github-style class if specified in front matter
-  // FIXED: Use regex to handle any attribute order in the HTML
-  // This matches the div with id="markdown-content" and prepends github-style to its class
   if (meta.style === 'github') {
-    // Try both possible attribute orders
     if (html.includes('id="markdown-content" class="')) {
       html = html.replace(
         'id="markdown-content" class="',
         'id="markdown-content" class="github-style ',
       )
     } else if (html.includes('class="') && html.includes('id="markdown-content"')) {
-      // Use regex for flexible matching
       html = html.replace(
         /(<div\s+)([^>]*)(id="markdown-content")([^>]*)(class=")([^"]*)/,
         '$1$2$3$4$5github-style $6',
@@ -244,7 +227,6 @@ async function servePageDetailSSR(req, category, slug) {
     }
   }
 
-  // 7. Show private badge if applicable
   if (meta.private) {
     html = html.replace('id="private-badge" class="hidden', 'id="private-badge" class="')
   }
@@ -337,10 +319,6 @@ async function handlePageContent(req, path) {
   } catch (e) {
     return Response.json({ error: 'Server Error' }, { status: 500 })
   }
-}
-
-async function handleAdminRoutes(req, path) {
-  return new Response('Admin route not found', { status: 404 })
 }
 
 async function serveStatic(path) {

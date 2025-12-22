@@ -1,7 +1,5 @@
-// - Implemented custom right-click context menu logic
-// - Handles 'Reset Password' and 'Delete User' via global events
-// - Hides menu on document click
-
+// version 1.1 Gemini 3 Flash
+// users-list.js
 document.addEventListener('DOMContentLoaded', async () => {
   const usersContainer = document.getElementById('usersResult')
   const loadingMessage = document.getElementById('loadingMessage')
@@ -14,7 +12,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let currentTargetUser = null
 
-  // Helper to safely escape JSON for insertion into data attribute
   const escapeHtml = (str) => {
     return str
       .replace(/&/g, '&amp;')
@@ -24,36 +21,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/'/g, '&#039;')
   }
 
-  // --- Context Menu Functions ---
-
   const hideContextMenu = () => {
-    if (contextMenu) {
-      contextMenu.classList.add('hidden')
-    }
+    if (contextMenu) contextMenu.classList.add('hidden')
     currentTargetUser = null
   }
 
   const showContextMenu = (e, userData) => {
     if (!contextMenu) return
-
     currentTargetUser = userData
-
-    // Position menu at mouse coordinates
     contextMenu.style.top = `${e.clientY}px`
     contextMenu.style.left = `${e.clientX}px`
-
     contextMenu.classList.remove('hidden')
   }
 
-  // Global click listener to close menu when clicking elsewhere
   document.addEventListener('click', hideContextMenu)
 
-  // Prevent context menu from closing if clicking inside it
   if (contextMenu) {
     contextMenu.addEventListener('click', (e) => e.stopPropagation())
   }
 
-  // Button Handlers
   if (ctxResetBtn) {
     ctxResetBtn.addEventListener('click', () => {
       if (currentTargetUser) {
@@ -85,9 +71,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // --- Fetch Users ---
-
   try {
-    const response = await fetch('/api/admin/users')
+    // UPDATED: Better-auth admin plugin uses /list-users, not /users
+    // const response = await fetch('/api/admin/list-users')
+    const response = await fetch('/api/auth/admin/list-users')
 
     if (!response.ok) {
       if (response.status === 403) {
@@ -96,7 +83,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       throw new Error(`Error fetching users: ${response.statusText}`)
     }
 
-    const users = await response.json()
+    const data = await response.json()
+    // Better-auth returns { users: [...] }
+    const users = data.users || []
 
     loadingMessage.classList.add('hidden')
 
@@ -108,7 +97,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const htmlRows = users
       .map((user) => {
-        // Format dates safely
         const created = user.createdAt
           ? new Date(user.createdAt).toLocaleString('en-GB', {
               dateStyle: 'short',
@@ -126,7 +114,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const email = user.email || '-'
         const role = user.role || 'user'
 
-        // We store the specific fields we need for the modal in the data attribute
         const safeUserData = escapeHtml(
           JSON.stringify({
             id: user.id,
@@ -155,16 +142,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     usersContainer.innerHTML = htmlRows
 
-    // Attach Right Click Event Listeners to Rows
     const rows = document.querySelectorAll('.user-row')
     rows.forEach((row) => {
       row.addEventListener('contextmenu', (e) => {
-        e.preventDefault() // Prevent default browser context menu
-
+        e.preventDefault()
         try {
-          // Parse user data from the row
           const userData = JSON.parse(row.getAttribute('data-user'))
-
           showContextMenu(e, userData)
         } catch (err) {
           console.error('Error parsing user data for menu:', err)

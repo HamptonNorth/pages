@@ -351,16 +351,22 @@
         #layout-wrapper,
         main,
         article,
+        /* Update this in your <style> block */
         #markdown-content {
-          display: block !important;
-          width: 100% !important;
-          height: auto !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          overflow: visible !important;
-          background-color: white !important;
-          box-shadow: none !important;
-          border: none !important;
+          box-sizing: border-box;
+          min-width: 200px;
+          max-width: 100%;
+          margin: 0; /* Changed from '0 auto' to ensure it aligns with your <h1> */
+          padding: 1rem 0;
+        }
+
+        /* Ensure the GitHub style uses the full width of the container */
+        #markdown-content.github-style {
+          color: #1f2328;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+        #markdown-content.github-style > *:first-child {
+          margin-top: 0 !important;
         }
       }
     </style>
@@ -584,18 +590,17 @@
 
       function loadPageContent() {
         fetch('/api/pages/content/' + category + '/' + slug)
-          .then(function (res) {
-            if (!res.ok) throw new Error('Error loading page')
-            return res.json()
-          })
           .then(function (data) {
             document.getElementById('page-title').textContent = data.meta.title
             contentEl.innerHTML = data.html
 
             if (data.meta.style === 'github') {
               contentEl.classList.add('github-style')
+              // Remove prose classes to let GitHub styles take full control
+              contentEl.classList.remove('prose', 'prose-slate')
             } else {
               contentEl.classList.remove('github-style')
+              contentEl.classList.add('prose', 'prose-slate')
             }
 
             contentEl.querySelectorAll('pre code').forEach(function (el) {
