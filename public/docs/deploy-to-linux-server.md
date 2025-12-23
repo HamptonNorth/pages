@@ -87,7 +87,8 @@ chmod 600 .env
 
 ```
 
-Then edit the `.env` file to ensure the social better-auth logins for Google and GitHub are pointing to the server rather than localhost.
+Then edit the `.env` file to ensure the social better-auth logins for Google and GitHub are pointing to the server rather than localhost. Also set `BETTER_AUTH_URL=https://bunstarter.redmug.dev/` to the URL of your server. Note do this **before creating the default admin user**
+
 
 You can now run the application in dev mode on the server:
 
@@ -106,3 +107,5 @@ If the app runs okay, close the bun run dev using `ctrl+C` and the restart the `
 sudo systemctl start bun-starter.service
 
 ```
+
+Should be good to go
