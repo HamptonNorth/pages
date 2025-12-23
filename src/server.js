@@ -115,6 +115,7 @@ const server = Bun.serve({
 
 function getPagesConfig() {
   const pagesEnv = process.env.PAGES || ''
+
   return pagesEnv
     .split(',')
     .map((c) => {
