@@ -1,6 +1,3 @@
-// version 1.0 Claude Opus 4.5
-// public/components/rm-markdown-editor.js
-//
 // A modal-based markdown editor component for viewing and editing *.md files.
 // Features:
 // - View mode (read-only) with syntax highlighting
@@ -261,35 +258,37 @@ export class RmMarkdownEditor extends LitElement {
     return html`
       <!-- Modal backdrop -->
       <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
         @click="${this._handleClose}"
         @keydown="${this._handleKeydown}"
       >
         <!-- Modal container -->
         <div
-          class="bg-white rounded-lg shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden"
+          class="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl"
           @click="${(e) => e.stopPropagation()}"
         >
           <!-- Header -->
-          <div class="bg-primary-700 text-white px-6 py-4 flex items-center justify-between shrink-0">
+          <div
+            class="bg-primary-700 flex shrink-0 items-center justify-between px-6 py-4 text-white"
+          >
             <div class="flex items-center gap-4">
-              <h2 class="text-lg font-bold truncate max-w-md" title="${this._title}">
+              <h2 class="max-w-md truncate text-lg font-bold" title="${this._title}">
                 ${this._title || 'Loading...'}
               </h2>
               <!-- Mode toggle pills -->
-              <div class="flex bg-primary-800 rounded-full p-1">
+              <div class="bg-primary-800 flex rounded-full p-1">
                 <button
-                  class="px-3 py-1 text-sm font-medium rounded-full transition-colors ${!isEditMode
+                  class="${!isEditMode
                     ? 'bg-white text-primary-700'
-                    : 'text-primary-200 hover:text-white'}"
+                    : 'text-primary-200 hover:text-white'} rounded-full px-3 py-1 text-sm font-medium transition-colors"
                   @click="${() => this._setMode('view')}"
                 >
                   View
                 </button>
                 <button
-                  class="px-3 py-1 text-sm font-medium rounded-full transition-colors ${isEditMode
+                  class="${isEditMode
                     ? 'bg-white text-primary-700'
-                    : 'text-primary-200 hover:text-white'}"
+                    : 'text-primary-200 hover:text-white'} rounded-full px-3 py-1 text-sm font-medium transition-colors"
                   @click="${() => this._setMode('edit')}"
                 >
                   Edit
@@ -299,17 +298,17 @@ export class RmMarkdownEditor extends LitElement {
 
             <div class="flex items-center gap-3">
               <!-- File path info -->
-              <span class="text-primary-200 text-sm font-mono hidden sm:inline">
+              <span class="text-primary-200 hidden font-mono text-sm sm:inline">
                 ${this.category}/${this.slug}.md
               </span>
 
               <!-- Close button -->
               <button
-                class="text-white hover:bg-primary-600 rounded p-1.5 transition-colors"
+                class="hover:bg-primary-600 rounded p-1.5 text-white transition-colors"
                 @click="${this._handleClose}"
                 title="Close (Esc)"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -322,13 +321,13 @@ export class RmMarkdownEditor extends LitElement {
           </div>
 
           <!-- Content area -->
-          <div class="flex-1 overflow-hidden flex flex-col">
+          <div class="flex flex-1 flex-col overflow-hidden">
             ${this._isLoading
               ? html`
-                  <div class="flex-1 flex items-center justify-center">
+                  <div class="flex flex-1 items-center justify-center">
                     <div class="text-center">
                       <div
-                        class="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-3"
+                        class="border-primary-200 border-t-primary-600 mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4"
                       ></div>
                       <p class="text-primary-600">Loading markdown...</p>
                     </div>
@@ -336,12 +335,12 @@ export class RmMarkdownEditor extends LitElement {
                 `
               : this._error
                 ? html`
-                    <div class="flex-1 flex items-center justify-center">
+                    <div class="flex flex-1 items-center justify-center">
                       <div
-                        class="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md text-center"
+                        class="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center"
                       >
                         <svg
-                          class="w-12 h-12 text-red-400 mx-auto mb-3"
+                          class="mx-auto mb-3 h-12 w-12 text-red-400"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -353,9 +352,9 @@ export class RmMarkdownEditor extends LitElement {
                             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                           ></path>
                         </svg>
-                        <p class="text-red-700 font-medium">${this._error}</p>
+                        <p class="font-medium text-red-700">${this._error}</p>
                         <button
-                          class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                          class="mt-4 rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
                           @click="${this._loadContent}"
                         >
                           Retry
@@ -367,9 +366,9 @@ export class RmMarkdownEditor extends LitElement {
                     <!-- Editor/Viewer -->
                     <div class="flex-1 overflow-hidden p-4">
                       <textarea
-                        class="w-full h-full p-4 font-mono text-sm leading-relaxed resize-none border border-primary-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${isEditMode
+                        class="border-primary-200 focus:ring-primary-500 ${isEditMode
                           ? 'bg-white'
-                          : 'bg-primary-50 cursor-default'}"
+                          : 'bg-primary-50 cursor-default'} h-full w-full resize-none rounded-lg border p-4 font-mono text-sm leading-relaxed focus:border-transparent focus:ring-2 focus:outline-none"
                         .value="${this._currentContent}"
                         ?readonly="${!isEditMode}"
                         @input="${this._handleInput}"
@@ -383,15 +382,15 @@ export class RmMarkdownEditor extends LitElement {
 
           <!-- Footer -->
           <div
-            class="bg-primary-50 border-t border-primary-100 px-6 py-3 flex items-center justify-between shrink-0"
+            class="bg-primary-50 border-primary-100 flex shrink-0 items-center justify-between border-t px-6 py-3"
           >
             <!-- Stats -->
-            <div class="text-sm text-primary-500 flex items-center gap-4">
+            <div class="text-primary-500 flex items-center gap-4 text-sm">
               <span>${this._lineCount} lines</span>
               <span>${this._charCount.toLocaleString()} characters</span>
               ${this._isDirty
-                ? html`<span class="text-amber-600 font-medium flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                ? html`<span class="flex items-center gap-1 font-medium text-amber-600">
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fill-rule="evenodd"
                         d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -409,7 +408,7 @@ export class RmMarkdownEditor extends LitElement {
                 ? html`
                     <!-- Discard button -->
                     <button
-                      class="px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-800 hover:bg-primary-100 rounded transition-colors"
+                      class="text-primary-600 hover:text-primary-800 hover:bg-primary-100 rounded px-4 py-2 text-sm font-medium transition-colors"
                       @click="${this._handleDiscard}"
                       ?disabled="${this._isSaving}"
                     >
@@ -418,19 +417,24 @@ export class RmMarkdownEditor extends LitElement {
 
                     <!-- Save button (primary action) -->
                     <button
-                      class="px-4 py-2 text-sm font-medium text-white bg-secondary-600 hover:bg-secondary-700 rounded shadow transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="bg-secondary-600 hover:bg-secondary-700 flex items-center gap-2 rounded px-4 py-2 text-sm font-medium text-white shadow transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       @click="${this._handleSave}"
                       ?disabled="${this._isSaving}"
                     >
                       ${this._isSaving
                         ? html`
                             <div
-                              class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                              class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
                             ></div>
                             Saving...
                           `
                         : html`
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg
+                              class="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
                               <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -445,7 +449,7 @@ export class RmMarkdownEditor extends LitElement {
                 : html`
                     <!-- Close button when no changes or in view mode -->
                     <button
-                      class="px-4 py-2 text-sm font-medium text-primary-700 bg-white border border-primary-200 hover:bg-primary-50 rounded shadow-sm transition-colors"
+                      class="text-primary-700 border-primary-200 hover:bg-primary-50 rounded border bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors"
                       @click="${this._handleClose}"
                     >
                       Close

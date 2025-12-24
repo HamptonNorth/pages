@@ -1,6 +1,3 @@
-// version 15.1 Claude Opus 4.5
-// server.js
-//
 // CHANGES from v15.0:
 // - Added POST /api/pages/upload/:category - Upload markdown files (admin only)
 // - Added POST /api/media/upload/:category - Upload image files (admin only)

@@ -1,4 +1,3 @@
-// version 2.0 Gemini 2.0 Flash
 // public/components/rm-nav-header.js
 
 import { LitElement, html, nothing } from 'lit'

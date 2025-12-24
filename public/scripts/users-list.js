@@ -1,4 +1,3 @@
-// version 1.1 Gemini 3 Flash
 // users-list.js
 document.addEventListener('DOMContentLoaded', async () => {
   const usersContainer = document.getElementById('usersResult')
