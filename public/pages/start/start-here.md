@@ -12,7 +12,7 @@ sticky: true
 
 The `bunstarter` template application includes a simple blog system. Mardown pages , in the right directories are automatically incuded in an index page with all navigation links.
 
-In this sample set up there are three cartories of page. These are **start**, **rants** and **technical**. These are the categories used in the drop down naviagtion bar menu.
+In this sample set up there are three categories or types of of pages. These are **start**, **rants** and **technical**. These are the categories used in the drop down naviagtion bar menu.
 
 The categories are controlled by the `.env` file in the root directory. 
 
