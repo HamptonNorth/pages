@@ -1,5 +1,11 @@
-// version 15.0 Claude Opus 4.5
+// version 15.1 Claude Opus 4.5
 // server.js
+//
+// CHANGES from v15.0:
+// - Added POST /api/pages/upload/:category - Upload markdown files (admin only)
+// - Added POST /api/media/upload/:category - Upload image files (admin only)
+// - Auto-adds default front matter to uploaded .md files without front matter
+// - Always sets published: n on uploaded .md files to force review
 //
 // CHANGES from v14.5:
 // - Added GET /api/pages/raw/:category/:slug - Returns raw markdown content (admin only)
@@ -96,6 +102,18 @@ const server = Bun.serve({
         return handleSaveRawMarkdown(req, path)
       }
       return Response.json({ error: 'Method not allowed' }, { status: 405 })
+    }
+
+    // =========================================================================
+    // FILE UPLOAD ENDPOINTS
+    // POST /api/pages/upload/:category - Upload markdown file
+    // POST /api/media/upload/:category - Upload image file
+    // =========================================================================
+    if (path.startsWith('/api/pages/upload/') && req.method === 'POST') {
+      return handleMarkdownUpload(req, path)
+    }
+    if (path.startsWith('/api/media/upload/') && req.method === 'POST') {
+      return handleMediaUpload(req, path)
     }
 
     if (path.startsWith('/api/pages/list/')) return handlePagesList(req, path)
@@ -385,6 +403,279 @@ async function handleSaveRawMarkdown(req, path) {
     })
   } catch (err) {
     console.error('Error saving raw markdown:', err)
+    return Response.json({ error: 'Server error' }, { status: 500 })
+  }
+}
+
+// =============================================================================
+// FILE UPLOAD HANDLERS
+// =============================================================================
+
+// Allowed file extensions
+const ALLOWED_IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
+const ALLOWED_MD_EXTENSIONS = ['.md']
+
+/**
+ * Get file extension in lowercase
+ */
+function getFileExtension(filename) {
+  const lastDot = filename.lastIndexOf('.')
+  if (lastDot === -1) return ''
+  return filename.slice(lastDot).toLowerCase()
+}
+
+/**
+ * Sanitize filename - remove special characters, keep extension
+ */
+function sanitizeFilename(filename) {
+  const ext = getFileExtension(filename)
+  const baseName = filename.slice(0, filename.lastIndexOf('.'))
+  // Replace spaces with hyphens, remove non-alphanumeric except hyphens and underscores
+  const sanitized = baseName
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9\-_]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+  return sanitized + ext
+}
+
+/**
+ * Generate default front matter for markdown files
+ */
+function generateDefaultFrontMatter() {
+  const now = new Date()
+  const isoDate = now.toISOString().split('T')[0] // YYYY-MM-DD format
+
+  return `---
+title: Title (needs editing)
+summary: Summary (needs editing)
+created: ${isoDate}
+published: n
+file-type: markdown
+style: github
+sticky: false
+---
+
+`
+}
+
+/**
+ * Check if content has front matter
+ */
+function hasFrontMatter(content) {
+  return content.trim().startsWith('---')
+}
+
+/**
+ * Ensure front matter has published: n for uploaded files
+ * If front matter exists, set published to n
+ * If no front matter, add default front matter
+ */
+function ensureUnpublishedFrontMatter(content) {
+  if (!hasFrontMatter(content)) {
+    // No front matter - add default
+    return generateDefaultFrontMatter() + content
+  }
+
+  // Has front matter - ensure published: n
+  const fmMatch = content.match(/^---\n([\s\S]*?)\n---/)
+  if (!fmMatch) {
+    return generateDefaultFrontMatter() + content
+  }
+
+  const frontMatter = fmMatch[1]
+  const afterFrontMatter = content.slice(fmMatch[0].length)
+
+  // Check if published line exists
+  if (/^published\s*:/m.test(frontMatter)) {
+    // Replace existing published line with n
+    const updatedFm = frontMatter.replace(/^published\s*:.*$/m, 'published: n')
+    return '---\n' + updatedFm + '\n---' + afterFrontMatter
+  } else {
+    // Add published: n line to front matter
+    return '---\n' + frontMatter + '\npublished: n\n---' + afterFrontMatter
+  }
+}
+
+/**
+ * POST /api/pages/upload/:category
+ * Upload a markdown file
+ * Requires admin role
+ */
+async function handleMarkdownUpload(req, path) {
+  try {
+    // Parse category from path
+    const parts = path.split('/').filter((p) => p.length > 0)
+    const category = parts[3]
+
+    // Validate category
+    if (!category) {
+      return Response.json({ error: 'Missing category' }, { status: 400 })
+    }
+
+    // Security: prevent path traversal
+    if (category.includes('..')) {
+      return Response.json({ error: 'Invalid category' }, { status: 400 })
+    }
+
+    // Check authentication - admin only
+    const session = await auth.api.getSession({ headers: req.headers })
+    if (!session?.user || session.user.role !== 'admin') {
+      return Response.json({ error: 'Unauthorized: Admin access required' }, { status: 403 })
+    }
+
+    // Parse multipart form data
+    const formData = await req.formData()
+    const file = formData.get('file')
+
+    if (!file || !(file instanceof File)) {
+      return Response.json({ error: 'No file provided' }, { status: 400 })
+    }
+
+    // Validate file extension
+    const ext = getFileExtension(file.name)
+    if (!ALLOWED_MD_EXTENSIONS.includes(ext)) {
+      return Response.json({ error: 'Invalid file type. Only .md files allowed.' }, { status: 400 })
+    }
+
+    // Sanitize filename
+    const sanitizedName = sanitizeFilename(file.name)
+    if (!sanitizedName || sanitizedName === ext) {
+      return Response.json({ error: 'Invalid filename' }, { status: 400 })
+    }
+
+    // Build target path
+    const targetDir = `./public/pages/${category}`
+    const targetPath = `${targetDir}/${sanitizedName}`
+
+    // Ensure directory exists
+    const { mkdir } = await import('node:fs/promises')
+    await mkdir(targetDir, { recursive: true })
+
+    // Check if file already exists
+    const targetFile = Bun.file(targetPath)
+    if (await targetFile.exists()) {
+      return Response.json(
+        {
+          error: `File "${sanitizedName}" already exists in ${category}`,
+        },
+        { status: 409 },
+      )
+    }
+
+    // Read file content
+    let content = await file.text()
+
+    // Ensure front matter with published: n
+    content = ensureUnpublishedFrontMatter(content)
+
+    // Write the file
+    await Bun.write(targetPath, content)
+
+    console.log(`[Admin] Markdown file uploaded: ${targetPath} by ${session.user.email}`)
+
+    return Response.json({
+      success: true,
+      message: `Markdown file "${sanitizedName}" uploaded successfully`,
+      path: `pages/${category}/${sanitizedName}`,
+      filename: sanitizedName,
+    })
+  } catch (err) {
+    console.error('Error uploading markdown:', err)
+    return Response.json({ error: 'Server error' }, { status: 500 })
+  }
+}
+
+/**
+ * POST /api/media/upload/:category
+ * Upload an image file
+ * Requires admin role
+ */
+async function handleMediaUpload(req, path) {
+  try {
+    // Parse category from path
+    const parts = path.split('/').filter((p) => p.length > 0)
+    const category = parts[3]
+
+    // Validate category
+    if (!category) {
+      return Response.json({ error: 'Missing category' }, { status: 400 })
+    }
+
+    // Security: prevent path traversal
+    if (category.includes('..')) {
+      return Response.json({ error: 'Invalid category' }, { status: 400 })
+    }
+
+    // Check authentication - admin only
+    const session = await auth.api.getSession({ headers: req.headers })
+    if (!session?.user || session.user.role !== 'admin') {
+      return Response.json({ error: 'Unauthorized: Admin access required' }, { status: 403 })
+    }
+
+    // Parse multipart form data
+    const formData = await req.formData()
+    const file = formData.get('file')
+
+    if (!file || !(file instanceof File)) {
+      return Response.json({ error: 'No file provided' }, { status: 400 })
+    }
+
+    // Validate file extension
+    const ext = getFileExtension(file.name)
+    if (!ALLOWED_IMAGE_EXTENSIONS.includes(ext)) {
+      return Response.json(
+        {
+          error: `Invalid file type. Allowed: ${ALLOWED_IMAGE_EXTENSIONS.join(', ')}`,
+        },
+        { status: 400 },
+      )
+    }
+
+    // Sanitize filename
+    const sanitizedName = sanitizeFilename(file.name)
+    if (!sanitizedName || sanitizedName === ext) {
+      return Response.json({ error: 'Invalid filename' }, { status: 400 })
+    }
+
+    // Build target path
+    const targetDir = `./public/media/${category}`
+    const targetPath = `${targetDir}/${sanitizedName}`
+
+    // Ensure directory exists
+    const { mkdir } = await import('node:fs/promises')
+    await mkdir(targetDir, { recursive: true })
+
+    // Check if file already exists
+    const targetFile = Bun.file(targetPath)
+    if (await targetFile.exists()) {
+      return Response.json(
+        {
+          error: `File "${sanitizedName}" already exists in ${category}`,
+        },
+        { status: 409 },
+      )
+    }
+
+    // Get file buffer and write
+    const buffer = await file.arrayBuffer()
+    await Bun.write(targetPath, buffer)
+
+    console.log(`[Admin] Media file uploaded: ${targetPath} by ${session.user.email}`)
+
+    // Return the path that can be used in markdown
+    const markdownPath = `/media/${category}/${sanitizedName}`
+
+    return Response.json({
+      success: true,
+      message: `Image "${sanitizedName}" uploaded successfully`,
+      path: `media/${category}/${sanitizedName}`,
+      filename: sanitizedName,
+      markdownUsage: `![${sanitizedName}](${markdownPath})`,
+    })
+  } catch (err) {
+    console.error('Error uploading media:', err)
     return Response.json({ error: 'Server error' }, { status: 500 })
   }
 }
