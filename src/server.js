@@ -1,5 +1,11 @@
-// version 14.5 Gemini 3 Flash
+// version 15.0 Claude Opus 4.5
 // server.js
+//
+// CHANGES from v14.5:
+// - Added GET /api/pages/raw/:category/:slug - Returns raw markdown content (admin only)
+// - Added PUT /api/pages/raw/:category/:slug - Saves markdown content (admin only)
+// - Refactored route handling for clarity
+//
 import { auth } from './auth.js'
 import { db } from './db-setup.js'
 import { handleApiRoutes } from './routes/api.js'
@@ -76,6 +82,22 @@ const server = Bun.serve({
     if (path === '/api/pages-config') {
       return Response.json(getPagesConfig())
     }
+
+    // =========================================================================
+    // RAW MARKDOWN API ENDPOINTS (for editor)
+    // GET /api/pages/raw/:category/:slug - Get raw markdown content
+    // PUT /api/pages/raw/:category/:slug - Save markdown content
+    // =========================================================================
+    if (path.startsWith('/api/pages/raw/')) {
+      if (req.method === 'GET') {
+        return handleGetRawMarkdown(req, path)
+      }
+      if (req.method === 'PUT') {
+        return handleSaveRawMarkdown(req, path)
+      }
+      return Response.json({ error: 'Method not allowed' }, { status: 405 })
+    }
+
     if (path.startsWith('/api/pages/list/')) return handlePagesList(req, path)
     if (path.startsWith('/api/pages/content/')) return handlePageContent(req, path)
     if (path.startsWith('/api/')) return handleApiRoutes(req, path)
@@ -235,6 +257,136 @@ async function servePageDetailSSR(req, category, slug) {
   return new Response(html, {
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   })
+}
+
+// =============================================================================
+// RAW MARKDOWN API HANDLERS
+// =============================================================================
+
+/**
+ * GET /api/pages/raw/:category/:slug
+ * Returns the raw markdown content for editing
+ * Requires admin role
+ */
+async function handleGetRawMarkdown(req, path) {
+  try {
+    // Parse category and slug from path
+    // Path format: /api/pages/raw/:category/:slug
+    const parts = path.split('/').filter((p) => p.length > 0)
+    // parts = ['api', 'pages', 'raw', 'category', 'slug']
+    const category = parts[3]
+    const slug = parts[4]
+
+    // Validate inputs
+    if (!category || !slug) {
+      return Response.json({ error: 'Missing category or slug' }, { status: 400 })
+    }
+
+    // Security: prevent path traversal
+    if (category.includes('..') || slug.includes('..')) {
+      return Response.json({ error: 'Invalid path' }, { status: 400 })
+    }
+
+    // Check authentication - admin only
+    const session = await auth.api.getSession({ headers: req.headers })
+    if (!session?.user || session.user.role !== 'admin') {
+      return Response.json({ error: 'Unauthorized: Admin access required' }, { status: 403 })
+    }
+
+    // Build file path
+    const mdPath = `./public/pages/${category}/${slug}.md`
+    const mdFile = Bun.file(mdPath)
+
+    // Check if file exists
+    if (!(await mdFile.exists())) {
+      return Response.json({ error: 'File not found' }, { status: 404 })
+    }
+
+    // Read the raw content
+    const content = await mdFile.text()
+
+    // Parse front matter to return metadata separately
+    const { attributes: meta } = parseFrontMatter(content)
+
+    return Response.json({
+      content: content,
+      meta: meta,
+      path: `${category}/${slug}.md`,
+    })
+  } catch (err) {
+    console.error('Error reading raw markdown:', err)
+    return Response.json({ error: 'Server error' }, { status: 500 })
+  }
+}
+
+/**
+ * PUT /api/pages/raw/:category/:slug
+ * Saves the raw markdown content
+ * Requires admin role
+ */
+async function handleSaveRawMarkdown(req, path) {
+  try {
+    // Parse category and slug from path
+    const parts = path.split('/').filter((p) => p.length > 0)
+    const category = parts[3]
+    const slug = parts[4]
+
+    // Validate inputs
+    if (!category || !slug) {
+      return Response.json({ error: 'Missing category or slug' }, { status: 400 })
+    }
+
+    // Security: prevent path traversal
+    if (category.includes('..') || slug.includes('..')) {
+      return Response.json({ error: 'Invalid path' }, { status: 400 })
+    }
+
+    // Check authentication - admin only
+    const session = await auth.api.getSession({ headers: req.headers })
+    if (!session?.user || session.user.role !== 'admin') {
+      return Response.json({ error: 'Unauthorized: Admin access required' }, { status: 403 })
+    }
+
+    // Parse request body
+    let body
+    try {
+      body = await req.json()
+    } catch (e) {
+      return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    // Validate content
+    if (typeof body.content !== 'string') {
+      return Response.json({ error: 'Missing content field' }, { status: 400 })
+    }
+
+    // Build file path
+    const mdPath = `./public/pages/${category}/${slug}.md`
+    const mdFile = Bun.file(mdPath)
+
+    // Check if file exists (we only allow editing existing files, not creating new ones)
+    if (!(await mdFile.exists())) {
+      return Response.json({ error: 'File not found' }, { status: 404 })
+    }
+
+    // Write the content
+    await Bun.write(mdPath, body.content)
+
+    // Parse the new front matter to return updated metadata
+    const { attributes: meta } = parseFrontMatter(body.content)
+
+    console.log(`[Admin] Markdown file saved: ${mdPath} by ${session.user.email}`)
+
+    return Response.json({
+      success: true,
+      message: 'File saved successfully',
+      path: `${category}/${slug}.md`,
+      meta: meta,
+    })
+  } catch (err) {
+    console.error('Error saving raw markdown:', err)
+    return Response.json({ error: 'Server error' }, { status: 500 })
+  }
 }
 
 // --- API HANDLERS ---

@@ -12,4 +12,6 @@ import './components/rm-default-container.js'
 import './components/rm-login.js'
 import './components/rm-colour-swatch.js'
 
+import './components/rm-markdown-editor.js'
+
 console.log('Component bundle loaded successfully.')

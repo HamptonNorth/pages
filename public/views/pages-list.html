@@ -1,5 +1,19 @@
 <!doctype html>
-<!-- version 14.6 Claude Opus 4.5 -->
+<!-- version 15.2 Claude Opus 4.5 -->
+<!--
+  CHANGES from v15.1:
+  - Changed View/Edit from pill buttons to subtle xs text links
+
+  CHANGES from v15.0:
+  - Fixed: Removed authClient import that caused 404 error
+  - Now uses direct fetch to /api/auth/get-session endpoint
+
+  CHANGES from v14.6:
+  - Added authentication check for admin role
+  - Added View/Edit pill button for each page (admin only)
+  - Integrated rm-markdown-editor component
+  - Added session state management
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -39,17 +53,38 @@
       </main>
       <rm-footer></rm-footer>
     </rm-default-container>
-    <script>
-      // State variables
+
+    <!-- Markdown Editor Modal (rendered via JS when needed) -->
+    <div id="editor-container"></div>
+
+    <script type="module">
+      // ==========================================================================
+      // STATE VARIABLES
+      // ==========================================================================
+
       var allPages = []
       var visibleCount = 15
       var INCREMENT = 15
+
+      // Authentication state
+      var isAdmin = false
+      var userEmail = null
+
+      // Editor modal state
+      var editorOpen = false
+      var editorCategory = ''
+      var editorSlug = ''
+      var editorMode = 'view'
 
       // Extract category from URL path
       var pathParts = window.location.pathname.split('/').filter(function (p) {
         return p
       })
       var category = pathParts[1] || ''
+
+      // ==========================================================================
+      // DATE UTILITIES
+      // ==========================================================================
 
       /**
        * Format ISO 8601 date string to readable format
@@ -83,6 +118,10 @@
           return 0
         }
       }
+
+      // ==========================================================================
+      // PAGE UTILITIES
+      // ==========================================================================
 
       /**
        * Check if a page is marked as sticky
@@ -122,10 +161,120 @@
         return sorted
       }
 
+      // ==========================================================================
+      // AUTHENTICATION
+      // ==========================================================================
+
+      /**
+       * Check current session and determine if user is admin
+       * Uses direct fetch to better-auth session endpoint
+       */
+      async function checkSession() {
+        try {
+          const response = await fetch('/api/auth/get-session', {
+            method: 'GET',
+            credentials: 'include', // Important: include cookies for session
+          })
+
+          if (!response.ok) {
+            isAdmin = false
+            userEmail = null
+            return
+          }
+
+          const data = await response.json()
+
+          if (data && data.user) {
+            isAdmin = data.user.role === 'admin'
+            userEmail = data.user.email
+          } else {
+            isAdmin = false
+            userEmail = null
+          }
+        } catch (err) {
+          console.error('Session check failed:', err)
+          isAdmin = false
+          userEmail = null
+        }
+      }
+
+      // ==========================================================================
+      // EDITOR MODAL MANAGEMENT
+      // ==========================================================================
+
+      /**
+       * Open the markdown editor modal
+       * @param {string} slug - The page slug
+       * @param {string} mode - 'view' or 'edit'
+       */
+      function openEditor(slug, mode) {
+        editorOpen = true
+        editorCategory = category
+        editorSlug = slug
+        editorMode = mode || 'view'
+        renderEditor()
+      }
+
+      /**
+       * Close the markdown editor modal
+       */
+      function closeEditor() {
+        editorOpen = false
+        editorCategory = ''
+        editorSlug = ''
+        editorMode = 'view'
+        renderEditor()
+      }
+
+      /**
+       * Handle save event from editor - refresh the page list
+       */
+      function handleEditorSaved(e) {
+        console.log('File saved:', e.detail)
+        // Optionally refresh the page list to reflect any title changes
+        init()
+      }
+
+      /**
+       * Render the editor modal (or clear it if closed)
+       */
+      function renderEditor() {
+        var container = document.getElementById('editor-container')
+        if (!editorOpen) {
+          container.innerHTML = ''
+          return
+        }
+
+        // Create the editor element
+        container.innerHTML = `
+          <rm-markdown-editor
+            id="md-editor"
+            category="${editorCategory}"
+            slug="${editorSlug}"
+            mode="${editorMode}"
+          ></rm-markdown-editor>
+        `
+
+        // Get reference and set properties
+        var editor = document.getElementById('md-editor')
+        editor.isOpen = true
+        editor.category = editorCategory
+        editor.slug = editorSlug
+        editor.mode = editorMode
+
+        // Add event listeners
+        editor.addEventListener('close', closeEditor)
+        editor.addEventListener('saved', handleEditorSaved)
+      }
+
+      // ==========================================================================
+      // INITIALIZATION
+      // ==========================================================================
+
       /**
        * Initialize the page list
        */
-      function init() {
+      async function init() {
         if (!category) {
           document.getElementById('category-title').textContent = 'Category Not Found'
           return
@@ -135,6 +284,10 @@
         document.getElementById('category-title').textContent =
           category.charAt(0).toUpperCase() + category.slice(1)
 
+        // Check authentication status first
+        await checkSession()
+
+        // Fetch page list
         fetch('/api/pages/list/' + category)
           .then(function (res) {
             if (!res.ok) throw new Error('Failed to fetch')
@@ -154,6 +307,10 @@
               '<p class="text-red-600">Failed to load pages. Please try again.</p>'
           })
       }
+
+      // ==========================================================================
+      // RENDERING
+      // ==========================================================================
 
       /**
        * Render the page list
@@ -195,6 +352,29 @@
             ? '<span class="text-xs text-primary-400 font-mono">' + dateStr + '</span>'
             : ''
 
+          // =======================================================================
+          // ADMIN EDIT LINK - Only shown to admin users
+          // Subtle text link style
+          // =======================================================================
+          var adminEditButton = ''
+          if (isAdmin) {
+            adminEditButton = `
+              <span class="ml-2 text-xs text-primary-400" onclick="event.preventDefault(); event.stopPropagation();">
+                <button
+                  onclick="window.openPageEditor('${page.slug}', 'view')"
+                  class="hover:text-primary-600 hover:underline transition-colors"
+                  title="View raw markdown"
+                >view</button>
+                <span class="text-primary-300">|</span>
+                <button
+                  onclick="window.openPageEditor('${page.slug}', 'edit')"
+                  class="hover:text-secondary-600 hover:underline transition-colors"
+                  title="Edit markdown"
+                >edit</button>
+              </span>
+            `
+          }
+
           article.innerHTML =
             '<a href="/pages/' +
             category +
@@ -203,10 +383,13 @@
             '" class="block">' +
             '<div class="flex justify-between items-center gap-4">' +
             '<div class="flex-grow min-w-0">' +
-            '<h2 class="text-lg font-bold text-primary-800 group-hover:text-primary-600 truncate leading-tight flex items-center">' +
+            '<h2 class="text-lg font-bold text-primary-800 group-hover:text-primary-600 truncate leading-tight flex items-center flex-wrap">' +
             stickyBadge +
+            '<span class="truncate">' +
             (page.title || 'Untitled') +
+            '</span>' +
             privateBadge +
+            adminEditButton +
             '</h2>' +
             '<p class="text-sm text-primary-600 mt-1 line-clamp-2">' +
             (page.summary || '') +
@@ -235,11 +418,26 @@
         }
       }
 
+      // ==========================================================================
+      // GLOBAL FUNCTION EXPORTS (for onclick handlers in HTML)
+      // ==========================================================================
+
+      // Expose editor open function globally for onclick handlers
+      window.openPageEditor = openEditor
+
+      // ==========================================================================
+      // EVENT LISTENERS
+      // ==========================================================================
+
       // Load more button handler
       document.getElementById('btn-load-more').addEventListener('click', function () {
         visibleCount += INCREMENT
         render()
       })
+
+      // ==========================================================================
+      // START
+      // ==========================================================================
 
       // Initialize on page load
       init()
