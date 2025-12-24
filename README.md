@@ -11,6 +11,7 @@ This project provides a scaffolded fully working application that ships with mos
 - Authentication using the better-auth library with example email/password, Google and GitHub sign in workflows
 - Example components built with Lit, Javascript and Tailwind CSS
 - Set up scripts to create database, create and populate better-auth tables and sample test data tables
+- A markdown based pages system for content with mutiple categories, front matter supporting draft, private, sticky pages and an upload facility for images and `*.md` files
 - Responsive UI, works on mobile but examples designed for desktop apps
 
 My hope is, faced with a new web application, I can clone this stater template, hack out the bits that are not need then add the missing user requirements. If it's quicker than starting from scratch, I'll take that as a win.
@@ -22,6 +23,7 @@ My hope is, faced with a new web application, I can clone this stater template, 
 - Tailwind CSS 
 - SQLite
 - Better-auth library for authentication
+- Marked library for *.md --> *.html rendering
 
 
 ## Development set up
@@ -163,7 +165,7 @@ URIs: Lower case and hyphens (i.e kebab case) e.g /api/order-items
 
 ## Custom components
 
-There are a (growing) collection of comonents. The are in the directory `./src/components`. The list as at release 0.8.1 consists of:
+There are a (growing) collection of comonents. The are in the directory `./src/components`. The list includes:
 
 - <rm-head>               #consistent meta data for views
 - <rm-nav-header>         # logo, title, header navigation, waffle menu, 3 dot menu and hamburger menu for samll viewports
@@ -228,165 +230,12 @@ GITHUB_CLIENT_SECRET=**********************************
 #GITHUB_CLIENT_SECRET=*************************************
 ```
 
-On Cloudfalre, sign in and then for the domain, set dev mode = true and purge all cache (resets itself after 3 hrs fetch)
+On Cloudflare, sign in and then for the domain, set dev mode = true and purge all cache (resets itself after 3 hrs fetch)
 
-Test
+
 ## Roadmap
-1) Improve mail:to links for communicating sign in details to new users or password reset details to existing users
-2) Add role based access control
-3) Add middleware to bun server to 'guard' specified routes
 
-On a longer timescale, adding a blog (auto index from page header yaml front matter, auto build pages from markdown files in known directory)
-
-
-# 🐧 Linux Terminal Cheat Sheet
-
-A concise reference for the 50 most used Linux commands, text editors, scripting, and automation.
-
----
-
-
-### File & Directory Navigation
-1. **`ls`** — List directory contents.
-   * `ls -la` (All files + details) 
-   * `ls -lh` (Human-readable sizes)
-2. **`cd`** — Change directory.
-   * `cd /path` 
-   * `cd ..` (Up one level) 
-   * `cd ~` (Home)
-3. **`pwd`** — Print Working Directory (show current path).
-4. **`mkdir`** — Make directory.
-   * `mkdir folder` 
-   * `mkdir -p parent/child` (Nested)
-
-### File Manipulation
-5. **`cp`** — Copy.
-   * `cp file.txt copy.txt` 
-   * `cp -r folder1 folder2` (Recursive)
-6. **`mv`** — Move or Rename.
-   * `mv old.txt new.txt` 
-   * `mv file.txt /dest/`
-7. **`rm`** — Remove.
-   * `rm file.txt` 
-   * `rm -i file` (Ask confirm) 
-   * ⚠️ `rm -rf folder` (Force delete)
-8. **`touch`** — Create empty file or update timestamp.
-9. **`ln`** — Create links.
-   * `ln -s file link` (Symbolic link/Shortcut)
-10. **`cat`** — Display content.
-    * `cat file.txt` 
-    * `cat a.txt b.txt > combined.txt`
-
-### Text Processing
-11. **`grep`** — Search text.
-    * `grep "error" log.txt` 
-    * `grep -r "text" .` (Recursive)
-12. **`echo`** — Print text.
-    * `echo "Hi"` | `echo "Log" >> file.txt` (Append)
-13. **`less`** — View text page-by-page (`q` to quit).
-14. **`head`** — First 10 lines. (`head -n 5 file.txt`)
-15. **`tail`** — Last 10 lines.
-    * `tail -f log.txt` (Watch file grow in real-time)
-16. **`wc`** — Count words/lines. (`wc -l file.txt`)
-17. **`sort`** — Sort lines.
-    * `sort file.txt` (Alpha) 
-    * `sort -n nums.txt` (Numeric)
-18. **`uniq`** — Filter duplicates (use after `sort`).
-19. **`diff`** — Compare files line-by-line.
-20. **`sed`** — Text replacement.
-    * `sed 's/old/new/g' file.txt` (Print modified output)
-21. **`awk`** — Text processing.
-    * `awk '{print $1}' file.txt` (Print 1st column)
-22. **`tee`** — Redirect to file AND screen.
-    * `echo "Hi" | tee -a log.txt`
-
-### System Info & Management
-23. **`sudo`** — Execute as admin.
-24. **`uname`** — System info (`uname -a`).
-25. **`whoami`** — Current user.
-26. **`top` / `htop`** — View active processes.
-27. **`ps`** — Process snapshot (`ps aux`).
-28. **`kill`** — Terminate process.
-    * `kill PID` 
-    * `kill -9 PID` (Force kill)
-29. **`shutdown`** — Power mgmt.
-    * `shutdown now` 
-    * `shutdown -r now` (Reboot)
-30. **`systemctl`** — Control services.
-    * `sudo systemctl start/stop/status service_name`
-31. **`date`** — Show/set date.
-32. **`which`** — Locate command path (`which python`).
-
-### Disk & Hardware
-33. **`df`** — Disk free space (`df -h`).
-34. **`du`** — Folder usage (`du -sh folder`).
-35. **`mount` / `umount`** — Mount/Unmount drives.
-
-### Permissions
-36. **`chmod`** — Change mode.
-    * `chmod +x script.sh` (Make executable) 
-    * `chmod 755 folder`
-37. **`chown`** — Change owner.
-    * `chown user:group file`
-
-### Networking
-38. **`ping`** — Check connectivity.
-39. **`ip`** — Show IP (`ip a`).
-40. **`curl`** — Transfer data (`curl https://site.com`).
-41. **`wget`** — Download file (`wget url/file.zip`).
-42. **`ssh`** — Remote login (`ssh user@host`).
-43. **`scp`** — Remote copy (`scp file user@host:/path`).
-44. **`ss`** — Socket stats (`ss -tuln` for open ports).
-
-### Archives & Search
-45. **`tar`** — Archives.
-    * `tar -czvf arc.tar.gz folder` (Compress) 
-    * `tar -xzvf arc.tar.gz` (Extract)
-46. **`zip` / `unzip`** — Zip format.
-47. **`find`** — Search files (`find . -name "*.log"`).
-48. **`locate`** — Fast file search (`locate file.txt`).
-
-### Misc
-49. **`history`** — Command history.
-50. **`alias`** — Shortcuts (`alias ll='ls -la'`).
-
----
-
-## Nano Editor Shortcuts
-Run with: `nano filename`
-
-| Key | Action | Description |
-| :--- | :--- | :--- |
-| **`Ctrl + O`** | Write Out | Save file. |
-| **`Ctrl + X`** | Exit | Close editor. |
-| **`Ctrl + W`** | Where Is | Search text. |
-| **`Ctrl + K`** | Cut | Delete line. |
-| **`Ctrl + U`** | Uncut | Paste line. |
-
----
-
-## Piping & Redirection
-Combine commands to create workflows.
-
-| Operator | Name | Example |
-| :--- | :--- | :--- |
-| **`\|`** | Pipe | `cat logs.txt \| grep "Error"` (Pass output to next command) |
-| **`>`** | Overwrite | `ls > list.txt` (Save output to file) |
-| **`>>`** | Append | `echo "End" >> log.txt` (Add to end of file) |
-| **`<`** | Input | `sort < names.txt` (Feed file into command) |
-| **`&&`** | AND | `mkdir A && cd A` (Run 2nd only if 1st succeeds) |
-
----
-
-
-# Heading
-This is some test markdown to check HTML rendering
-
-### Lists
-* `rm file.txt` 
-* `rm -i file` (Ask confirm) 
-* ⚠️ `rm -rf folder` (Force delete) 
-
-1. Numbered list
-21. **`awk`** — Text processing.
-    * `awk '{print $1}' file.txt` (Print 1st column)
+1) Add role based access control
+2) Add middleware to bun server to 'guard' specified routes
+3) Add tags to font matter support for pages system with a page filter by tags
+4) Add search to markdown pages
