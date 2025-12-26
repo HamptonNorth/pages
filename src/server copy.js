@@ -1,20 +1,3 @@
-// version 16.1 Claude Opus 4.5
-// =============================================================================
-// CHANGES from v16.1:
-// - Added mcss-georgia-tight style (12pt base, compact typography)
-//
-// CHANGES from v16.0:
-// - NEW: PAGE_CONFIG env variable replaces PAGES for category configuration
-// - NEW: JSON format for category->style->sidebar mapping
-// - NEW: Extensible style system via style-registry.js
-// - NEW: Style config exposed via /api/pages-config and /api/styles-config
-// - NEW: Dynamic style class application in SSR
-// - DEPRECATED: Old PAGES env format (still supported for backwards compat)
-//
-// PAGE_CONFIG Format:
-// PAGE_CONFIG='{"start":"github","technical":"github:sidebar","rants":"mcss-georgia"}'
-// Format: {"category":"style[:sidebar]", ...}
-//
 // CHANGES from v15.0:
 // - Added POST /api/pages/upload/:category - Upload markdown files (admin only)
 // - Added POST /api/media/upload/:category - Upload image files (admin only)
@@ -36,83 +19,6 @@ import { marked } from 'marked'
 export { db }
 
 const PORT = process.env.PORT || 3000
-
-// =============================================================================
-// STYLE REGISTRY - Extensible markdown style configuration
-// =============================================================================
-// To add a new style:
-// 1. Create CSS file in /public/styles/md-styles/
-// 2. Add entry to STYLE_REGISTRY
-// 3. Use style name in PAGE_CONFIG or front matter
-// =============================================================================
-
-const STYLE_REGISTRY = {
-  // Default: Tailwind Typography (prose)
-  tailwind: {
-    name: 'tailwind',
-    label: 'Tailwind Prose',
-    cssFile: null, // Uses built-in Tailwind prose classes
-    wrapperClass: 'prose prose-slate max-w-none',
-    removeProse: false,
-    description: 'Clean, modern styling using Tailwind Typography',
-  },
-
-  // GitHub-flavored Markdown styling
-  github: {
-    name: 'github',
-    label: 'GitHub Style',
-    cssFile: 'md-github.css',
-    wrapperClass: 'md-github',
-    removeProse: true,
-    description: 'GitHub README-style markdown rendering',
-  },
-
-  // MCSS Georgia: Elegant serif typography
-  'mcss-georgia': {
-    name: 'mcss-georgia',
-    label: 'MCSS Georgia',
-    cssFile: 'md-mcss-georgia.css',
-    wrapperClass: 'md-mcss md-mcss-georgia',
-    removeProse: true,
-    description: 'Elegant serif typography for long-form reading',
-  },
-
-  // MCSS Verdana: Modern sans-serif typography
-  'mcss-verdana': {
-    name: 'mcss-verdana',
-    label: 'MCSS Verdana',
-    cssFile: 'md-mcss-verdana.css',
-    wrapperClass: 'md-mcss md-mcss-verdana',
-    removeProse: true,
-    description: 'Modern sans-serif style for technical documentation',
-  },
-
-  // MCSS Georgia Tight: Compact serif typography (12pt base)
-  'mcss-georgia-tight': {
-    name: 'mcss-georgia-tight',
-    label: 'MCSS Georgia Tight',
-    cssFile: 'md-mcss-georgia-tight.css',
-    wrapperClass: 'md-mcss md-mcss-georgia-tight',
-    removeProse: true,
-    description: 'Compact serif typography with 12pt base for denser content',
-  },
-}
-
-/**
- * Get style configuration by name
- * Falls back to 'tailwind' if style not found
- */
-function getStyleConfig(styleName) {
-  const normalizedName = (styleName || 'tailwind').toLowerCase().trim()
-  return STYLE_REGISTRY[normalizedName] || STYLE_REGISTRY['tailwind']
-}
-
-/**
- * Get all registered style names
- */
-function getAvailableStyles() {
-  return Object.keys(STYLE_REGISTRY)
-}
 
 // --- BUILD STEP (Client Components Only) ---
 const buildResult = await Bun.build({
@@ -176,19 +82,8 @@ const server = Bun.serve({
       )
     }
 
-    // =========================================================================
-    // CONFIGURATION API ENDPOINTS
-    // =========================================================================
-
     if (path === '/api/pages-config') {
       return Response.json(getPagesConfig())
-    }
-
-    if (path === '/api/styles-config') {
-      return Response.json({
-        styles: STYLE_REGISTRY,
-        available: getAvailableStyles(),
-      })
     }
 
     // =========================================================================
@@ -253,83 +148,20 @@ const server = Bun.serve({
   },
 })
 
-// =============================================================================
-// HELPERS
-// =============================================================================
+// --- HELPERS ---
 
-/**
- * Parse PAGE_CONFIG environment variable
- *
- * Supports two formats:
- *
- * NEW FORMAT (recommended):
- * PAGE_CONFIG='{"start":"github","technical":"github:sidebar","rants":"mcss-georgia"}'
- *
- * LEGACY FORMAT (backwards compatible):
- * PAGES="start,technical:sidebar,rants"
- *
- * Returns array of: { name, style, sidebar }
- */
 function getPagesConfig() {
-  // Try new JSON format first
-  const pageConfig = process.env.PAGE_CONFIG
-  if (pageConfig) {
-    try {
-      const config = JSON.parse(pageConfig)
-      return Object.entries(config).map(([name, value]) => {
-        // Value can be "style" or "style:sidebar"
-        const parts = value.split(':')
-        const style = parts[0].trim()
-        const sidebar = parts.length > 1 && parts[1].trim() === 'sidebar'
-
-        // Get full style config
-        const styleConfig = getStyleConfig(style)
-
-        return {
-          name: name.trim(),
-          style: styleConfig.name,
-          styleConfig: styleConfig,
-          sidebar: sidebar,
-        }
-      })
-    } catch (e) {
-      console.error('Error parsing PAGE_CONFIG:', e.message)
-      // Fall through to legacy format
-    }
-  }
-
-  // Legacy format: PAGES="start,technical:sidebar,rants"
   const pagesEnv = process.env.PAGES || ''
+
   return pagesEnv
     .split(',')
     .map((c) => {
       const t = c.trim()
       if (!t) return null
       const p = t.split(':')
-      const name = p[0].trim()
-      const sidebar = p.length > 1 && p[1].trim() === 'sidebar'
-
-      // Legacy format defaults to 'tailwind' style
-      const styleConfig = getStyleConfig('tailwind')
-
-      return {
-        name: name,
-        style: styleConfig.name,
-        styleConfig: styleConfig,
-        sidebar: sidebar,
-      }
+      return { name: p[0].trim(), sidebar: p.length > 1 && p[1].trim() === 'sidebar' }
     })
     .filter((c) => c !== null)
-}
-
-/**
- * Get the style for a specific category
- * Checks PAGE_CONFIG first, then falls back to default
- */
-function getCategoryStyle(category) {
-  const config = getPagesConfig()
-  const categoryConfig = config.find((c) => c.name === category)
-  return categoryConfig ? categoryConfig.styleConfig : getStyleConfig('tailwind')
 }
 
 function parseFrontMatter(text) {
@@ -348,10 +180,6 @@ function parseFrontMatter(text) {
   const body = text.replace(match[0], '').trim()
   return { attributes, body }
 }
-
-// =============================================================================
-// SSR PAGE DETAIL - Updated for extensible styles
-// =============================================================================
 
 async function servePageDetailSSR(req, category, slug) {
   const filepath = './public/views/page-detail.html'
@@ -415,61 +243,27 @@ async function servePageDetailSSR(req, category, slug) {
     }
   }
 
-  // =========================================================================
-  // STYLE DETERMINATION - Priority: Front matter > Category default > Tailwind
-  // =========================================================================
-  const categoryConfig = config.find((c) => c.name === category)
-  const categoryDefaultStyle = categoryConfig ? categoryConfig.style : 'tailwind'
-
-  // Front matter 'style' key takes priority over category default
-  const effectiveStyleName = meta.style || categoryDefaultStyle
-  const styleConfig = getStyleConfig(effectiveStyleName)
-
-  // =========================================================================
-  // INJECT CONFIGURATION SCRIPTS
-  // =========================================================================
-  const configScript = `<script>
-window.SERVER_PAGES_CONFIG = ${JSON.stringify(config)};
-window.SSR_DATA = ${JSON.stringify(meta)};
-window.STYLE_REGISTRY = ${JSON.stringify(STYLE_REGISTRY)};
-window.EFFECTIVE_STYLE = ${JSON.stringify(styleConfig)};
-</script>`
+  const configScript = `<script>window.SERVER_PAGES_CONFIG = ${JSON.stringify(config)}; window.SSR_DATA = ${JSON.stringify(meta)};</script>`
   html = html.replace('</head>', `${configScript}</head>`)
-
-  // =========================================================================
-  // INJECT STYLE CSS FILE (if needed)
-  // =========================================================================
-  if (styleConfig.cssFile) {
-    const cssLink = `<link rel="stylesheet" href="/styles/md-styles/${styleConfig.cssFile}" />`
-    html = html.replace('</head>', `${cssLink}</head>`)
-  }
-
-  // =========================================================================
-  // APPLY STYLE CLASSES TO MARKDOWN CONTAINER
-  // =========================================================================
-  // The HTML has: id="markdown-content" class="prose prose-slate ..."
-  // We need to:
-  // 1. If removeProse is true, remove the prose classes
-  // 2. Add the style's wrapper class
-
-  if (styleConfig.removeProse) {
-    // Remove prose classes and add style wrapper class
-    html = html.replace(
-      /id="markdown-content"\s+class="[^"]*prose[^"]*"/,
-      `id="markdown-content" class="${styleConfig.wrapperClass}"`,
-    )
-  } else {
-    // Keep prose classes and add additional wrapper class
-    html = html.replace(
-      /id="markdown-content"\s+class="([^"]*)"/,
-      `id="markdown-content" class="$1 ${styleConfig.wrapperClass}"`,
-    )
-  }
 
   html = html.replace('{{PAGE_TITLE_ATTR}}', escapedTitle)
   html = html.replace('{{PAGE_TITLE_TEXT}}', escapedTitle)
   html = html.replace('{{PAGE_DATE}}', dateHtml)
   html = html.replace('<!--MARKDOWN_CONTENT-->', contentHtml)
+
+  if (meta.style === 'github') {
+    if (html.includes('id="markdown-content" class="')) {
+      html = html.replace(
+        'id="markdown-content" class="',
+        'id="markdown-content" class="github-style ',
+      )
+    } else if (html.includes('class="') && html.includes('id="markdown-content"')) {
+      html = html.replace(
+        /(<div\s+)([^>]*)(id="markdown-content")([^>]*)(class=")([^"]*)/,
+        '$1$2$3$4$5github-style $6',
+      )
+    }
+  }
 
   if (meta.private) {
     html = html.replace('id="private-badge" class="hidden', 'id="private-badge" class="')
@@ -645,15 +439,10 @@ function sanitizeFilename(filename) {
 
 /**
  * Generate default front matter for markdown files
- * Now includes style field
  */
-function generateDefaultFrontMatter(category) {
+function generateDefaultFrontMatter() {
   const now = new Date()
   const isoDate = now.toISOString().split('T')[0] // YYYY-MM-DD format
-
-  // Get the default style for this category
-  const categoryConfig = getPagesConfig().find((c) => c.name === category)
-  const defaultStyle = categoryConfig ? categoryConfig.style : 'github'
 
   return `---
 title: Title (needs editing)
@@ -661,7 +450,7 @@ summary: Summary (needs editing)
 created: ${isoDate}
 published: n
 file-type: markdown
-style: ${defaultStyle}
+style: github
 sticky: false
 ---
 
@@ -680,16 +469,16 @@ function hasFrontMatter(content) {
  * If front matter exists, set published to n
  * If no front matter, add default front matter
  */
-function ensureUnpublishedFrontMatter(content, category) {
+function ensureUnpublishedFrontMatter(content) {
   if (!hasFrontMatter(content)) {
     // No front matter - add default
-    return generateDefaultFrontMatter(category) + content
+    return generateDefaultFrontMatter() + content
   }
 
   // Has front matter - ensure published: n
   const fmMatch = content.match(/^---\n([\s\S]*?)\n---/)
   if (!fmMatch) {
-    return generateDefaultFrontMatter(category) + content
+    return generateDefaultFrontMatter() + content
   }
 
   const frontMatter = fmMatch[1]
@@ -775,8 +564,8 @@ async function handleMarkdownUpload(req, path) {
     // Read file content
     let content = await file.text()
 
-    // Ensure front matter with published: n (pass category for default style)
-    content = ensureUnpublishedFrontMatter(content, category)
+    // Ensure front matter with published: n
+    content = ensureUnpublishedFrontMatter(content)
 
     // Write the file
     await Bun.write(targetPath, content)
@@ -967,18 +756,7 @@ async function handlePageContent(req, path) {
     if (meta.private && (!userEmail || userEmail !== meta.private))
       return Response.json({ error: 'Unauthorized' }, { status: 403 })
 
-    // Include style information in response
-    const config = getPagesConfig()
-    const categoryConfig = config.find((c) => c.name === category)
-    const categoryDefaultStyle = categoryConfig ? categoryConfig.style : 'tailwind'
-    const effectiveStyleName = meta.style || categoryDefaultStyle
-    const styleConfig = getStyleConfig(effectiveStyleName)
-
-    return Response.json({
-      meta,
-      html: htmlContent,
-      style: styleConfig,
-    })
+    return Response.json({ meta, html: htmlContent })
   } catch (e) {
     return Response.json({ error: 'Server Error' }, { status: 500 })
   }

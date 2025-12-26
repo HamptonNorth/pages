@@ -1,0 +1,496 @@
+/* version 1.1 Claude Opus 4.5 */
+/* =============================================================================
+ * MCSS BASE STYLES
+ * =============================================================================
+ * Shared foundation styles for MCSS Georgia and Verdana variants.
+ * Based on Mike Mai's MCSS (https://github.com/mikemai2awesome/mcss)
+ * This file provides common resets, layout, and element styling.
+ *
+ * v1.1 - Improved code block styling:
+ *        - Light background instead of black for better readability
+ *        - Removed gradient fade overlay
+ *        - Clean left border accent with hover effect
+ *        - Better syntax highlighting compatibility
+ *        - Cleaner inline code styling
+ * ============================================================================= */
+
+/* =============================================================================
+ * CSS CUSTOM PROPERTIES (Variables)
+ * Override these in variant files to customize appearance
+ * ============================================================================= */
+
+.md-mcss {
+  /* Spacing */
+  --mcss-gutter: clamp(1rem, 2.5vmax, 1.5rem);
+  --mcss-stack: clamp(1.25ex, 2.5vmax, 1.75ex);
+  --mcss-paragraph-indent: calc(var(--mcss-gutter) / 1.25);
+  --mcss-line-length: 66ch;
+
+  /* Horizontal Rules */
+  --mcss-hr-size: 0.5ex;
+  --mcss-hr-margin-block: calc(var(--mcss-stack) * 4);
+  --mcss-landmark-hr-size: 1ex;
+  --mcss-landmark-hr-margin-block: calc(var(--mcss-stack) * 6);
+
+  /* Typography */
+  --mcss-leading: 1.475;
+  --mcss-font-mono:
+    ui-monospace, sfmono-regular, 'SF Mono', menlo, consolas, 'Liberation Mono', monospace;
+
+  /* Font Sizes - based on traditional typographic points */
+  --mcss-pt-double-canon: clamp(3em, 2.5179em + 2.4107vi, 4.666em);
+  --mcss-pt-canon: clamp(2.5em, 2.2321em + 1.9643vi, 3.999em);
+  --mcss-pt-double-great-primer: clamp(2em, 1.7143em + 1.4286vi, 2.999em);
+  --mcss-pt-double-pica: clamp(1.65em, 1.3571em + 0.7143vi, 2em);
+  --mcss-pt-paragon: clamp(1.35em, 1.2054em + 0.5357vi, 1.666em);
+  --mcss-pt-english: 1.166em;
+  --mcss-pt-pica: 1em;
+  --mcss-pt-small-pica: 0.916em;
+  --mcss-pt-long-primer: 0.833em;
+  --mcss-pt-bourgeois: 0.75em;
+
+  /* Focus styles */
+  --mcss-focus-outline: 2px solid crimson;
+  --mcss-focus-outline-offset: 2px;
+
+  /* Link underline */
+  --mcss-underline: solid;
+
+  /* Border gradient */
+  --mcss-border-image-source:
+    gray, color-mix(in oklch, gray 40%, transparent), color-mix(in oklch, gray 40%, transparent),
+    gray;
+}
+
+/* =============================================================================
+ * RESETS
+ * ============================================================================= */
+
+.md-mcss *,
+.md-mcss ::before,
+.md-mcss ::after {
+  font-feature-settings: 'kern';
+  font-kerning: normal;
+  box-sizing: border-box;
+}
+
+.md-mcss * {
+  margin: 0;
+  padding: 0;
+}
+
+/* =============================================================================
+ * BASE CONTAINER
+ * ============================================================================= */
+
+.md-mcss {
+  line-height: var(--mcss-leading);
+  color-scheme: dark light;
+  accent-color: crimson;
+  max-width: var(--mcss-line-length);
+  margin-inline: auto;
+}
+
+/* =============================================================================
+ * SELECTION
+ * ============================================================================= */
+
+.md-mcss ::selection {
+  color: white;
+  background: crimson;
+}
+
+.md-mcss ::-moz-selection {
+  color: white;
+  background: crimson;
+}
+
+/* =============================================================================
+ * FOCUS
+ * ============================================================================= */
+
+.md-mcss :focus-visible {
+  outline: var(--mcss-focus-outline);
+  outline-offset: var(--mcss-focus-outline-offset);
+}
+
+/* =============================================================================
+ * TYPOGRAPHY - Headings
+ * ============================================================================= */
+
+.md-mcss h1,
+.md-mcss h2,
+.md-mcss h3,
+.md-mcss h4,
+.md-mcss h5,
+.md-mcss h6 {
+  line-height: 1.1;
+  letter-spacing: -0.02ch;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.md-mcss h1,
+.md-mcss h2,
+.md-mcss h3,
+.md-mcss h4,
+.md-mcss h5,
+.md-mcss h6 {
+  margin-block-start: calc(var(--mcss-stack) * 1.5);
+}
+
+.md-mcss h1 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss h2 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss h3 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss h4 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss h5 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss h6 + *:not(h1, h2, h3, h4, h5, h6) {
+  margin-block-start: calc(var(--mcss-stack) / 2);
+}
+
+.md-mcss h1 {
+  font-size: var(--mcss-pt-double-canon);
+}
+.md-mcss h2 {
+  font-size: var(--mcss-pt-double-great-primer);
+}
+.md-mcss h3 {
+  font-size: var(--mcss-pt-double-pica);
+}
+.md-mcss h4 {
+  font-size: var(--mcss-pt-paragon);
+}
+.md-mcss h5 {
+  font-size: var(--mcss-pt-english);
+}
+.md-mcss h6 {
+  font-size: var(--mcss-pt-pica);
+}
+
+/* First heading - no top margin */
+.md-mcss > *:first-child {
+  margin-block-start: 0;
+}
+
+/* =============================================================================
+ * TYPOGRAPHY - Paragraphs
+ * ============================================================================= */
+
+.md-mcss *:not(p) + p {
+  margin-block-start: var(--mcss-stack);
+}
+
+.md-mcss p:not(:first-of-type) {
+  text-indent: var(--mcss-paragraph-indent);
+}
+
+.md-mcss *:not(p) + p {
+  text-indent: 0;
+}
+
+/* =============================================================================
+ * LINKS
+ * ============================================================================= */
+
+.md-mcss a {
+  color: inherit;
+  text-decoration-style: var(--mcss-underline);
+  text-underline-offset: 0.3ex;
+}
+
+/* =============================================================================
+ * EMPHASIS
+ * ============================================================================= */
+
+.md-mcss strong {
+  font-weight: 700;
+}
+
+.md-mcss em {
+  font-style: italic;
+}
+
+.md-mcss big {
+  display: inline;
+  font-size: var(--mcss-pt-paragon);
+}
+
+/* =============================================================================
+ * ABBREVIATIONS
+ * ============================================================================= */
+
+.md-mcss abbr {
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 0.3ex;
+}
+
+/* =============================================================================
+ * SUPERSCRIPT / SUBSCRIPT
+ * ============================================================================= */
+
+.md-mcss sup,
+.md-mcss sub {
+  font-size: var(--mcss-pt-bourgeois);
+  line-height: 1;
+}
+
+/* =============================================================================
+ * CODE - Inline and Block
+ * ============================================================================= */
+
+/*
+ * Inline code - subtle background highlight
+ * Works well within prose without being distracting
+ */
+.md-mcss code {
+  font-family: var(--mcss-font-mono);
+  font-size: var(--mcss-pt-long-primer);
+  background-color: rgba(175, 184, 193, 0.2);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  /* No underline - cleaner look */
+}
+
+/*
+ * Code blocks - clean, readable styling
+ * Light background works better with syntax highlighting
+ */
+.md-mcss pre {
+  display: block;
+  position: relative;
+  word-spacing: normal;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: normal;
+  /* Light background for readability */
+  color: #1f2328;
+  background-color: #f6f8fa;
+  /* Clean left border accent */
+  border-left: 3px solid #d1d9e0;
+  border-radius: 6px;
+  margin-block-start: var(--mcss-stack);
+  margin-block-end: var(--mcss-stack);
+  overflow: hidden;
+}
+
+/* Accent border on hover - subtle interaction feedback */
+.md-mcss pre:hover {
+  border-left-color: #0969da;
+}
+
+/*
+ * Code inside pre blocks
+ * Reset inline code styles and set up for syntax highlighting
+ */
+.md-mcss pre code {
+  display: block;
+  overflow-x: auto;
+  max-block-size: 70vh;
+  padding: 1em 1.25em;
+  /* Reset inline code styles */
+  background: transparent;
+  border-radius: 0;
+  font-size: 0.875em;
+  line-height: 1.5;
+  color: inherit;
+  color-scheme: light;
+}
+
+/*
+ * Syntax highlighting compatibility
+ * Ensure hljs styles work correctly
+ */
+.md-mcss pre code.hljs {
+  background: transparent;
+  padding: 1em 1.25em;
+}
+
+/* =============================================================================
+ * BLOCKQUOTES
+ * ============================================================================= */
+
+.md-mcss blockquote {
+  padding-block-start: calc(var(--mcss-stack) / 2.5);
+  margin-block-start: var(--mcss-stack);
+}
+
+.md-mcss blockquote p {
+  font-size: var(--mcss-pt-paragon);
+}
+
+.md-mcss blockquote q::before {
+  position: absolute;
+  margin-inline-start: -1ex;
+}
+
+.md-mcss blockquote q q::before {
+  position: static;
+  margin-inline-start: unset;
+}
+
+.md-mcss blockquote footer {
+  padding-inline: 0;
+}
+
+/* =============================================================================
+ * HORIZONTAL RULES
+ * ============================================================================= */
+
+.md-mcss hr {
+  block-size: 0;
+  margin-block: var(--mcss-hr-margin-block);
+  border: 0;
+  border-block-end: 1px solid;
+  border-image-source: linear-gradient(to right, currentcolor, transparent);
+  border-image-slice: 1;
+}
+
+/* =============================================================================
+ * LISTS
+ * ============================================================================= */
+
+.md-mcss ul,
+.md-mcss ol {
+  margin-block-start: var(--mcss-stack);
+}
+
+.md-mcss li li {
+  margin-inline-start: 2ch;
+}
+
+.md-mcss li ul:first-of-type,
+.md-mcss li ol:first-of-type {
+  margin-block-start: 0;
+}
+
+/* =============================================================================
+ * DEFINITION LISTS
+ * ============================================================================= */
+
+.md-mcss dl {
+  display: grid;
+  align-items: baseline;
+  grid-template-columns: auto minmax(75%, 1fr);
+  gap: calc(var(--mcss-gutter) / 2);
+  margin-block-start: var(--mcss-stack);
+}
+
+.md-mcss dt {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 0.3ex;
+}
+
+.md-mcss dd {
+  block-size: 100%;
+  border: 1px solid;
+  border-image-source: linear-gradient(-6deg, var(--mcss-border-image-source));
+  border-image-slice: 1;
+  padding-block: calc(var(--mcss-stack) / 6);
+  padding-inline: calc(var(--mcss-gutter) / 3);
+}
+
+/* =============================================================================
+ * TABLES
+ * ============================================================================= */
+
+.md-mcss table {
+  border-spacing: 0;
+  caption-side: bottom;
+  margin-block-start: var(--mcss-stack);
+}
+
+.md-mcss th,
+.md-mcss td {
+  vertical-align: baseline;
+  border-block-end: 1px solid;
+  border-image-source: linear-gradient(to right, gray, color-mix(in oklch, gray 60%, transparent));
+  border-image-slice: 1;
+  padding-block: calc(var(--mcss-stack) / 2);
+  padding-inline: calc(var(--mcss-gutter) / 2);
+  font-size: var(--mcss-pt-long-primer);
+}
+
+.md-mcss th {
+  text-align: start;
+}
+
+.md-mcss tr > *:first-child {
+  white-space: nowrap;
+}
+
+.md-mcss caption {
+  padding-block: calc(var(--mcss-stack) / 2);
+  padding-inline: calc(var(--mcss-gutter) / 2);
+  font-size: var(--mcss-pt-bourgeois);
+  text-align: center;
+}
+
+/* =============================================================================
+ * FIGURES & IMAGES
+ * ============================================================================= */
+
+.md-mcss figure {
+  overflow-x: auto;
+  padding-block-start: calc(var(--mcss-stack) / 2.5);
+  margin-block-start: var(--mcss-stack);
+}
+
+.md-mcss figure img {
+  display: block;
+  margin-inline: auto;
+  border: 1px solid;
+  border-image-source: linear-gradient(-6deg, var(--mcss-border-image-source));
+  border-image-slice: 1;
+}
+
+.md-mcss figcaption {
+  font-size: var(--mcss-pt-bourgeois);
+  text-align: center;
+  padding-block: calc(var(--mcss-stack) / 2);
+  padding-inline: calc(var(--mcss-gutter) / 2);
+}
+
+.md-mcss img {
+  block-size: auto;
+  max-inline-size: 100%;
+}
+
+/* =============================================================================
+ * KEYBOARD
+ * ============================================================================= */
+
+.md-mcss kbd {
+  border: 1px solid;
+  border-image-source: linear-gradient(-6deg, var(--mcss-border-image-source));
+  border-image-slice: 1;
+  padding-block: 1px 2px;
+  padding-inline: 0.5ch;
+  font-size: var(--mcss-pt-bourgeois);
+  letter-spacing: 0.1ch;
+  text-transform: uppercase;
+}
+
+/* =============================================================================
+ * DETAILS / SUMMARY
+ * ============================================================================= */
+
+.md-mcss details {
+  margin-block-start: var(--mcss-stack);
+}
+
+.md-mcss details[open] {
+  padding-block-end: var(--mcss-stack);
+}
+
+.md-mcss summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.md-mcss summary > * {
+  display: inline;
+}

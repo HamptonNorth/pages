@@ -1,0 +1,252 @@
+/* version 1.1 Claude Opus 4.5 */
+/* =============================================================================
+ * MCSS GEORGIA STYLE
+ * =============================================================================
+ * Elegant serif typography for long-form reading.
+ * Based on Mike Mai's MCSS (https://github.com/mikemai2awesome/mcss)
+ * Apply class 'md-mcss md-mcss-georgia' to the markdown content container.
+ * Includes both screen and A4 print styles.
+ *
+ * v1.1 - Updated print code block styles to match new base styling
+ * ============================================================================= */
+
+/* Import base MCSS styles */
+@import url('./md-mcss-base.css');
+
+/* =============================================================================
+ * GEORGIA VARIANT - Font & Typography Overrides
+ * ============================================================================= */
+
+.md-mcss-georgia {
+  /* Font family - Classic Georgia serif */
+  --mcss-font: 'Georgia', serif;
+  --mcss-font-variant: 'Verdana', system-ui, sans-serif;
+
+  /* Font sizing - slightly larger for readability */
+  --mcss-font-size: clamp(95%, 80% + 0.5vi, 130%);
+
+  font-family: var(--mcss-font);
+  font-size: var(--mcss-font-size);
+}
+
+/* =============================================================================
+ * GEORGIA-SPECIFIC ELEMENT STYLES
+ * ============================================================================= */
+
+/* Variant font for UI/metadata elements */
+.md-mcss-georgia small,
+.md-mcss-georgia kbd,
+.md-mcss-georgia figcaption,
+.md-mcss-georgia label,
+.md-mcss-georgia legend,
+.md-mcss-georgia summary,
+.md-mcss-georgia caption,
+.md-mcss-georgia sup,
+.md-mcss-georgia sub {
+  font-family: var(--mcss-font-variant);
+}
+
+/* Heading refinements for serif */
+.md-mcss-georgia h1,
+.md-mcss-georgia h2,
+.md-mcss-georgia h3,
+.md-mcss-georgia h4,
+.md-mcss-georgia h5,
+.md-mcss-georgia h6 {
+  font-weight: 600;
+  letter-spacing: -0.01ch;
+}
+
+/* Blockquote - slightly larger for emphasis */
+.md-mcss-georgia blockquote p {
+  font-style: italic;
+}
+
+/* Links - subtle underline works better with serif */
+.md-mcss-georgia a {
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.md-mcss-georgia a:hover {
+  text-decoration-color: crimson;
+}
+
+/* =============================================================================
+ * GEORGIA DARK MODE
+ * ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .md-mcss-georgia {
+    color: #e0e0e0;
+  }
+
+  .md-mcss-georgia *,
+  .md-mcss-georgia ::before,
+  .md-mcss-georgia ::after {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .md-mcss-georgia a {
+    color: #90caf9;
+  }
+
+  .md-mcss-georgia hr {
+    border-image-source: linear-gradient(to right, #666, transparent);
+  }
+}
+
+/* =============================================================================
+ * PRINT STYLES - A4 Optimized for Georgia
+ * ============================================================================= */
+
+@media print {
+  .md-mcss-georgia {
+    /* Print-optimized sizing */
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+
+    /* Reset variables for print */
+    --mcss-paragraph-indent: 1.5em;
+    --mcss-stack: 0.8em;
+    --mcss-gutter: 0.75em;
+  }
+
+  .md-mcss-georgia * {
+    background: transparent !important;
+    color: #000 !important;
+    text-shadow: none !important;
+  }
+
+  /* Heading sizes for print */
+  .md-mcss-georgia h1 {
+    font-size: 20pt;
+    margin-top: 18pt;
+  }
+  .md-mcss-georgia h2 {
+    font-size: 16pt;
+    margin-top: 14pt;
+  }
+  .md-mcss-georgia h3 {
+    font-size: 13pt;
+    margin-top: 12pt;
+  }
+  .md-mcss-georgia h4 {
+    font-size: 11pt;
+    margin-top: 10pt;
+  }
+  .md-mcss-georgia h5,
+  .md-mcss-georgia h6 {
+    font-size: 11pt;
+    margin-top: 8pt;
+  }
+
+  /* Page break control */
+  .md-mcss-georgia h1,
+  .md-mcss-georgia h2,
+  .md-mcss-georgia h3,
+  .md-mcss-georgia h4 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .md-mcss-georgia pre,
+  .md-mcss-georgia blockquote,
+  .md-mcss-georgia table,
+  .md-mcss-georgia figure {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Code blocks for print */
+  .md-mcss-georgia pre {
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd;
+    border-left: 3px solid #0969da;
+    border-radius: 4px;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    padding: 0.75em 1em;
+    margin: 0.75em 0;
+  }
+
+  .md-mcss-georgia pre code {
+    background: transparent !important;
+    padding: 0;
+    font-size: 9pt;
+    line-height: 1.4;
+  }
+
+  /* Inline code for print */
+  .md-mcss-georgia code {
+    font-size: 9pt;
+    background: #eee !important;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+  }
+
+  /* Tables for print */
+  .md-mcss-georgia table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .md-mcss-georgia th,
+  .md-mcss-georgia td {
+    border: 1px solid #000 !important;
+    padding: 4pt 6pt;
+  }
+
+  /* Links - show URL */
+  .md-mcss-georgia a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 8pt;
+    font-family: var(--mcss-font-variant);
+    color: #666 !important;
+  }
+
+  .md-mcss-georgia a[href^='#']::after,
+  .md-mcss-georgia a[href^='/']::after {
+    content: none;
+  }
+
+  /* Images */
+  .md-mcss-georgia img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  .md-mcss-georgia figure img {
+    border: 1px solid #000;
+  }
+
+  /* Blockquotes */
+  .md-mcss-georgia blockquote {
+    border-left: 2pt solid #666;
+    padding-left: 1em;
+    margin-left: 0;
+  }
+
+  /* Remove selection highlight in print */
+  .md-mcss-georgia ::selection {
+    background: transparent;
+    color: inherit;
+  }
+}
+
+/* A4 Page setup */
+@page {
+  size: A4;
+  margin: 2.5cm;
+}
+
+/* First page can have different margins if needed */
+@page :first {
+  margin-top: 3cm;
+}

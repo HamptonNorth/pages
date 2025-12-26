@@ -1,26 +1,43 @@
 <!doctype html>
+<!-- version 1.0 Claude Opus 4.5 -->
+<!-- =============================================================================
+     PAGE DETAIL VIEW
+     =============================================================================
+     Renders individual markdown pages with extensible styling support.
 
+     Style Priority:
+     1. Front matter 'style:' key (highest priority)
+     2. Category default from PAGE_CONFIG
+     3. 'tailwind' (fallback)
+
+     The style system is fully extensible - adding new styles requires:
+     1. Creating a CSS file in /styles/md-styles/
+     2. Adding entry to STYLE_REGISTRY in server.js
+     3. Using the style name in PAGE_CONFIG or front matter
+     ============================================================================= -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Base Styles -->
     <link rel="stylesheet" href="/styles/output.css" />
     <link rel="stylesheet" href="/styles/rm.css" />
+
+    <!-- Syntax Highlighting -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
     />
 
+    <!-- Client Components -->
     <script type="module" src="/components/client-components.js"></script>
     <rm-head page-title="{{PAGE_TITLE_ATTR}}"></rm-head>
 
     <style>
-      /*
-       * ==========================================================================
-       * BASE STYLES - Always applied
-       * ==========================================================================
-       */
+      /* =========================================================================
+       * BASE STYLES - Always applied to markdown content container
+       * ========================================================================= */
       #markdown-content {
         box-sizing: border-box;
         min-width: 200px;
@@ -29,271 +46,13 @@
         padding: 1rem 0;
       }
 
-      /*
-       * ==========================================================================
-       * GITHUB STYLE - Applied when front matter has: style: github
-       * Uses !important where needed to override Tailwind prose defaults
-       * ==========================================================================
-       */
-
-      /* --- HEADINGS --- */
-      #markdown-content.github-style h1,
-      #markdown-content.github-style h2 {
-        padding-bottom: 0.3em !important;
-        border-bottom: 1px solid #d1d9e0 !important;
-        margin-bottom: 16px !important;
-      }
-
-      #markdown-content.github-style h1 {
-        font-size: 2em !important;
-        margin-top: 24px !important;
-        font-weight: 600 !important;
-      }
-
-      #markdown-content.github-style h2 {
-        font-size: 1.5em !important;
-        margin-top: 24px !important;
-        font-weight: 600 !important;
-      }
-
-      #markdown-content.github-style h3 {
-        font-size: 1.25em !important;
-        margin-top: 24px !important;
-        font-weight: 600 !important;
-      }
-
-      #markdown-content.github-style h4 {
-        font-size: 1em !important;
-        margin-top: 24px !important;
-        font-weight: 600 !important;
-      }
-
-      /* --- CODE --- */
-      #markdown-content.github-style pre {
-        background-color: #f6f8fa !important;
-        border-radius: 6px !important;
-        padding: 16px !important;
-        overflow-x: auto !important;
-        font-size: 85% !important;
-        line-height: 1.45 !important;
-        margin: 16px 0 !important;
-      }
-
-      #markdown-content.github-style code {
-        font-family:
-          ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace !important;
-        font-size: 85% !important;
-      }
-
-      #markdown-content.github-style :not(pre) > code {
-        background-color: rgba(175, 184, 193, 0.2) !important;
-        padding: 0.2em 0.4em !important;
-        border-radius: 6px !important;
-        font-size: 85% !important;
-        color: inherit !important;
-      }
-
-      /* --- BLOCKQUOTES --- */
-      #markdown-content.github-style blockquote {
-        border-left: 4px solid #d1d9e0 !important;
-        color: #656d76 !important;
-        padding: 0 1em !important;
-        margin: 16px 0 !important;
-        background: transparent !important;
-      }
-
-      #markdown-content.github-style blockquote p {
-        color: #656d76 !important;
-      }
-
-      /* --- TABLES --- */
-      #markdown-content.github-style table {
-        border-collapse: collapse !important;
-        border-spacing: 0 !important;
-        width: auto !important;
-        max-width: 100% !important;
-        overflow: auto !important;
-        margin: 16px 0 !important;
-        display: table !important;
-      }
-
-      #markdown-content.github-style thead {
-        background-color: transparent !important;
-      }
-      /* --- TABLES --- */
-      #markdown-content.github-style table {
-        border-collapse: collapse !important;
-        border-spacing: 0 !important;
-        width: auto !important;
-        max-width: 100% !important;
-        overflow: auto !important;
-        margin: 16px 0 !important;
-        display: table !important;
-      }
-
-      #markdown-content.github-style thead {
-        background-color: transparent !important;
-      }
-
-      #markdown-content.github-style th {
-        font-weight: 600 !important;
-        background-color: #f6f8fa !important;
-        border: 1px solid #d1d9e0 !important;
-        padding: 6px 13px !important;
-      }
-
-      #markdown-content.github-style td {
-        border: 1px solid #d1d9e0 !important;
-        padding: 6px 13px !important;
-      }
-
-      #markdown-content.github-style tr {
-        background-color: #ffffff !important;
-        border-top: 1px solid #d1d9e0 !important;
-      }
-
-      #markdown-content.github-style tr:nth-child(2n) {
-        background-color: #f6f8fa !important;
-      }
-
-      #markdown-content.github-style tbody tr:first-child {
-        border-top: none !important;
-      }
-
-      /* Table alignment - respect markdown alignment syntax */
-      /* marked generates align="left|center|right" attributes */
-      #markdown-content.github-style th[align='left'],
-      #markdown-content.github-style td[align='left'] {
-        text-align: left !important;
-      }
-
-      #markdown-content.github-style th[align='center'],
-      #markdown-content.github-style td[align='center'] {
-        text-align: center !important;
-      }
-
-      #markdown-content.github-style th[align='right'],
-      #markdown-content.github-style td[align='right'] {
-        text-align: right !important;
-      }
-
-      #markdown-content.github-style td {
-        border: 1px solid #d1d9e0 !important;
-        padding: 6px 13px !important;
-      }
-
-      #markdown-content.github-style tr {
-        background-color: #ffffff !important;
-        border-top: 1px solid #d1d9e0 !important;
-      }
-
-      #markdown-content.github-style tr:nth-child(2n) {
-        background-color: #f6f8fa !important;
-      }
-
-      #markdown-content.github-style tbody tr:first-child {
-        border-top: none !important;
-      }
-
-      /* --- HORIZONTAL RULES --- */
-      #markdown-content.github-style hr {
-        height: 0.25em !important;
-        padding: 0 !important;
-        margin: 24px 0 !important;
-        background-color: #d1d9e0 !important;
-        border: 0 !important;
-      }
-
-      /* --- LISTS --- */
-      #markdown-content.github-style ul,
-      #markdown-content.github-style ol {
-        padding-left: 2em !important;
-        margin: 16px 0 !important;
-      }
-
-      #markdown-content.github-style ul {
-        list-style-type: disc !important;
-      }
-
-      #markdown-content.github-style ol {
-        list-style-type: decimal !important;
-      }
-
-      #markdown-content.github-style li {
-        margin-top: 0.25em !important;
-        color: #1f2328 !important;
-      }
-
-      /* GitHub uses dark markers - override Tailwind's gray markers */
-      #markdown-content.github-style ul > li::marker {
-        color: #1f2328 !important;
-      }
-
-      #markdown-content.github-style ol > li::marker {
-        color: #1f2328 !important;
-        font-weight: normal !important;
-      }
-
-      /* Nested lists */
-      #markdown-content.github-style ul ul,
-      #markdown-content.github-style ol ul {
-        list-style-type: circle !important;
-        margin: 0 !important;
-      }
-
-      #markdown-content.github-style ul ul ul,
-      #markdown-content.github-style ol ul ul {
-        list-style-type: square !important;
-      }
-
-      #markdown-content.github-style ol ol,
-      #markdown-content.github-style ul ol {
-        list-style-type: lower-roman !important;
-        margin: 0 !important;
-      }
-
-      /* --- PARAGRAPHS --- */
-      #markdown-content.github-style p {
-        margin: 16px 0 !important;
-        color: #1f2328 !important;
-      }
-
-      /* --- IMAGES --- */
-      #markdown-content.github-style img {
-        max-width: 100% !important;
-        box-sizing: border-box !important;
-        background-color: #ffffff !important;
-      }
-
-      /* --- LINKS --- */
-      #markdown-content.github-style a {
-        color: #0969da !important;
-        text-decoration: none !important;
-      }
-
-      #markdown-content.github-style a:hover {
-        text-decoration: underline !important;
-      }
-
-      /* --- STRONG/BOLD --- */
-      #markdown-content.github-style strong {
-        font-weight: 600 !important;
-        color: inherit !important;
-      }
-
-      /* --- EMPHASIS/ITALIC --- */
-      #markdown-content.github-style em {
-        font-style: italic !important;
-      }
-
-      /*
-       * ==========================================================================
-       * COPY BUTTON STYLES
-       * ==========================================================================
-       */
+      /* =========================================================================
+       * CODE COPY BUTTON STYLES
+       * ========================================================================= */
       .code-wrapper {
         position: relative;
       }
+
       .copy-btn {
         position: absolute;
         top: 6px;
@@ -309,14 +68,17 @@
         display: none;
         z-index: 10;
       }
+
       .code-wrapper:hover .copy-btn {
         display: block;
       }
+
       .copy-btn:hover {
         background: #fff;
         color: #1f2937;
         border-color: #9ca3af;
       }
+
       .copy-btn.copied {
         background: #10b981;
         color: white;
@@ -329,12 +91,11 @@
         }
       }
 
-      /*
-       * ==========================================================================
-       * PRINT STYLES
-       * ==========================================================================
-       */
+      /* =========================================================================
+       * PRINT STYLES - A4 Base (individual styles add their own print rules)
+       * ========================================================================= */
       @media print {
+        /* Hide navigation and UI elements */
         rm-nav-header,
         rm-footer,
         aside,
@@ -345,29 +106,61 @@
         #mobile-menu-trigger {
           display: none !important;
         }
+
+        /* Reset layout for print */
         body,
         html,
         rm-default-container,
         #layout-wrapper,
         main,
-        article,
-        /* Update this in your <style> block */
+        article {
+          display: block !important;
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #fff !important;
+        }
+
+        /* Content container print reset */
         #markdown-content {
           box-sizing: border-box;
           min-width: 200px;
           max-width: 100%;
-          margin: 0; /* Changed from '0 auto' to ensure it aligns with your <h1> */
-          padding: 1rem 0;
+          margin: 0;
+          padding: 0;
         }
 
-        /* Ensure the GitHub style uses the full width of the container */
-        #markdown-content.github-style {
-          color: #1f2328;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-        }
-        #markdown-content.github-style > *:first-child {
+        /* Ensure first child has no top margin */
+        #markdown-content > *:first-child {
           margin-top: 0 !important;
         }
+
+        /* Page title styling for print */
+        #page-title {
+          font-size: 18pt;
+          margin-bottom: 12pt;
+        }
+
+        /* Date styling for print */
+        #page-date {
+          font-size: 10pt;
+          color: #666 !important;
+          margin-bottom: 16pt;
+          display: block !important;
+        }
+
+        /* Container padding for print */
+        .px-6,
+        .md\:px-12 {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+        }
+      }
+
+      /* A4 Page setup */
+      @page {
+        size: A4;
+        margin: 2cm 2.5cm;
       }
     </style>
   </head>
@@ -376,6 +169,7 @@
       <rm-nav-header class="block shrink-0"></rm-nav-header>
 
       <div id="layout-wrapper" class="relative flex w-full grow flex-col items-start md:flex-row">
+        <!-- Sidebar Column (shown for categories with sidebar: true) -->
         <aside
           id="sidebar-col"
           class="border-primary-200 hidden w-full shrink-0 self-stretch border-r bg-gray-50/50 md:sticky md:top-0 md:h-auto md:min-h-[calc(100vh-64px)] md:w-56"
@@ -420,6 +214,7 @@
 
         <main class="w-full min-w-0 grow bg-white pb-12">
           <article>
+            <!-- Page Header -->
             <div class="border-primary-100 border-b px-6 pt-8 pb-4 md:px-12">
               <a
                 id="top-back-link"
@@ -463,8 +258,14 @@
               </div>
             </div>
 
+            <!-- Markdown Content Container -->
             <div class="mt-6 px-6 md:px-12">
               <div id="status-container" class="mb-4 hidden"></div>
+              <!--
+                The class attribute here will be dynamically replaced by the server
+                based on the effective style. The server injects the appropriate
+                wrapper classes from STYLE_REGISTRY.
+              -->
               <div
                 id="markdown-content"
                 class="prose prose-slate prose-pre:bg-transparent prose-code:before:content-none prose-code:after:content-none max-w-none"
@@ -478,17 +279,25 @@
       <rm-footer></rm-footer>
     </rm-default-container>
 
+    <!-- =========================================================================
+         INITIALIZATION SCRIPT - Sidebar visibility
+         ========================================================================= -->
     <script>
       ;(function () {
+        // Get server-injected configuration
         var config = window.SERVER_PAGES_CONFIG || []
         var pathParts = window.location.pathname.split('/').filter(function (p) {
           return p
         })
         var category = pathParts.length >= 2 ? pathParts[1] : ''
+
+        // Find current category configuration
         var currentCat = config.find(function (c) {
           return c.name === category
         })
         var hasSidebar = currentCat && currentCat.sidebar
+
+        // Toggle sidebar visibility
         var sidebarCol = document.getElementById('sidebar-col')
         var topBackLink = document.getElementById('top-back-link')
 
@@ -502,21 +311,33 @@
       })()
     </script>
 
+    <!-- Syntax Highlighting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- =========================================================================
+         MAIN PAGE SCRIPT
+         ========================================================================= -->
     <script>
       document.addEventListener('DOMContentLoaded', init)
 
+      // Parse URL path
       var pathParts = window.location.pathname.split('/').filter(function (p) {
         return p
       })
       var category = pathParts.length >= 2 ? pathParts[1] : ''
       var slug = pathParts.length >= 3 ? pathParts[2] : ''
+
+      // DOM references
       var navTree = document.getElementById('nav-tree')
       var sidebarBackLink = document.getElementById('sidebar-back-link')
       var topBackLink = document.getElementById('top-back-link')
       var contentEl = document.getElementById('markdown-content')
 
+      /**
+       * Initialize page
+       */
       function init() {
+        // Set back links
         if (category) {
           var listUrl = '/pages/' + category
           if (sidebarBackLink) sidebarBackLink.href = listUrl
@@ -526,6 +347,7 @@
           }
         }
 
+        // Load sidebar if needed
         var config = window.SERVER_PAGES_CONFIG || []
         var currentCat = config.find(function (c) {
           return c.name === category
@@ -534,15 +356,19 @@
           loadSidebarLinks()
         }
 
+        // Handle content - SSR or client-side
         if (!window.SSR_DATA) {
+          // No SSR data - load via API (shouldn't happen in normal flow)
           loadPageContent()
         } else {
+          // SSR provided content - just enhance it
           contentEl.querySelectorAll('pre code').forEach(function (el) {
             hljs.highlightElement(el)
           })
           addCopyButtons()
         }
 
+        // Hot reload support
         if (window.EventSource) {
           var evtSource = new EventSource('/api/hot-reload')
           evtSource.onmessage = function (e) {
@@ -551,6 +377,9 @@
         }
       }
 
+      /**
+       * Load sidebar navigation links
+       */
       function loadSidebarLinks() {
         if (!navTree) return
         fetch('/api/pages/list/' + category)
@@ -588,35 +417,113 @@
           })
       }
 
+      /**
+       * Load page content via API (fallback if SSR not available)
+       * Uses the extensible style system from the server response
+       */
       function loadPageContent() {
         fetch('/api/pages/content/' + category + '/' + slug)
+          .then(function (res) {
+            if (!res.ok) throw new Error('Failed to fetch content')
+            return res.json()
+          })
           .then(function (data) {
+            // Update title
             document.getElementById('page-title').textContent = data.meta.title
+
+            // Update content
             contentEl.innerHTML = data.html
 
-            if (data.meta.style === 'github') {
-              contentEl.classList.add('github-style')
-              // Remove prose classes to let GitHub styles take full control
-              contentEl.classList.remove('prose', 'prose-slate')
-            } else {
-              contentEl.classList.remove('github-style')
-              contentEl.classList.add('prose', 'prose-slate')
-            }
+            // Apply style classes using server-provided style config
+            applyStyleClasses(data.style)
 
+            // Syntax highlighting
             contentEl.querySelectorAll('pre code').forEach(function (el) {
               hljs.highlightElement(el)
             })
+
+            // Add copy buttons
             addCopyButtons()
+
+            // Load style CSS if needed
+            if (data.style && data.style.cssFile) {
+              loadStyleCss(data.style.cssFile)
+            }
           })
           .catch(function (e) {
             console.error('Content load error:', e)
           })
       }
 
+      /**
+       * Apply style classes to the content container
+       * Uses the style configuration from the server
+       * @param {Object} styleConfig - Style configuration object
+       */
+      function applyStyleClasses(styleConfig) {
+        if (!styleConfig) return
+
+        // Get all registered style wrapper classes to remove
+        var registry = window.STYLE_REGISTRY || {}
+        var allStyleClasses = []
+
+        Object.values(registry).forEach(function (style) {
+          if (style.wrapperClass) {
+            style.wrapperClass.split(' ').forEach(function (cls) {
+              if (cls) allStyleClasses.push(cls)
+            })
+          }
+        })
+
+        // Add default prose classes to removal list
+        allStyleClasses.push('prose', 'prose-slate', 'max-w-none')
+
+        // Remove all style classes
+        allStyleClasses.forEach(function (cls) {
+          contentEl.classList.remove(cls)
+        })
+
+        // Add the new style's wrapper classes
+        if (styleConfig.wrapperClass) {
+          styleConfig.wrapperClass.split(' ').forEach(function (cls) {
+            if (cls) contentEl.classList.add(cls)
+          })
+        }
+
+        // If not removing prose, add prose back
+        if (!styleConfig.removeProse) {
+          contentEl.classList.add('prose', 'prose-slate', 'max-w-none')
+        }
+      }
+
+      /**
+       * Dynamically load a style CSS file
+       * @param {string} cssFile - CSS filename in /styles/md-styles/
+       */
+      function loadStyleCss(cssFile) {
+        var cssPath = '/styles/md-styles/' + cssFile
+
+        // Check if already loaded
+        var existing = document.querySelector('link[href="' + cssPath + '"]')
+        if (existing) return
+
+        // Create and append link element
+        var link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = cssPath
+        document.head.appendChild(link)
+      }
+
+      /**
+       * Add copy buttons to code blocks
+       */
       function addCopyButtons() {
         if (!contentEl) return
         var codeBlocks = contentEl.querySelectorAll('pre')
         codeBlocks.forEach(function (pre) {
+          // Skip if already wrapped
+          if (pre.parentNode.classList.contains('code-wrapper')) return
+
           var wrapper = document.createElement('div')
           wrapper.className = 'code-wrapper'
           pre.parentNode.insertBefore(wrapper, pre)
@@ -646,6 +553,9 @@
         })
       }
 
+      /**
+       * Toggle mobile menu visibility
+       */
       window.toggleMobileMenu = function () {
         var content = document.getElementById('sidebar-content')
         if (content) content.classList.toggle('hidden')

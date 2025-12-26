@@ -1,8 +1,9 @@
 ---
-title: A short list of rants
-summary: I really need to write about this stuff
+title: A short list of rants (Georgia tight)
+summary: I really need to write about this stuff and rendered using md-mcss-georgia-tight.css
 created: 2025-12-12T10:35:00-00:00
 published: y
+style: mcss-georgia-tight
 ---
 #### The regional divide in UK. 
 House prices. Not possible to migrate N > S. Demand in SE pushes prices ever higher. Infrastructure differences. Railway, roads, airports, arts. The case for devolved power. Does it work or just increase cost. German post war imposition of city size. Compare UK to France/Germany. Did london gov impose different furlough % in NW??

@@ -1,0 +1,374 @@
+/* version 1.1 Claude Opus 4.5 */
+/* =============================================================================
+ * MCSS GEORGIA TIGHT STYLE
+ * =============================================================================
+ * Compact serif typography based on MCSS Georgia with 12pt base font.
+ * Ideal for denser content, documentation, or when screen real estate matters.
+ * Based on Mike Mai's MCSS (https://github.com/mikemai2awesome/mcss)
+ * Apply class 'md-mcss md-mcss-georgia-tight' to the markdown content container.
+ * Includes both screen and A4 print styles.
+ *
+ * v1.1 - Updated code block styling to match improved base styles
+ * ============================================================================= */
+
+/* Import base MCSS styles */
+@import url('./md-mcss-base.css');
+
+/* =============================================================================
+ * GEORGIA TIGHT VARIANT - Compact Typography
+ * ============================================================================= */
+
+.md-mcss-georgia-tight {
+  /* Font family - Classic Georgia serif */
+  --mcss-font: 'Georgia', serif;
+  --mcss-font-variant: 'Verdana', system-ui, sans-serif;
+
+  /*
+   * Font sizing - 12pt base equivalent
+   * Standard browser default is 16px (≈12pt in print)
+   * This creates a tighter, more compact feel:
+   * - Minimum: 75% of 16px = 12px
+   * - Fluid: scales with viewport
+   * - Maximum: 95% of 16px ≈ 15px
+   */
+  --mcss-font-size: clamp(75%, 65% + 0.4vi, 95%);
+
+  /* Tighter line height for compact feel */
+  --mcss-leading: 1.4;
+
+  /* Reduced spacing for tighter layout */
+  --mcss-gutter: clamp(0.75rem, 2vmax, 1.25rem);
+  --mcss-stack: clamp(1ex, 2vmax, 1.5ex);
+  --mcss-paragraph-indent: calc(var(--mcss-gutter) / 1.5);
+
+  /* Slightly narrower line length for readability at smaller size */
+  --mcss-line-length: 60ch;
+
+  /* Tighter horizontal rules */
+  --mcss-hr-size: 0.4ex;
+  --mcss-hr-margin-block: calc(var(--mcss-stack) * 3);
+  --mcss-landmark-hr-size: 0.8ex;
+  --mcss-landmark-hr-margin-block: calc(var(--mcss-stack) * 5);
+
+  /* Scaled heading sizes for 12pt base */
+  --mcss-pt-double-canon: clamp(2.4em, 2em + 1.8vi, 3.5em);
+  --mcss-pt-canon: clamp(2em, 1.75em + 1.5vi, 3em);
+  --mcss-pt-double-great-primer: clamp(1.6em, 1.4em + 1.1vi, 2.4em);
+  --mcss-pt-double-pica: clamp(1.4em, 1.2em + 0.6vi, 1.75em);
+  --mcss-pt-paragon: clamp(1.2em, 1.1em + 0.4vi, 1.45em);
+  --mcss-pt-english: 1.1em;
+  --mcss-pt-pica: 1em;
+  --mcss-pt-small-pica: 0.9em;
+  --mcss-pt-long-primer: 0.85em;
+  --mcss-pt-bourgeois: 0.78em;
+
+  font-family: var(--mcss-font);
+  font-size: var(--mcss-font-size);
+}
+
+/* =============================================================================
+ * GEORGIA TIGHT-SPECIFIC ELEMENT STYLES
+ * ============================================================================= */
+
+/* Variant font for UI/metadata elements */
+.md-mcss-georgia-tight small,
+.md-mcss-georgia-tight kbd,
+.md-mcss-georgia-tight figcaption,
+.md-mcss-georgia-tight label,
+.md-mcss-georgia-tight legend,
+.md-mcss-georgia-tight summary,
+.md-mcss-georgia-tight caption,
+.md-mcss-georgia-tight sup,
+.md-mcss-georgia-tight sub {
+  font-family: var(--mcss-font-variant);
+}
+
+/* Heading refinements - tighter margins */
+.md-mcss-georgia-tight h1,
+.md-mcss-georgia-tight h2,
+.md-mcss-georgia-tight h3,
+.md-mcss-georgia-tight h4,
+.md-mcss-georgia-tight h5,
+.md-mcss-georgia-tight h6 {
+  font-weight: 600;
+  letter-spacing: -0.01ch;
+  margin-block-start: calc(var(--mcss-stack) * 1.25);
+}
+
+/* Reduced space after headings */
+.md-mcss-georgia-tight h1 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss-georgia-tight h2 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss-georgia-tight h3 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss-georgia-tight h4 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss-georgia-tight h5 + *:not(h1, h2, h3, h4, h5, h6),
+.md-mcss-georgia-tight h6 + *:not(h1, h2, h3, h4, h5, h6) {
+  margin-block-start: calc(var(--mcss-stack) * 0.4);
+}
+
+/* Blockquote - proportionally sized */
+.md-mcss-georgia-tight blockquote p {
+  font-style: italic;
+  font-size: var(--mcss-pt-paragon);
+}
+
+/* Links - subtle underline */
+.md-mcss-georgia-tight a {
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.md-mcss-georgia-tight a:hover {
+  text-decoration-color: crimson;
+}
+
+/* Tighter paragraph spacing */
+.md-mcss-georgia-tight *:not(p) + p {
+  margin-block-start: calc(var(--mcss-stack) * 0.85);
+}
+
+/* Lists - tighter spacing */
+.md-mcss-georgia-tight ul,
+.md-mcss-georgia-tight ol {
+  margin-block-start: calc(var(--mcss-stack) * 0.85);
+}
+
+.md-mcss-georgia-tight li {
+  margin-block-end: 0.15em;
+}
+
+/* Code blocks - compact spacing */
+.md-mcss-georgia-tight pre {
+  margin-block-start: calc(var(--mcss-stack) * 0.85);
+  margin-block-end: calc(var(--mcss-stack) * 0.85);
+}
+
+.md-mcss-georgia-tight pre code {
+  padding: 0.85em 1em;
+  font-size: var(--mcss-pt-long-primer);
+}
+
+/* Inline code - compact */
+.md-mcss-georgia-tight code {
+  font-size: var(--mcss-pt-long-primer);
+  padding: 0.1em 0.35em;
+}
+
+/* Tables - compact */
+.md-mcss-georgia-tight th,
+.md-mcss-georgia-tight td {
+  padding-block: calc(var(--mcss-stack) * 0.4);
+  padding-inline: calc(var(--mcss-gutter) * 0.4);
+  font-size: var(--mcss-pt-long-primer);
+}
+
+/* =============================================================================
+ * GEORGIA TIGHT DARK MODE
+ * ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .md-mcss-georgia-tight {
+    color: #e0e0e0;
+  }
+
+  .md-mcss-georgia-tight *,
+  .md-mcss-georgia-tight ::before,
+  .md-mcss-georgia-tight ::after {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .md-mcss-georgia-tight a {
+    color: #90caf9;
+  }
+
+  .md-mcss-georgia-tight hr {
+    border-image-source: linear-gradient(to right, #666, transparent);
+  }
+}
+
+/* =============================================================================
+ * PRINT STYLES - A4 Optimized for Georgia Tight (12pt base)
+ * ============================================================================= */
+
+@media print {
+  .md-mcss-georgia-tight {
+    /*
+     * Print at true 12pt - this is the native size for this style
+     * Slightly tighter line height for print
+     */
+    font-size: 12pt;
+    line-height: 1.35;
+    color: #000;
+    background: #fff;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+
+    /* Compact print spacing */
+    --mcss-paragraph-indent: 1.25em;
+    --mcss-stack: 0.6em;
+    --mcss-gutter: 0.5em;
+  }
+
+  .md-mcss-georgia-tight * {
+    background: transparent !important;
+    color: #000 !important;
+    text-shadow: none !important;
+  }
+
+  /* Heading sizes for compact print */
+  .md-mcss-georgia-tight h1 {
+    font-size: 18pt;
+    margin-top: 14pt;
+    margin-bottom: 6pt;
+  }
+  .md-mcss-georgia-tight h2 {
+    font-size: 14pt;
+    margin-top: 12pt;
+    margin-bottom: 4pt;
+  }
+  .md-mcss-georgia-tight h3 {
+    font-size: 12pt;
+    margin-top: 10pt;
+    margin-bottom: 3pt;
+  }
+  .md-mcss-georgia-tight h4 {
+    font-size: 12pt;
+    font-style: italic;
+    margin-top: 8pt;
+    margin-bottom: 2pt;
+  }
+  .md-mcss-georgia-tight h5,
+  .md-mcss-georgia-tight h6 {
+    font-size: 12pt;
+    margin-top: 6pt;
+    margin-bottom: 2pt;
+  }
+
+  /* Tighter paragraph spacing in print */
+  .md-mcss-georgia-tight p {
+    margin-top: 6pt;
+    margin-bottom: 6pt;
+  }
+
+  /* Page break control */
+  .md-mcss-georgia-tight h1,
+  .md-mcss-georgia-tight h2,
+  .md-mcss-georgia-tight h3,
+  .md-mcss-georgia-tight h4 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .md-mcss-georgia-tight pre,
+  .md-mcss-georgia-tight blockquote,
+  .md-mcss-georgia-tight table,
+  .md-mcss-georgia-tight figure {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Code blocks for compact print */
+  .md-mcss-georgia-tight pre {
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd;
+    border-left: 2pt solid #0969da;
+    border-radius: 4px;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    padding: 6pt 8pt;
+    margin: 6pt 0;
+  }
+
+  .md-mcss-georgia-tight pre code {
+    background: transparent !important;
+    padding: 0;
+    font-size: 9pt;
+    line-height: 1.35;
+  }
+
+  /* Inline code for print */
+  .md-mcss-georgia-tight code {
+    font-size: 9pt;
+    background: #eee !important;
+    padding: 0.1em 0.25em;
+    border-radius: 2px;
+  }
+
+  /* Tables for compact print */
+  .md-mcss-georgia-tight table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+    margin: 6pt 0;
+  }
+
+  .md-mcss-georgia-tight th,
+  .md-mcss-georgia-tight td {
+    border: 1px solid #000 !important;
+    padding: 3pt 5pt;
+  }
+
+  /* Links - show URL */
+  .md-mcss-georgia-tight a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 8pt;
+    font-family: var(--mcss-font-variant);
+    color: #666 !important;
+  }
+
+  .md-mcss-georgia-tight a[href^='#']::after,
+  .md-mcss-georgia-tight a[href^='/']::after {
+    content: none;
+  }
+
+  /* Images */
+  .md-mcss-georgia-tight img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  .md-mcss-georgia-tight figure img {
+    border: 1px solid #000;
+  }
+
+  /* Blockquotes - compact */
+  .md-mcss-georgia-tight blockquote {
+    border-left: 2pt solid #666;
+    padding-left: 10pt;
+    margin: 6pt 0;
+    margin-left: 0;
+  }
+
+  .md-mcss-georgia-tight blockquote p {
+    font-size: 11pt;
+  }
+
+  /* Lists - compact */
+  .md-mcss-georgia-tight ul,
+  .md-mcss-georgia-tight ol {
+    margin: 4pt 0;
+    padding-left: 18pt;
+  }
+
+  .md-mcss-georgia-tight li {
+    margin-bottom: 2pt;
+  }
+
+  /* Remove selection highlight in print */
+  .md-mcss-georgia-tight ::selection {
+    background: transparent;
+    color: inherit;
+  }
+}
+
+/* A4 Page setup - slightly tighter margins for compact style */
+@page {
+  size: A4;
+  margin: 2cm;
+}
+
+/* First page can have slightly more top margin */
+@page :first {
+  margin-top: 2.5cm;
+}

@@ -1,0 +1,404 @@
+/* version 1.2 Claude Opus 4.5 */
+/* =============================================================================
+ * MCSS VERDANA STYLE
+ * =============================================================================
+ * Modern sans-serif typography for technical documentation.
+ * Based on Mike Mai's MCSS (https://github.com/mikemai2awesome/mcss)
+ * Apply class 'md-mcss md-mcss-verdana' to the markdown content container.
+ * Includes both screen and A4 print styles.
+ *
+ * v1.2 - Fixed heading sizes (were all same size), removed H1-H6 markers,
+ *        added proper size hierarchy with borders on h1/h2
+ * v1.1 - Updated print code block styles for consistency
+ * ============================================================================= */
+
+/* Import base MCSS styles */
+@import url('./md-mcss-base.css');
+
+/* =============================================================================
+ * VERDANA VARIANT - Font & Typography Overrides
+ * ============================================================================= */
+
+.md-mcss-verdana {
+  /* Font family - Clean Verdana sans-serif */
+  --mcss-font: 'Verdana', system-ui, sans-serif;
+  --mcss-font-variant: var(--mcss-font);
+
+  /* Smaller sizing for sans-serif readability */
+  --mcss-font-size: clamp(75%, 65% + 0.5vi, 100%);
+
+  /* Tighter leading for sans-serif */
+  --mcss-leading: 1.45;
+
+  /* Thinner horizontal rules */
+  --mcss-landmark-hr-size: 2px;
+  --mcss-hr-size: 2px;
+  --mcss-landmark-hr-margin-block: calc(var(--mcss-stack) * 2);
+  --mcss-hr-margin-block: calc(var(--mcss-stack) * 1.5);
+
+  font-family: var(--mcss-font);
+  font-size: var(--mcss-font-size);
+}
+
+/* =============================================================================
+ * VERDANA-SPECIFIC HEADING STYLES
+ * Proper hierarchy with sans-serif optimized sizes
+ * ============================================================================= */
+
+.md-mcss-verdana h1,
+.md-mcss-verdana h2,
+.md-mcss-verdana h3,
+.md-mcss-verdana h4,
+.md-mcss-verdana h5,
+.md-mcss-verdana h6 {
+  letter-spacing: -0.01ch;
+  line-height: 1.25;
+}
+
+/* Heading sizes - scaled for Verdana readability */
+.md-mcss-verdana h1 {
+  font-size: 1.875em; /* ~30px at 16px base */
+  font-weight: 700;
+  margin-block-start: 1.5em;
+  margin-block-end: 0.5em;
+  padding-block-end: 0.3em;
+  border-bottom: 1px solid #d1d9e0;
+}
+
+.md-mcss-verdana h2 {
+  font-size: 1.5em; /* ~24px */
+  font-weight: 700;
+  margin-block-start: 1.25em;
+  margin-block-end: 0.4em;
+  padding-block-end: 0.25em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.md-mcss-verdana h3 {
+  font-size: 1.25em; /* ~20px */
+  font-weight: 600;
+  margin-block-start: 1.25em;
+  margin-block-end: 0.4em;
+}
+
+.md-mcss-verdana h4 {
+  font-size: 1.125em; /* ~18px */
+  font-weight: 600;
+  margin-block-start: 1em;
+  margin-block-end: 0.3em;
+}
+
+.md-mcss-verdana h5 {
+  font-size: 1em; /* ~16px */
+  font-weight: 600;
+  margin-block-start: 1em;
+  margin-block-end: 0.25em;
+}
+
+.md-mcss-verdana h6 {
+  font-size: 0.875em; /* ~14px */
+  font-weight: 600;
+  margin-block-start: 1em;
+  margin-block-end: 0.25em;
+  color: #656d76;
+}
+
+/* Blockquote paragraph - slightly larger */
+.md-mcss-verdana blockquote p {
+  font-size: 1.1em;
+  line-height: 1.5;
+}
+
+/* =============================================================================
+ * VERDANA-SPECIFIC ELEMENT STYLES
+ * ============================================================================= */
+
+/* Links - more visible underline for sans-serif */
+.md-mcss-verdana a {
+  text-decoration-thickness: 1px;
+  text-decoration-color: currentColor;
+}
+
+.md-mcss-verdana a:hover {
+  text-decoration-color: crimson;
+  text-decoration-thickness: 2px;
+}
+
+/* Code - more prominent for technical docs */
+.md-mcss-verdana code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  text-decoration: none;
+}
+
+.md-mcss-verdana pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Blockquotes - cleaner style */
+.md-mcss-verdana blockquote {
+  border-left: 3px solid #888;
+  padding-left: 1em;
+}
+
+.md-mcss-verdana blockquote p {
+  font-style: normal;
+  color: #555;
+}
+
+/* Tables - more structured look */
+.md-mcss-verdana table {
+  width: 100%;
+}
+
+.md-mcss-verdana th {
+  background-color: rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+}
+
+/* Lists - tighter spacing */
+.md-mcss-verdana ul,
+.md-mcss-verdana ol {
+  margin-block-start: calc(var(--mcss-stack) * 0.75);
+}
+
+/* =============================================================================
+ * VERDANA DARK MODE
+ * ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  .md-mcss-verdana {
+    color: #d4d4d4;
+  }
+
+  .md-mcss-verdana *,
+  .md-mcss-verdana ::before,
+  .md-mcss-verdana ::after {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .md-mcss-verdana a {
+    color: #6db3f2;
+  }
+
+  .md-mcss-verdana code {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .md-mcss-verdana blockquote {
+    border-left-color: #666;
+  }
+
+  .md-mcss-verdana blockquote p {
+    color: #aaa;
+  }
+
+  .md-mcss-verdana th {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .md-mcss-verdana hr {
+    border-image-source: linear-gradient(to right, #555, transparent);
+  }
+
+  /* Heading borders in dark mode */
+  .md-mcss-verdana h1 {
+    border-bottom-color: #444;
+  }
+
+  .md-mcss-verdana h2 {
+    border-bottom-color: #3a3a3a;
+  }
+
+  .md-mcss-verdana h6 {
+    color: #9ca3af;
+  }
+}
+
+/* =============================================================================
+ * PRINT STYLES - A4 Optimized for Verdana/Technical Docs
+ * ============================================================================= */
+
+@media print {
+  .md-mcss-verdana {
+    /* Print-optimized sizing for technical docs */
+    font-size: 10pt;
+    line-height: 1.4;
+    color: #000;
+    background: #fff;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+
+    /* Tighter spacing for technical content */
+    --mcss-paragraph-indent: 0;
+    --mcss-stack: 0.6em;
+    --mcss-gutter: 0.5em;
+  }
+
+  .md-mcss-verdana * {
+    background: transparent !important;
+    color: #000 !important;
+    text-shadow: none !important;
+  }
+
+  /* Heading sizes for technical docs print */
+  .md-mcss-verdana h1 {
+    font-size: 16pt;
+    margin-top: 14pt;
+    border-bottom: 1pt solid #000;
+    padding-bottom: 4pt;
+  }
+  .md-mcss-verdana h2 {
+    font-size: 13pt;
+    margin-top: 12pt;
+    border-bottom: 0.5pt solid #666;
+    padding-bottom: 3pt;
+  }
+  .md-mcss-verdana h3 {
+    font-size: 11pt;
+    margin-top: 10pt;
+  }
+  .md-mcss-verdana h4,
+  .md-mcss-verdana h5,
+  .md-mcss-verdana h6 {
+    font-size: 10pt;
+    margin-top: 8pt;
+  }
+
+  /* No paragraph indent for technical docs */
+  .md-mcss-verdana p:not(:first-of-type) {
+    text-indent: 0;
+  }
+
+  /* Page break control */
+  .md-mcss-verdana h1,
+  .md-mcss-verdana h2,
+  .md-mcss-verdana h3,
+  .md-mcss-verdana h4 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .md-mcss-verdana pre,
+  .md-mcss-verdana blockquote,
+  .md-mcss-verdana table,
+  .md-mcss-verdana figure {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Code blocks for technical print */
+  .md-mcss-verdana pre {
+    background: #f0f0f0 !important;
+    border: 1px solid #999;
+    border-left: 3px solid #0969da;
+    border-radius: 4px;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    padding: 6pt 8pt;
+    margin: 6pt 0;
+  }
+
+  .md-mcss-verdana pre code {
+    background: transparent !important;
+    border: none;
+    padding: 0;
+    font-size: 8pt;
+    line-height: 1.3;
+  }
+
+  /* Inline code for print */
+  .md-mcss-verdana code {
+    font-size: 8pt;
+    background: #eee !important;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 0 2pt;
+  }
+
+  /* Tables for technical print */
+  .md-mcss-verdana table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+
+  .md-mcss-verdana th,
+  .md-mcss-verdana td {
+    border: 1px solid #000 !important;
+    padding: 3pt 5pt;
+  }
+
+  .md-mcss-verdana th {
+    background: #e5e5e5 !important;
+    font-weight: 600;
+  }
+
+  /* Links - show URL for technical docs */
+  .md-mcss-verdana a[href^='http']::after {
+    content: ' [' attr(href) ']';
+    font-size: 7pt;
+    color: #666 !important;
+    word-break: break-all;
+  }
+
+  .md-mcss-verdana a[href^='#']::after,
+  .md-mcss-verdana a[href^='/']::after {
+    content: none;
+  }
+
+  /* Images */
+  .md-mcss-verdana img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Blockquotes */
+  .md-mcss-verdana blockquote {
+    border-left: 2pt solid #666;
+    padding-left: 8pt;
+    margin-left: 0;
+  }
+
+  /* Lists - compact for technical print */
+  .md-mcss-verdana ul,
+  .md-mcss-verdana ol {
+    margin-top: 4pt;
+    margin-bottom: 4pt;
+  }
+
+  .md-mcss-verdana li {
+    margin-bottom: 2pt;
+  }
+
+  /* Remove selection highlight in print */
+  .md-mcss-verdana ::selection {
+    background: transparent;
+    color: inherit;
+  }
+}
+
+/* A4 Page setup for technical docs */
+@page {
+  size: A4;
+  margin: 2cm;
+}
+
+/* Header/footer space */
+@page :first {
+  margin-top: 2.5cm;
+}
+
+/* Add page numbers to technical docs (browser support varies) */
+@page {
+  @bottom-right {
+    content: counter(page);
+    font-family: Verdana, sans-serif;
+    font-size: 9pt;
+  }
+}

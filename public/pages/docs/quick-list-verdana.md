@@ -1,16 +1,18 @@
 ---
-title: A short list of rants
-summary: I really need to write about this stuff
+title: A short list of rants (Verdana)
+summary: I really need to write aboout this stuff - rendered in Verdana
 created: 2025-12-12T10:35:00-00:00
 published: y
+file-type: markdown
+style: mcss-verdana
 ---
-#### The regional divide in UK. 
+# The regional divide in UK. 
 House prices. Not possible to migrate N > S. Demand in SE pushes prices ever higher. Infrastructure differences. Railway, roads, airports, arts. The case for devolved power. Does it work or just increase cost. German post war imposition of city size. Compare UK to France/Germany. Did london gov impose different furlough % in NW??
 
-#### Income inequality. 
+## Income inequality. 
 Power of super billionaires. Musk $ to Trump campaign and payback. Keeping taxes low does not benefit others - no trickle down
 
-#### Access to truth. 
+### Access to truth. 
 Daily Mail & Euro army. Reliable (Economist/BBC) SLAPs. Internet take down notices. Social media, Youtube TikTok etc. QUANON Flat earthers, anti vaccinations - in position of power.
 
 #### Value scientists, teachers and engineers. 
