@@ -107,5 +107,6 @@ If the app runs okay, close the bun run dev using `ctrl+C` and the restart the `
 sudo systemctl start bun-starter.service
 
 ```
+Hand edit any changes to .env
 
 Should be good to go
