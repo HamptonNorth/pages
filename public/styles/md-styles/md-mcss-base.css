@@ -1,4 +1,4 @@
-/* version 1.1 Claude Opus 4.5 */
+/* version 1.2    */
 /* =============================================================================
  * MCSS BASE STYLES
  * =============================================================================
@@ -6,6 +6,8 @@
  * Based on Mike Mai's MCSS (https://github.com/mikemai2awesome/mcss)
  * This file provides common resets, layout, and element styling.
  *
+ * v1.2 - Fixed list styling (added markers, numbers, proper indentation)
+ *        Fixed table styling (alignment, header distinction, zebra striping)
  * v1.1 - Improved code block styling:
  *        - Light background instead of black for better readability
  *        - Removed gradient fade overlay
@@ -355,15 +357,47 @@
 .md-mcss ul,
 .md-mcss ol {
   margin-block-start: var(--mcss-stack);
+  padding-inline-start: 2em; /* Space for markers */
+}
+
+/* Unordered list markers */
+.md-mcss ul {
+  list-style-type: disc;
+}
+
+.md-mcss ul ul {
+  list-style-type: circle;
+}
+
+.md-mcss ul ul ul {
+  list-style-type: square;
+}
+
+/* Ordered list markers */
+.md-mcss ol {
+  list-style-type: decimal;
+}
+
+.md-mcss ol ol {
+  list-style-type: lower-alpha;
+}
+
+.md-mcss ol ol ol {
+  list-style-type: lower-roman;
+}
+
+/* List items */
+.md-mcss li {
+  margin-block-end: 0.25em;
 }
 
 .md-mcss li li {
-  margin-inline-start: 2ch;
+  margin-inline-start: 0; /* Already indented via padding */
 }
 
 .md-mcss li ul:first-of-type,
 .md-mcss li ol:first-of-type {
-  margin-block-start: 0;
+  margin-block-start: 0.25em;
 }
 
 /* =============================================================================
@@ -399,27 +433,53 @@
 
 .md-mcss table {
   border-spacing: 0;
+  border-collapse: collapse;
   caption-side: bottom;
   margin-block-start: var(--mcss-stack);
+  width: 100%;
+  max-width: 100%;
 }
 
 .md-mcss th,
 .md-mcss td {
-  vertical-align: baseline;
-  border-block-end: 1px solid;
-  border-image-source: linear-gradient(to right, gray, color-mix(in oklch, gray 60%, transparent));
-  border-image-slice: 1;
-  padding-block: calc(var(--mcss-stack) / 2);
-  padding-inline: calc(var(--mcss-gutter) / 2);
+  vertical-align: top;
+  border-bottom: 1px solid #d1d9e0;
+  padding: calc(var(--mcss-stack) / 2) calc(var(--mcss-gutter) / 2);
   font-size: var(--mcss-pt-long-primer);
+  text-align: left; /* Default left alignment */
 }
 
+/* Table header styling */
 .md-mcss th {
-  text-align: start;
+  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-bottom: 2px solid #d1d9e0;
 }
 
-.md-mcss tr > *:first-child {
-  white-space: nowrap;
+/* Support markdown table alignment syntax */
+.md-mcss th[align='left'],
+.md-mcss td[align='left'] {
+  text-align: left;
+}
+
+.md-mcss th[align='center'],
+.md-mcss td[align='center'] {
+  text-align: center;
+}
+
+.md-mcss th[align='right'],
+.md-mcss td[align='right'] {
+  text-align: right;
+}
+
+/* Zebra striping for readability */
+.md-mcss tbody tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Hover effect */
+.md-mcss tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.04);
 }
 
 .md-mcss caption {
@@ -427,6 +487,7 @@
   padding-inline: calc(var(--mcss-gutter) / 2);
   font-size: var(--mcss-pt-bourgeois);
   text-align: center;
+  color: #656d76;
 }
 
 /* =============================================================================

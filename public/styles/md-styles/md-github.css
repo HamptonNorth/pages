@@ -1,10 +1,17 @@
-/* version 1.0 Claude Opus 4.5 */
+/* version 1.1    */
 /* =============================================================================
  * GITHUB MARKDOWN STYLE
  * =============================================================================
  * Mimics GitHub's README rendering style.
  * Apply class 'md-github' to the markdown content container.
  * Includes both screen and A4 print styles.
+ *
+ * v1.1 - Fixed print styles to preserve GitHub's visual appearance:
+ *        - Table headers retain gray background
+ *        - Zebra striping preserved on rows
+ *        - Code blocks keep light gray background
+ *        - Links retain blue color
+ *        - Uses print-color-adjust for browser compatibility
  * ============================================================================= */
 
 /* =============================================================================
@@ -12,7 +19,9 @@
  * ============================================================================= */
 
 .md-github {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji';
   font-size: 16px;
   line-height: 1.5;
   word-wrap: break-word;
@@ -38,12 +47,25 @@
   border-bottom: 1px solid #d1d9e0;
 }
 
-.md-github h1 { font-size: 2em; }
-.md-github h2 { font-size: 1.5em; }
-.md-github h3 { font-size: 1.25em; }
-.md-github h4 { font-size: 1em; }
-.md-github h5 { font-size: 0.875em; }
-.md-github h6 { font-size: 0.85em; color: #656d76; }
+.md-github h1 {
+  font-size: 2em;
+}
+.md-github h2 {
+  font-size: 1.5em;
+}
+.md-github h3 {
+  font-size: 1.25em;
+}
+.md-github h4 {
+  font-size: 1em;
+}
+.md-github h5 {
+  font-size: 0.875em;
+}
+.md-github h6 {
+  font-size: 0.85em;
+  color: #656d76;
+}
 
 /* First heading in content has no top margin */
 .md-github > *:first-child {
@@ -76,7 +98,8 @@
 
 /* --- CODE --- */
 .md-github code {
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
   font-size: 85%;
 }
 
@@ -133,8 +156,12 @@
   margin: 16px 0;
 }
 
-.md-github ul { list-style-type: disc; }
-.md-github ol { list-style-type: decimal; }
+.md-github ul {
+  list-style-type: disc;
+}
+.md-github ol {
+  list-style-type: decimal;
+}
 
 .md-github li {
   margin-top: 0.25em;
@@ -244,6 +271,7 @@
 
 /* =============================================================================
  * PRINT STYLES - A4 Optimized
+ * Preserves GitHub's visual styling for tables and code blocks
  * ============================================================================= */
 
 @media print {
@@ -257,9 +285,8 @@
     padding: 0;
   }
 
-  .md-github * {
-    background: transparent !important;
-    color: #000 !important;
+  /* Reset most elements but NOT tables and code */
+  .md-github *:not(table):not(thead):not(tbody):not(tr):not(th):not(td):not(pre):not(code) {
     text-shadow: none !important;
     filter: none !important;
   }
@@ -267,13 +294,22 @@
   /* Heading adjustments for print */
   .md-github h1,
   .md-github h2 {
-    border-bottom-color: #000;
+    border-bottom: 1px solid #000;
+    color: #000;
   }
 
-  .md-github h1 { font-size: 18pt; }
-  .md-github h2 { font-size: 14pt; }
-  .md-github h3 { font-size: 12pt; }
-  .md-github h4 { font-size: 11pt; }
+  .md-github h1 {
+    font-size: 18pt;
+  }
+  .md-github h2 {
+    font-size: 14pt;
+  }
+  .md-github h3 {
+    font-size: 12pt;
+  }
+  .md-github h4 {
+    font-size: 11pt;
+  }
 
   /* Avoid orphaned headings */
   .md-github h1,
@@ -291,53 +327,96 @@
     break-inside: avoid;
   }
 
-  /* Code block print adjustments */
+  /* Code block print - preserve GitHub look */
   .md-github pre {
-    background: #f5f5f5 !important;
-    border: 1px solid #ddd;
+    background-color: #f6f8fa !important;
+    border: 1px solid #d1d9e0;
+    border-radius: 6px;
     page-break-inside: avoid;
     break-inside: avoid;
     overflow-wrap: break-word;
     white-space: pre-wrap;
+    padding: 12px 16px;
+    margin: 12pt 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .md-github code {
     font-size: 9pt;
   }
 
-  /* Table print adjustments */
-  .md-github table {
-    border-collapse: collapse;
-    width: 100%;
+  .md-github :not(pre) > code {
+    background-color: rgba(175, 184, 193, 0.2) !important;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
-  .md-github th,
+  /* Table print - preserve GitHub styling */
+  .md-github table {
+    border-collapse: collapse;
+    width: auto; /* Match screen behavior - only as wide as content */
+    max-width: 100%;
+    margin: 12pt 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .md-github th {
+    font-weight: 600;
+    background-color: #f6f8fa !important;
+    border: 1px solid #d1d9e0;
+    padding: 6px 13px;
+    text-align: left;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .md-github td {
-    border: 1px solid #000 !important;
-    padding: 4px 8px;
+    border: 1px solid #d1d9e0;
+    padding: 6px 13px;
+  }
+
+  .md-github tr {
+    background-color: #ffffff;
   }
 
   .md-github tr:nth-child(2n) {
-    background: #f5f5f5 !important;
+    background-color: #f6f8fa !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
-  /* Blockquote print adjustments */
+  /* Blockquote print - preserve left border */
   .md-github blockquote {
-    border-left: 3px solid #666;
+    border-left: 4px solid #d1d9e0;
     margin-left: 0;
     padding-left: 1em;
+    color: #656d76;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   /* Links - show URL in print */
-  .md-github a[href^="http"]::after {
-    content: " (" attr(href) ")";
-    font-size: 9pt;
-    color: #666 !important;
+  .md-github a {
+    color: #0969da !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .md-github a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 8pt;
+    color: #656d76 !important;
   }
 
   /* Don't show URL for internal/anchor links */
-  .md-github a[href^="#"]::after,
-  .md-github a[href^="/"]::after {
+  .md-github a[href^='#']::after,
+  .md-github a[href^='/']::after {
     content: none;
   }
 
@@ -346,6 +425,15 @@
     max-width: 100% !important;
     page-break-inside: avoid;
     break-inside: avoid;
+  }
+
+  /* Horizontal rules */
+  .md-github hr {
+    background-color: #d1d9e0 !important;
+    height: 2px;
+    border: none;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 

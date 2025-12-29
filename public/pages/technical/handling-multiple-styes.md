@@ -5,11 +5,9 @@ created: 2025-12-26
 published: y
 file-type: markdown
 style: github
-private: rcollins@redmug.co.uk
+
 ---
 # Extensible Markdown Styles System
-
-**Version 1.0** | Claude Opus 4.5
 
 ## Overview
 
@@ -64,7 +62,7 @@ Styles are determined in this order (highest priority first):
 Create `/public/styles/md-styles/md-your-style.css`:
 
 ```css
-/* version 1.0 Claude Opus 4.5 */
+/* 
 /* =============================================================================
  * YOUR STYLE NAME
  * ============================================================================= */
@@ -281,7 +279,6 @@ Then add it to the registry as a new style.
 # =============================================================================
 # EXAMPLE .env FILE - Extensible Markdown Styles Configuration
 # =============================================================================
-# version 1.0 Claude Opus 4.5
 
 # =============================================================================
 # PAGE_CONFIG - Category to Style Mapping (NEW FORMAT - Recommended)
@@ -313,14 +310,7 @@ Then add it to the registry as a new style.
 # Full example with all style types:
 PAGE_CONFIG='{"start":"github","technical":"github:sidebar","blog":"mcss-georgia","documentation":"mcss-verdana","notes":"tailwind"}'
 
-# =============================================================================
-# LEGACY FORMAT (Still Supported - Backwards Compatible)
-# =============================================================================
-# 
-# If you prefer the old format, it still works but defaults all styles to 'tailwind':
-# PAGES="start,technical:sidebar,rants"
-#
-# Note: If both PAGE_CONFIG and PAGES are set, PAGE_CONFIG takes priority.
+
 
 # =============================================================================
 # OTHER SETTINGS
