@@ -11,10 +11,12 @@ This project provides a scaffolded fully working application that ships with mos
 - Authentication using the better-auth library with example email/password, Google and GitHub sign in workflows
 - Example components built with Lit, Javascript and Tailwind CSS
 - Set up scripts to create database, create and populate better-auth tables and sample test data tables
-- A markdown based pages system for content with mutiple categories, front matter supporting draft, private, sticky pages and an upload facility for images and `*.md` files
+- A markdown based pages system for content with mutiple categories, front matter supporting draft, private, sticky pages and an upload facility for images and `*.md` files. Multiple styles supported.
+- Simple editor for markdown content and a file upload for pages media
+- Custom component toadd markdown image sizing, position and text wrapp control
 - Responsive UI, works on mobile but examples designed for desktop apps
 
-My hope is, faced with a new web application, I can clone this stater template, hack out the bits that are not need then add the missing user requirements. If it's quicker than starting from scratch, I'll take that as a win.
+Faced with a new web application, clone this starter template, hack out the bits that are not need then add the missing user requirements. If it's quicker than starting from scratch, I'll take that as a win.
 
 ## Software stack
 - Javascript with ES6 node_modules
@@ -69,6 +71,10 @@ Project directory - not all code files are shown. Brief notes showing what's whe
 │   ├── lib
 │   ├── media
 │   │   └── redmug_logo_316x316.png
+│   ├── pages                                    <--- markdown content
+│   │   ├── rants
+│   │   ├── start
+│   │   └── technical
 │   ├── scripts                                  <-- scripts for client pages
 │   │   ├── countries.js
 │   │   ├── setup.js
