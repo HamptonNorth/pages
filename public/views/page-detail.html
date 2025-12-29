@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- version 1.0 Claude Opus 4.5 -->
+<!-- version 1.0    -->
 <!-- =============================================================================
      PAGE DETAIL VIEW
      =============================================================================
@@ -32,6 +32,7 @@
 
     <!-- Client Components -->
     <script type="module" src="/components/client-components.js"></script>
+
     <rm-head page-title="{{PAGE_TITLE_ATTR}}"></rm-head>
 
     <style>
@@ -135,18 +136,51 @@
           margin-top: 0 !important;
         }
 
-        /* Page title styling for print */
-        #page-title {
-          font-size: 18pt;
-          margin-bottom: 12pt;
+        /* =================================================================
+         * Print Header Block - Title & Date
+         * Compact, visually distinct from content
+         * ================================================================= */
+
+        /* Header container - compact with subtle distinction */
+        #page-header {
+          background-color: #f8f9fa !important;
+          border: none !important;
+          border-bottom: 1.5pt solid #d1d5db !important;
+          padding: 8pt 0 6pt 0 !important;
+          margin: 0 0 12pt 0 !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
 
-        /* Date styling for print */
+        /* Title - compact */
+        #page-title {
+          font-size: 13pt !important;
+          font-weight: 600 !important;
+          line-height: 1.15 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          color: #111827 !important;
+        }
+
+        /* Date - smaller, muted, tight spacing */
         #page-date {
-          font-size: 10pt;
-          color: #666 !important;
-          margin-bottom: 16pt;
-          display: block !important;
+          font-size: 8pt !important;
+          font-family: ui-monospace, SFMono-Regular, monospace !important;
+          color: #6b7280 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          display: inline-block !important;
+          letter-spacing: 0.02em;
+        }
+
+        /* Tighten the date wrapper row */
+        #page-header > div:last-child {
+          margin-top: 2pt !important;
+        }
+
+        /* Content wrapper - remove extra top spacing */
+        #markdown-content {
+          margin-top: 0 !important;
         }
 
         /* Container padding for print */
@@ -215,7 +249,7 @@
         <main class="w-full min-w-0 grow bg-white pb-12">
           <article>
             <!-- Page Header -->
-            <div class="border-primary-100 border-b px-6 pt-8 pb-4 md:px-12">
+            <div id="page-header" class="border-primary-100 border-b px-6 pt-8 pb-4 md:px-12">
               <a
                 id="top-back-link"
                 href="#"

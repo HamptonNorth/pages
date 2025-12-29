@@ -1,4 +1,4 @@
-// version 1.0 Claude Opus 4.5
+// version 1.1
 // =============================================================================
 // MARKDOWN STYLE REGISTRY
 // =============================================================================
@@ -26,13 +26,13 @@
  */
 export const STYLE_REGISTRY = {
   // -------------------------------------------------------------------------
-  // DEFAULT: Tailwind Typography (prose)
+  // DEFAULT: Tailwind Typography (prose) with print optimizations
   // Clean, minimal styling using Tailwind's prose plugin
   // -------------------------------------------------------------------------
   tailwind: {
     name: 'tailwind',
     label: 'Tailwind Prose',
-    cssFile: null, // Uses built-in Tailwind prose classes
+    cssFile: 'md-tailwind.css', // Print-only styles, screen uses Tailwind prose
     wrapperClass: 'prose prose-slate max-w-none',
     removeProse: false,
     description: 'Clean, modern styling using Tailwind Typography',
@@ -62,6 +62,19 @@ export const STYLE_REGISTRY = {
     wrapperClass: 'md-mcss md-mcss-georgia',
     removeProse: true,
     description: 'Elegant serif typography for long-form reading',
+  },
+
+  // -------------------------------------------------------------------------
+  // MCSS GEORGIA TIGHT: Compact serif typography (12pt base)
+  // Based on MCSS Georgia - denser layout for documentation
+  // -------------------------------------------------------------------------
+  'mcss-georgia-tight': {
+    name: 'mcss-georgia-tight',
+    label: 'MCSS Georgia Tight',
+    cssFile: 'md-mcss-georgia-tight.css',
+    wrapperClass: 'md-mcss md-mcss-georgia-tight',
+    removeProse: true,
+    description: 'Compact serif typography with 12pt base for denser content',
   },
 
   // -------------------------------------------------------------------------

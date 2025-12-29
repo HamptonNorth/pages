@@ -1,5 +1,9 @@
-// version 16.1 Claude Opus 4.5
+// version 16.2
 // =============================================================================
+// CHANGES from v16.2:
+// - Added md-tailwind.css for print-specific styling (tighter vertical spacing)
+// - Tailwind style now loads CSS file for print optimization
+//
 // CHANGES from v16.1:
 // - Added mcss-georgia-tight style (12pt base, compact typography)
 //
@@ -47,11 +51,11 @@ const PORT = process.env.PORT || 3000
 // =============================================================================
 
 const STYLE_REGISTRY = {
-  // Default: Tailwind Typography (prose)
+  // Default: Tailwind Typography (prose) with print optimizations
   tailwind: {
     name: 'tailwind',
     label: 'Tailwind Prose',
-    cssFile: null, // Uses built-in Tailwind prose classes
+    cssFile: 'md-tailwind.css', // Print-only styles, screen uses Tailwind prose
     wrapperClass: 'prose prose-slate max-w-none',
     removeProse: false,
     description: 'Clean, modern styling using Tailwind Typography',

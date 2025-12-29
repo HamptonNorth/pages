@@ -13,5 +13,6 @@ import './components/rm-login.js'
 import './components/rm-colour-swatch.js'
 
 import './components/rm-markdown-editor.js'
+import './components/rm-image.js'
 
 console.log('Component bundle loaded successfully.')
