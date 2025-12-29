@@ -8,7 +8,7 @@ file-type: markdown
 style: github
 ---
 
-# Test 2 markdown
+# Test (github style)
 
 A test page to check the markdown is rendered okay. This page has `style:gitbub` set and the visual appearance should be similar to GitHub rendered mardown. The main differences and fonts used and colour pallete. Maths rendering is not supported in bunstarter.
 

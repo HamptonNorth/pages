@@ -6,6 +6,7 @@ published: y
 file-type: markdown
 style: github
 private: rcollins@redmug.co.uk
+sticky: true
 ---
 # Deploy to Linux server
 The notes cover moving code from a Ubuntu Worksation development set up and deplying on a Ubuntu Server. At the time of writing the Ubuntu Workstation was running Ubuntu 25.10 whilst the server was running Ubuntu 24.10.
@@ -117,4 +118,13 @@ sudo systemctl start bun-starter.service
 
 ```
 
-Should be good to go
+Should be good to go.
+
+### Cloudflare tunnels
+As bunstarter running on `nuc2023` is exposed to the internet using Cloudflare Tunnels, you may not see newly deployed content immediately. The home page `index.html` will remain cached for some time but you can view say new markdown `/pages/*` content for example. 
+
+Simply login into Cloudflare and on the `redmug.dev` page:
+1) Set to developer mode
+2) Purge cache
+
+Should be good to go with refreshed pages!
