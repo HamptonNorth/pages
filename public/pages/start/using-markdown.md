@@ -8,7 +8,7 @@ style: github
 sticky: true
 ---
 
-# Using mardown
+# Using markdown
 
 Markdown is a lightweight way to format text using symbols that look like what they represent. It’s widely used for documentation, README files, and notes because it stays readable even as plain text.
 

@@ -10,7 +10,7 @@ style: mcss-georgia
 
 # Test Georgia
 
-A test page to check the markdown is rendered okay. This page has `style:mcss-georgia` set and the visual appearance should be similar to GitHub rendered mardown. 
+A test page to check the markdown is rendered okay. This page has `style:mcss-georgia` set and the visual appearance should be similar to GitHub rendered markdown. 
 
 ##### h5 Heading
 ###### h6 Heading

@@ -10,7 +10,7 @@ style: github
 
 # Test (github style)
 
-A test page to check the markdown is rendered okay. This page has `style:gitbub` set and the visual appearance should be similar to GitHub rendered mardown. The main differences and fonts used and colour pallete. Maths rendering is not supported in bunstarter.
+A test page to check the markdown is rendered okay. This page has `style:gitbub` set and the visual appearance should be similar to GitHub rendered markdown. The main differences and fonts used and colour pallete. Maths rendering is not supported in bunstarter.
 
 # h1 Heading 
 ## h2 Heading

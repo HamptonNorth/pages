@@ -35,4 +35,4 @@ This will be rendered as:
 
 
 ## Controlling image size
-Mardown is not good at contolling image sizes. Look at the **Using images in markdown and controlling the size** page to refine a layout.
+Markdown is not good at contolling image sizes. Look at the **Using images in markdown and controlling the size** page to refine a layout.

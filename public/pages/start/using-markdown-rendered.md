@@ -1,5 +1,5 @@
 ---
-title: Using mardown (example code rendered)
+title: Using markdown (example code rendered)
 summary: A gentle introduction to markdown
 created: 2025-12-21T01:01:00    
 published: y
