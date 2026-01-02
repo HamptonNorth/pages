@@ -1,4 +1,4 @@
-// version 1.2 Claude Opus 4.5
+// version 1.3 Claude Opus 4.5
 // =============================================================================
 // PAGES SEARCH MODAL COMPONENT
 // =============================================================================
@@ -12,6 +12,7 @@
 // - Minimum 3 character requirement
 // - Results styled similar to pages-list.html
 // - Keyboard support (Escape to close)
+// - Admin controls: view last indexed date, trigger reindex
 //
 // Usage:
 //   <rm-pages-search-modal
@@ -27,7 +28,7 @@ export class RmPagesSearchModal extends LitElement {
     // Public properties
     isOpen: { type: Boolean },
 
-    // Internal state
+    // Internal state - search
     _query: { state: true },
     _results: { state: true },
     _isLoading: { state: true },
@@ -35,6 +36,13 @@ export class RmPagesSearchModal extends LitElement {
     _hasSearched: { state: true },
     _totalResults: { state: true },
     _duration: { state: true },
+
+    // Internal state - admin controls
+    _isAdmin: { state: true },
+    _lastIndexed: { state: true },
+    _isReindexing: { state: true },
+    _reindexSuccess: { state: true },
+    _reindexError: { state: true },
   }
 
   // Debounce timer reference
@@ -56,6 +64,13 @@ export class RmPagesSearchModal extends LitElement {
     this._hasSearched = false
     this._totalResults = 0
     this._duration = ''
+
+    // Admin controls state
+    this._isAdmin = false
+    this._lastIndexed = null
+    this._isReindexing = false
+    this._reindexSuccess = null
+    this._reindexError = null
   }
 
   // Use light DOM so Tailwind classes work
@@ -68,12 +83,15 @@ export class RmPagesSearchModal extends LitElement {
   // =========================================================================
 
   updated(changedProperties) {
-    // Focus search input when modal opens
+    // Focus search input when modal opens and check admin status
     if (changedProperties.has('isOpen') && this.isOpen) {
       setTimeout(() => {
         const input = this.querySelector('#pages-search-input')
         if (input) input.focus()
       }, 50)
+
+      // Check admin status and fetch search meta
+      this._checkAdminAndFetchMeta()
     }
 
     // Reset state when modal closes
@@ -103,6 +121,103 @@ export class RmPagesSearchModal extends LitElement {
     this._duration = ''
     if (this._searchTimeout) {
       clearTimeout(this._searchTimeout)
+    }
+
+    // Reset admin state (but keep _isAdmin and _lastIndexed for next open)
+    this._isReindexing = false
+    this._reindexSuccess = null
+    this._reindexError = null
+  }
+
+  // =========================================================================
+  // ADMIN METHODS
+  // =========================================================================
+
+  /**
+   * Check if user is admin and fetch search index metadata
+   */
+  async _checkAdminAndFetchMeta() {
+    try {
+      // Fetch search meta - will return 403 if not admin
+      const response = await fetch('/api/pages/search-meta', {
+        credentials: 'include',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        this._isAdmin = true
+        this._lastIndexed = data.lastIndexed || null
+      } else if (response.status === 403) {
+        // Not admin - that's fine
+        this._isAdmin = false
+        this._lastIndexed = null
+      } else {
+        // Some other error
+        this._isAdmin = false
+        this._lastIndexed = null
+      }
+    } catch (err) {
+      console.error('[Search] Error checking admin status:', err)
+      this._isAdmin = false
+      this._lastIndexed = null
+    }
+  }
+
+  /**
+   * Trigger reindex of all pages
+   */
+  async _performReindex() {
+    if (this._isReindexing) return
+
+    this._isReindexing = true
+    this._reindexSuccess = null
+    this._reindexError = null
+
+    try {
+      const response = await fetch('/api/pages/reindex', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        this._reindexSuccess = `Indexed ${data.indexed} pages in ${data.duration}`
+        this._lastIndexed = new Date().toISOString()
+
+        // Clear success message after 5 seconds
+        setTimeout(() => {
+          this._reindexSuccess = null
+        }, 5000)
+      } else {
+        this._reindexError = data.error || 'Reindex failed'
+      }
+    } catch (err) {
+      console.error('[Search] Reindex error:', err)
+      this._reindexError = err.message || 'Reindex failed'
+    } finally {
+      this._isReindexing = false
+    }
+  }
+
+  /**
+   * Format ISO date string to UK format: DD/MM/YYYY HH:MM
+   */
+  _formatIndexDate(isoString) {
+    if (!isoString) return 'Never'
+    try {
+      const date = new Date(isoString)
+      if (isNaN(date.getTime())) return 'Unknown'
+
+      const day = date.getDate().toString().padStart(2, '0')
+      const month = (date.getMonth() + 1).toString().padStart(2, '0')
+      const year = date.getFullYear()
+      const hours = date.getHours().toString().padStart(2, '0')
+      const minutes = date.getMinutes().toString().padStart(2, '0')
+
+      return `${day}/${month}/${year} ${hours}:${minutes}`
+    } catch (e) {
+      return 'Unknown'
     }
   }
 
@@ -244,7 +359,7 @@ export class RmPagesSearchModal extends LitElement {
         @click="${this._emitClose}"
       >
         <div class="flex items-start justify-between gap-4">
-          <div class="min-w-0 grow">
+          <div class="min-w-0 flex-grow">
             <!-- Category badge and status -->
             <div class="mb-1 flex items-center gap-2">
               <span
@@ -388,16 +503,17 @@ export class RmPagesSearchModal extends LitElement {
                   id="pages-search-input"
                   type="text"
                   placeholder="Search pages"
-                  class="focus:border-primary-500 focus:ring-primary-500 grow rounded-md border border-gray-300 px-4 py-2 text-gray-700 placeholder-gray-400 focus:ring-1 focus:outline-none"
+                  class="focus:border-primary-500 focus:ring-primary-500 flex-grow rounded-md border border-gray-300 px-4 py-2 text-gray-700 placeholder-gray-400 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
                   .value="${this._query}"
                   @input="${this._handleInput}"
                   @keydown="${this._handleKeydown}"
                   autocomplete="off"
                   spellcheck="false"
+                  ?disabled="${this._isReindexing}"
                 />
                 <button
                   @click="${this._handleSearchClick}"
-                  ?disabled="${!canSearch || this._isLoading}"
+                  ?disabled="${!canSearch || this._isLoading || this._isReindexing}"
                   class="bg-primary-700 hover:bg-primary-800 rounded-md px-6 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   ${this._isLoading ? 'Searching...' : 'Search Pages'}
@@ -406,7 +522,7 @@ export class RmPagesSearchModal extends LitElement {
             </div>
 
             <!-- Results section - fills remaining space -->
-            <div class="min-h-0 grow overflow-y-auto border-t border-gray-200 px-6 py-4">
+            <div class="min-h-0 flex-grow overflow-y-auto border-t border-gray-200 px-6 py-4">
               ${this._error
                 ? html`
                     <div class="rounded-md bg-red-50 p-4 text-sm text-red-700">${this._error}</div>
@@ -438,13 +554,63 @@ export class RmPagesSearchModal extends LitElement {
             </div>
 
             <!-- Footer -->
-            <div class="shrink-0 border-t border-gray-200 px-6 py-3 text-right">
-              <button
-                @click="${this._emitClose}"
-                class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                Close
-              </button>
+            <div class="shrink-0 border-t border-gray-200 px-6 py-3">
+              <div class="flex items-center justify-between">
+                <!-- Admin controls (left side) -->
+                <div class="flex items-center gap-4">
+                  ${this._isAdmin
+                    ? html`
+                        <!-- Last indexed date -->
+                        <span class="text-primary-400 text-xs">
+                          Date last indexed: ${this._formatIndexDate(this._lastIndexed)}
+                        </span>
+
+                        <!-- Reindex button/link -->
+                        ${this._isReindexing
+                          ? html`
+                              <span class="text-primary-500 flex items-center gap-2 text-xs">
+                                <span
+                                  class="border-primary-300 border-t-primary-600 inline-block h-3 w-3 animate-spin rounded-full border-2"
+                                ></span>
+                                Reindexing...
+                              </span>
+                            `
+                          : html`
+                              <button
+                                @click="${this._performReindex}"
+                                class="text-secondary-600 hover:text-secondary-800 text-xs transition-colors hover:underline"
+                              >
+                                re-index now
+                              </button>
+                            `}
+
+                        <!-- Success message -->
+                        ${this._reindexSuccess
+                          ? html`
+                              <span class="text-xs text-green-600">
+                                ✓ ${this._reindexSuccess}
+                              </span>
+                            `
+                          : nothing}
+
+                        <!-- Error message -->
+                        ${this._reindexError
+                          ? html`
+                              <span class="text-xs text-red-600"> ✗ ${this._reindexError} </span>
+                            `
+                          : nothing}
+                      `
+                    : nothing}
+                </div>
+
+                <!-- Close button (right side) -->
+                <button
+                  @click="${this._emitClose}"
+                  class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

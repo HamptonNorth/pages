@@ -1,4 +1,4 @@
-// version 1.0 Claude Opus 4.5
+// version 1.1 Claude Opus 4.5
 // =============================================================================
 // PAGES SEARCH SERVICE
 // =============================================================================
@@ -6,6 +6,7 @@
 // Features:
 // - Weighted scoring (title, headings, bold text, body)
 // - Prefix matching (left-to-right, word-start)
+// - Safe query handling (escapes quotes, prevents FTS5 operator injection)
 // - Access control (published, private, admin-only)
 // - On-demand indexing via API
 //
@@ -30,7 +31,7 @@ export const SEARCH_MAX_RESULTS = 20
 export const SEARCH_MIN_QUERY_LENGTH = 3
 
 // Context characters around matches for snippets
-export const SEARCH_CONTEXT_CHARS = 50
+export const SEARCH_CONTEXT_CHARS = 60
 
 // Content weight configuration
 // Higher weight = more important in search ranking
@@ -512,10 +513,17 @@ export function searchPages(db, query, options = {}) {
 
   try {
     // Build FTS5 query with prefix matching
-    // Add * suffix for prefix matching
+    // Escape embedded double quotes and wrap each term in quotes for safety
+    // This prevents FTS5 syntax errors from special characters like hyphens
+    // and prevents query injection via FTS5 operators
     const ftsQuery = cleanQuery
       .split(/\s+/)
-      .map((term) => `${term}*`)
+      .map((term) => {
+        // Escape any double quotes by doubling them (FTS5 escape mechanism)
+        const escaped = term.replace(/"/g, '""')
+        // Wrap in quotes and add * for prefix matching
+        return `"${escaped}"*`
+      })
       .join(' ')
 
     // BM25 weights in column order:
