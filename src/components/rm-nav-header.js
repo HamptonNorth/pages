@@ -1,3 +1,10 @@
+// version 2.0 Claude Opus 4.5
+// =============================================================================
+// CHANGES from v2.0:
+// - Added pages search modal integration
+// - Added "Search pages" option to Pages dropdown menu
+// - Added search modal state management
+// =============================================================================
 // public/components/rm-nav-header.js
 
 import { LitElement, html, nothing } from 'lit'
@@ -5,6 +12,7 @@ import { authClient } from '../auth-client.js'
 import './rm-add-user-modal.js'
 import './rm-reset-password-modal.js'
 import './rm-delete-user-modal.js'
+import './rm-pages-search-modal.js'
 
 export class RmHeader extends LitElement {
   static properties = {
@@ -14,6 +22,9 @@ export class RmHeader extends LitElement {
     _isCountriesOpen: { state: true },
     _isPagesOpen: { state: true },
     _pageCategories: { state: true },
+
+    // Search modal state
+    _isSearchOpen: { state: true },
 
     _isSignOutModalOpen: { state: true },
     _isAddUserModalOpen: { state: true },
@@ -36,6 +47,9 @@ export class RmHeader extends LitElement {
     this._isCountriesOpen = false
     this._isPagesOpen = false
     this._pageCategories = [] // Now stores objects: { name: 'blog', sidebar: false }
+
+    // Search modal state
+    this._isSearchOpen = false
 
     this._isSignOutModalOpen = false
     this._isAddUserModalOpen = false
@@ -166,6 +180,19 @@ export class RmHeader extends LitElement {
       this._isAppsOpen = false
       this._isCountriesOpen = false
     }
+  }
+
+  // =========================================================================
+  // SEARCH MODAL METHODS
+  // =========================================================================
+
+  openSearchModal() {
+    this._isPagesOpen = false // Close the pages dropdown
+    this._isSearchOpen = true
+  }
+
+  closeSearchModal() {
+    this._isSearchOpen = false
   }
 
   openAddUserModal() {
@@ -339,6 +366,29 @@ export class RmHeader extends LitElement {
                                 </a>
                               `,
                             )}
+
+                            <!-- Search pages option -->
+                            <div class="border-primary-100 mt-1 border-t pt-1">
+                              <button
+                                @click="${this.openSearchModal}"
+                                class="text-primary-700 hover:bg-primary-50 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
+                              >
+                                <svg
+                                  class="text-primary-400 h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                  ></path>
+                                </svg>
+                                Search pages
+                              </button>
+                            </div>
                           </div>
                         `
                       : nothing}
@@ -501,6 +551,29 @@ export class RmHeader extends LitElement {
                           </a>
                         `,
                       )}
+                      <!-- Search pages in mobile drawer -->
+                      <button
+                        @click="${() => {
+                          this.toggleDrawer()
+                          this.openSearchModal()
+                        }}"
+                        class="text-primary-600 hover:bg-primary-100 flex items-center gap-2 px-4 py-2 pl-8 text-left text-sm"
+                      >
+                        <svg
+                          class="text-primary-400 h-4 w-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          ></path>
+                        </svg>
+                        Search pages
+                      </button>
                     `
                   : nothing}
 
@@ -577,6 +650,12 @@ export class RmHeader extends LitElement {
         .user="${this._deleteUserTarget}"
         @close="${this.closeDeleteUserModal}"
       ></rm-delete-user-modal>
+
+      <!-- Pages Search Modal -->
+      <rm-pages-search-modal
+        .isOpen="${this._isSearchOpen}"
+        @close="${this.closeSearchModal}"
+      ></rm-pages-search-modal>
     `
   }
 }

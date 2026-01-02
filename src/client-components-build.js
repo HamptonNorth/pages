@@ -15,4 +15,6 @@ import './components/rm-colour-swatch.js'
 import './components/rm-markdown-editor.js'
 import './components/rm-image.js'
 
+import './components/rm-pages-search-modal.js'
+
 console.log('Component bundle loaded successfully.')

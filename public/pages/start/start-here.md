@@ -37,4 +37,4 @@ style: github
 Using the front matter, pages may also be:
 - marked as *sticky* by adding to the front matter block `sticky: true`. Sticky pages will always be shown first.
 - marked as private by adding to the front matter block `private: john@gamil.com`. The page can only be view by the user signed in as 'john@gmail.com'
-- Pages can be automatically lapsed by using `lapse: 2026-01-05T00:00:00`. This can be useful if you use pages for announcements (e.g Opening hours between Christmas and New Year 2025)
+- Pages can be automatically lapsed by using `lapse: 2026-01-05T00:00:00`. This can be useful if you use pages for announcements (e.g Opening hours between Christmas and New Year 2025)📌

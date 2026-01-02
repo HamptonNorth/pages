@@ -1,5 +1,14 @@
-// version 16.2
+// version 17.0 Claude Opus 4.5
 // =============================================================================
+// CHANGES from v17.0:
+// - NEW: Full-text search across all markdown pages using SQLite FTS5
+// - NEW: POST /api/pages/reindex - Rebuild search index (admin only)
+// - NEW: GET /api/pages/search?q=query - Search pages with weighted scoring
+// - NEW: GET /api/pages/search-meta - Get index metadata (admin only)
+// - NEW: Weighted search scoring (title=10, h1=6, body=1, etc.)
+// - NEW: Prefix matching (left-to-right, word-start, case-insensitive)
+// - NEW: Access control in search (unpublished for admin, private by email)
+//
 // CHANGES from v16.2:
 // - Added md-tailwind.css for print-specific styling (tighter vertical spacing)
 // - Tailwind style now loads CSS file for print optimization
@@ -37,9 +46,25 @@ import { readdir, watch } from 'node:fs/promises'
 import { join } from 'node:path'
 import { marked } from 'marked'
 
+// =============================================================================
+// SEARCH SERVICE IMPORT
+// =============================================================================
+import {
+  initSearchIndex,
+  reindexAllPages,
+  searchPages,
+  getSearchMeta,
+} from './services/pages-search.js'
+
 export { db }
 
 const PORT = process.env.PORT || 3000
+
+// =============================================================================
+// INITIALIZE SEARCH INDEX
+// =============================================================================
+// Creates FTS5 tables if they don't exist
+initSearchIndex(db)
 
 // =============================================================================
 // STYLE REGISTRY - Extensible markdown style configuration
@@ -193,6 +218,25 @@ const server = Bun.serve({
         styles: STYLE_REGISTRY,
         available: getAvailableStyles(),
       })
+    }
+
+    // =========================================================================
+    // SEARCH API ENDPOINTS
+    // GET /api/pages/search?q=query - Search across all pages
+    // POST /api/pages/reindex - Rebuild search index (admin only)
+    // GET /api/pages/search-meta - Get index metadata (admin only)
+    // =========================================================================
+
+    if (path === '/api/pages/search' && req.method === 'GET') {
+      return handlePagesSearch(req, url)
+    }
+
+    if (path === '/api/pages/reindex' && req.method === 'POST') {
+      return handlePagesReindex(req)
+    }
+
+    if (path === '/api/pages/search-meta' && req.method === 'GET') {
+      return handleSearchMeta(req)
     }
 
     // =========================================================================
@@ -482,6 +526,90 @@ window.EFFECTIVE_STYLE = ${JSON.stringify(styleConfig)};
   return new Response(html, {
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   })
+}
+
+// =============================================================================
+// SEARCH API HANDLERS
+// =============================================================================
+
+/**
+ * GET /api/pages/search?q=query
+ * Search across all indexed pages
+ * Access control: filters unpublished (admin only) and private (email match)
+ */
+async function handlePagesSearch(req, url) {
+  try {
+    const query = url.searchParams.get('q') || ''
+    const limitParam = url.searchParams.get('limit')
+    const limit = limitParam ? Math.min(parseInt(limitParam, 10), 50) : undefined
+
+    // Get session for access control
+    const session = await auth.api.getSession({ headers: req.headers })
+    const isAdmin = session?.user?.role === 'admin'
+    const userEmail = session?.user?.email || null
+
+    // Perform search with access control
+    const results = searchPages(db, query, {
+      isAdmin,
+      userEmail,
+      limit,
+    })
+
+    return Response.json(results)
+  } catch (err) {
+    console.error('[Search] API error:', err)
+    return Response.json({ error: 'Search failed', details: err.message }, { status: 500 })
+  }
+}
+
+/**
+ * POST /api/pages/reindex
+ * Rebuild the search index from all markdown files
+ * Requires admin role
+ */
+async function handlePagesReindex(req) {
+  try {
+    // Check authentication - admin only
+    const session = await auth.api.getSession({ headers: req.headers })
+    if (!session?.user || session.user.role !== 'admin') {
+      return Response.json({ error: 'Unauthorized: Admin access required' }, { status: 403 })
+    }
+
+    console.log(`[Search] Reindex triggered by ${session.user.email}`)
+
+    // Perform reindex
+    const result = await reindexAllPages(db, getPagesConfig)
+
+    if (result.success) {
+      return Response.json(result)
+    } else {
+      return Response.json(result, { status: 500 })
+    }
+  } catch (err) {
+    console.error('[Search] Reindex API error:', err)
+    return Response.json({ error: 'Reindex failed', details: err.message }, { status: 500 })
+  }
+}
+
+/**
+ * GET /api/pages/search-meta
+ * Get search index metadata (last indexed time, document count)
+ * Requires admin role
+ */
+async function handleSearchMeta(req) {
+  try {
+    // Check authentication - admin only
+    const session = await auth.api.getSession({ headers: req.headers })
+    if (!session?.user || session.user.role !== 'admin') {
+      return Response.json({ error: 'Unauthorized: Admin access required' }, { status: 403 })
+    }
+
+    const meta = getSearchMeta(db)
+    return Response.json(meta)
+  } catch (err) {
+    console.error('[Search] Meta API error:', err)
+    return Response.json({ error: 'Failed to get metadata', details: err.message }, { status: 500 })
+  }
 }
 
 // =============================================================================
