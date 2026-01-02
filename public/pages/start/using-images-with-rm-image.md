@@ -1,6 +1,6 @@
 ---
-title: Using images in markdown with rm-image component
-summary: Using Images markdown - this time using the rm-image custom comonent
+title: Using images in markdown with the rm-image component
+summary: Using Images markdown - this time using the rm-image custom component
 created: 2025-12-21T10:25:00-00:00
 published: y
 file-type: markdown
@@ -10,14 +10,14 @@ sticky: false
 
 # rm-image Component
 
-A flexible image component for markdown content with carousel, positioning, and text wrapping support. Markdown doesn't give you that much control over trext warpping and the like. It certaingly does support multiple images in a carousel. Hopefully this component will improve your pages.
+A flexible image component for markdown content with carousel, positioning, and text wrapping support. Markdown doesn't give you that much control over text wrapping and the like. It certainly does not support multiple images in a carousel. Hopefully this component will improve your pages.
 
 
 ### Basic image
-Examples of single images with size control, border and rounded corners. Default is 600px wide. no border and no corner rounding. The markdown source for the samples below is:
+Examples of single images with size control, border and rounded corners. Default is 600px wide, no border and no corner rounding. The markdown source for the samples below is:
 
 ```html
-<rm-image src="/media/start/sunset_near_oronsay.png" style="background-color:yellow !important;">Sunset near Oronsay</rm-image>
+<rm-image src="/media/start/sunset_near_oronsay.png" >Sunset near Oronsay</rm-image>
 <rm-image src="/media/start/sunset_near_oronsay.png" width="200px">Sunset near Oronsay</rm-image>
 <rm-image src="/media/start/sunset_near_oronsay.png" width="200px" rounded="lg">Sunset near Oronsay</rm-image>
 <rm-image src="/media/start/russell-cartoon.jpg" ></rm-image>
