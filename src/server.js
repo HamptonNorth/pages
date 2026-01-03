@@ -154,6 +154,7 @@ const buildResult = await Bun.build({
     'process.env.TEMP_PASSWORD_LAPSE_HOURS': JSON.stringify(
       process.env.TEMP_PASSWORD_LAPSE_HOURS || '48',
     ),
+    APP_VERSION: JSON.stringify(process.env.VERSION || '0.0.0'),
   },
 })
 if (!buildResult.success) console.error('Build failed:', buildResult.logs)
