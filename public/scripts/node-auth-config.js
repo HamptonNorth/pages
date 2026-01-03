@@ -4,7 +4,7 @@ import Database from 'better-sqlite3'
 import { authOptions } from '../../src/auth-options.js'
 
 // This file is used ONLY by the CLI tool via Node
-const db = new Database('data/app3.db')
+const db = new Database(`data/${process.env.DATABASE_NAME}`)
 // Plugin to handle password reset logic
 // Keeps the hook logic isolated and safe from config merging bugs
 // Plugin to handle password reset logic

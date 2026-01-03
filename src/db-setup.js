@@ -8,7 +8,7 @@ import { nowSQLiteFormat } from './utils.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const projectRoot = resolve(__dirname, '..')
-const dbPath = join(projectRoot, 'data', 'app3.db')
+const dbPath = join(projectRoot, 'data', process.env.DATABASE_NAME)
 
 // Fail early if DB is missing
 if (!existsSync(dbPath)) {
