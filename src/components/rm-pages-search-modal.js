@@ -359,7 +359,7 @@ export class RmPagesSearchModal extends LitElement {
         @click="${this._emitClose}"
       >
         <div class="flex items-start justify-between gap-4">
-          <div class="min-w-0 flex-grow">
+          <div class="min-w-0 grow">
             <!-- Category badge and status -->
             <div class="mb-1 flex items-center gap-2">
               <span
@@ -503,7 +503,7 @@ export class RmPagesSearchModal extends LitElement {
                   id="pages-search-input"
                   type="text"
                   placeholder="Search pages"
-                  class="focus:border-primary-500 focus:ring-primary-500 flex-grow rounded-md border border-gray-300 px-4 py-2 text-gray-700 placeholder-gray-400 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
+                  class="focus:border-primary-500 focus:ring-primary-500 grow rounded-md border border-gray-300 px-4 py-2 text-gray-700 placeholder-gray-400 focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
                   .value="${this._query}"
                   @input="${this._handleInput}"
                   @keydown="${this._handleKeydown}"
@@ -522,7 +522,7 @@ export class RmPagesSearchModal extends LitElement {
             </div>
 
             <!-- Results section - fills remaining space -->
-            <div class="min-h-0 flex-grow overflow-y-auto border-t border-gray-200 px-6 py-4">
+            <div class="min-h-0 grow overflow-y-auto border-t border-gray-200 px-6 py-4">
               ${this._error
                 ? html`
                     <div class="rounded-md bg-red-50 p-4 text-sm text-red-700">${this._error}</div>
