@@ -1,25 +1,18 @@
-// A modal-based markdown editor component for viewing and editing *.md files.
-// Features:
-// - View mode (read-only) with syntax highlighting
-// - Edit mode with change tracking
-// - Save/Discard buttons when changes are detected
-// - Downloads raw markdown from server and saves back via API
-//
-// Usage:
-//   <rm-markdown-editor
-//     .isOpen="${true}"
-//     .category="${'blog'}"
-//     .slug="${'my-post'}"
-//     .mode="${'edit'}"  // 'view' or 'edit'
-//     @close="${this.handleClose}"
-//     @saved="${this.handleSaved}"
-//   ></rm-markdown-editor>
+// version 3.1 Claude Opus 4.5
+// Complete Markdown Editor with CSpell-based Spellcheck and SQLite Dictionary integration
+// Changes from 3.1:
+// - Fixed Lit compatibility: contenteditable content managed imperatively, not via template
+// - Use requestAnimationFrame for DOM sync to ensure element exists
+// Changes from 3.0:
+// - Switched from textarea + overlay to contenteditable div with CSS Highlights API
+// - Native text highlighting without positioning issues
+// - Uses ::highlight(spell-error) pseudo-element for styling
 
-import { LitElement, html, nothing } from 'lit'
+import { LitElement, html, css, nothing } from 'lit'
 
 export class RmMarkdownEditor extends LitElement {
   static properties = {
-    // Public properties (set by parent)
+    // Public properties
     isOpen: { type: Boolean },
     category: { type: String },
     slug: { type: String },
@@ -33,6 +26,13 @@ export class RmMarkdownEditor extends LitElement {
     _error: { state: true },
     _isDirty: { state: true },
     _title: { state: true },
+
+    // Spellcheck state
+    _spellErrors: { state: true },
+    _isChecking: { state: true },
+    _showContext: { state: true },
+    _contextWord: { state: true },
+    _contextPos: { state: true },
   }
 
   constructor() {
@@ -41,39 +41,65 @@ export class RmMarkdownEditor extends LitElement {
     this.category = ''
     this.slug = ''
     this.mode = 'view'
-
-    this._originalContent = ''
-    this._currentContent = ''
-    this._isLoading = false
-    this._isSaving = false
-    this._error = null
-    this._isDirty = false
-    this._title = ''
+    this._resetState()
+    this._highlight = null
+    this._isUserTyping = false
   }
 
-  // Use light DOM so Tailwind classes work
+  // Use light DOM so CSS Highlights API can access the text nodes
   createRenderRoot() {
     return this
   }
 
-  /**
-   * Watch for property changes to load content when modal opens
-   */
+  connectedCallback() {
+    super.connectedCallback()
+    // Inject highlight styles into document head (needed for light DOM)
+    this._injectHighlightStyles()
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback()
+    // Clean up highlight
+    if (CSS.highlights && this._highlight) {
+      CSS.highlights.delete('spell-error')
+    }
+    // Remove injected styles
+    const styleEl = document.getElementById('rm-markdown-editor-highlight-styles')
+    if (styleEl) styleEl.remove()
+  }
+
+  _injectHighlightStyles() {
+    if (document.getElementById('rm-markdown-editor-highlight-styles')) return
+    const style = document.createElement('style')
+    style.id = 'rm-markdown-editor-highlight-styles'
+    style.textContent = `
+      ::highlight(spell-error) {
+        text-decoration: underline  red;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 3px;
+        background-color: transparent;
+      }
+    `
+    document.head.appendChild(style)
+  }
+
   updated(changedProperties) {
-    // Load content when modal opens
     if (changedProperties.has('isOpen') && this.isOpen) {
       this._loadContent()
     }
-
-    // Reset state when modal closes
     if (changedProperties.has('isOpen') && !this.isOpen) {
       this._resetState()
     }
+    if (changedProperties.has('_spellErrors')) {
+      this._applyHighlights()
+    }
+    // Always sync editor content after render if we have content
+    // Use requestAnimationFrame to ensure DOM is ready
+    if (changedProperties.has('_currentContent') || changedProperties.has('_isLoading')) {
+      requestAnimationFrame(() => this._syncEditorContent())
+    }
   }
 
-  /**
-   * Reset internal state
-   */
   _resetState() {
     this._originalContent = ''
     this._currentContent = ''
@@ -82,11 +108,16 @@ export class RmMarkdownEditor extends LitElement {
     this._error = null
     this._isDirty = false
     this._title = ''
+    this._spellErrors = []
+    this._isChecking = false
+    this._showContext = false
+    this._isUserTyping = false
+    // Clear highlights
+    if (CSS.highlights) {
+      CSS.highlights.delete('spell-error')
+    }
   }
 
-  /**
-   * Load the raw markdown content from the server
-   */
   async _loadContent() {
     if (!this.category || !this.slug) {
       this._error = 'Missing category or slug'
@@ -97,13 +128,8 @@ export class RmMarkdownEditor extends LitElement {
     this._error = null
 
     try {
-      // Fetch raw markdown content
       const response = await fetch(`/api/pages/raw/${this.category}/${this.slug}`)
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `Failed to load: ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`Failed to load: ${response.status}`)
 
       const data = await response.json()
       this._originalContent = data.content || ''
@@ -111,350 +137,401 @@ export class RmMarkdownEditor extends LitElement {
       this._title = data.meta?.title || this.slug
       this._isDirty = false
     } catch (err) {
-      console.error('Failed to load markdown:', err)
       this._error = err.message || 'Failed to load content'
     } finally {
       this._isLoading = false
     }
   }
 
-  /**
-   * Handle textarea input changes
-   */
-  _handleInput(e) {
-    this._currentContent = e.target.value
-    this._isDirty = this._currentContent !== this._originalContent
+  _syncEditorContent() {
+    // Don't sync while user is typing to avoid cursor jumping
+    if (this._isUserTyping) return
+
+    const editor = this.querySelector('#editor-content')
+    if (!editor) return
+
+    // Only update if content is different to avoid cursor jumping
+    if (editor.textContent !== this._currentContent) {
+      editor.textContent = this._currentContent
+    }
   }
 
-  /**
-   * Handle keyboard shortcuts (Ctrl+S to save, Escape to close)
-   */
+  _handleInput(e) {
+    const editor = e.target
+    this._isUserTyping = true
+    this._currentContent = editor.textContent || ''
+    this._isDirty = this._currentContent !== this._originalContent
+    // Clear errors when typing
+    if (this._spellErrors.length > 0) {
+      this._spellErrors = []
+    }
+    // Reset flag after a short delay
+    requestAnimationFrame(() => {
+      this._isUserTyping = false
+    })
+  }
+
+  _handlePaste(e) {
+    // Paste as plain text only
+    e.preventDefault()
+    const text = e.clipboardData.getData('text/plain')
+    document.execCommand('insertText', false, text)
+  }
+
   _handleKeydown(e) {
-    // Ctrl+S or Cmd+S to save
+    // Handle Tab key for indentation
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      document.execCommand('insertText', false, '  ')
+    }
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault()
-      if (this._isDirty && this.mode === 'edit') {
-        this._handleSave()
-      }
+      if (this._isDirty && this.mode === 'edit') this._handleSave()
     }
-
-    // Escape to close (with confirmation if dirty)
     if (e.key === 'Escape') {
       e.preventDefault()
       this._handleClose()
     }
   }
 
-  /**
-   * Handle save button click
-   */
+  async _runSpellCheck() {
+    if (this._isChecking) return
+    this._isChecking = true
+
+    try {
+      const response = await fetch('/api/spellcheck', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: this._currentContent }),
+      })
+      const data = await response.json()
+      this._spellErrors = data.errors || []
+    } catch (err) {
+      console.error('Spellcheck failed:', err)
+    } finally {
+      this._isChecking = false
+    }
+  }
+
+  _applyHighlights() {
+    if (!CSS.highlights) {
+      console.warn('CSS Highlights API not supported')
+      return
+    }
+
+    const editor = this.querySelector('#editor-content')
+    if (!editor) return
+
+    // Clear existing highlights
+    CSS.highlights.delete('spell-error')
+
+    if (this._spellErrors.length === 0) return
+
+    const ranges = []
+    const textNode = this._getTextNode(editor)
+
+    if (!textNode) return
+
+    for (const error of this._spellErrors) {
+      try {
+        const range = new Range()
+        range.setStart(textNode, error.offset)
+        range.setEnd(textNode, error.offset + error.length)
+        ranges.push(range)
+      } catch (err) {
+        // Offset might be invalid if content changed
+        console.warn('Failed to create range for:', error.word, err)
+      }
+    }
+
+    if (ranges.length > 0) {
+      this._highlight = new Highlight(...ranges)
+      CSS.highlights.set('spell-error', this._highlight)
+    }
+  }
+
+  _getTextNode(element) {
+    // For a contenteditable with just text, the first child should be the text node
+    // But we need to handle the case where the browser wraps content
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false)
+    return walker.nextNode()
+  }
+
+  _handleContextMenu(e) {
+    if (this._spellErrors.length === 0) return
+
+    const editor = this.querySelector('#editor-content')
+    if (!editor) return
+
+    const selection = window.getSelection()
+    if (!selection.rangeCount) return
+
+    // Get cursor position in text
+    const range = selection.getRangeAt(0)
+    const preCaretRange = range.cloneRange()
+    preCaretRange.selectNodeContents(editor)
+    preCaretRange.setEnd(range.startContainer, range.startOffset)
+    const start = preCaretRange.toString().length
+
+    // Find if cursor is within a misspelled word
+    const error = this._spellErrors.find(
+      (err) => start >= err.offset && start <= err.offset + err.length,
+    )
+
+    if (error) {
+      e.preventDefault()
+      this._contextWord = error.word
+      this._contextPos = { x: e.clientX, y: e.clientY }
+      this._showContext = true
+    }
+  }
+
+  async _addToDictionary(word) {
+    try {
+      const response = await fetch('/api/dictionary/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word }),
+      })
+      if (response.ok) {
+        this._spellErrors = this._spellErrors.filter((e) => e.word !== word)
+        this._showContext = false
+      }
+    } catch (err) {
+      console.error('Failed to add word:', err)
+    }
+  }
+
   async _handleSave() {
     if (!this._isDirty || this._isSaving) return
-
     this._isSaving = true
-    this._error = null
-
     try {
       const response = await fetch(`/api/pages/raw/${this.category}/${this.slug}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: this._currentContent,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: this._currentContent }),
       })
+      if (!response.ok) throw new Error('Save failed')
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `Failed to save: ${response.status}`)
-      }
-
-      // Update original content to match saved content
       this._originalContent = this._currentContent
       this._isDirty = false
-
-      // Dispatch saved event so parent can react (e.g., refresh list)
       this.dispatchEvent(
-        new CustomEvent('saved', {
-          detail: { category: this.category, slug: this.slug },
-          bubbles: true,
-          composed: true,
-        }),
+        new CustomEvent('saved', { detail: { slug: this.slug }, bubbles: true, composed: true }),
       )
-
-      // Close the modal after successful save
       this._emitClose()
     } catch (err) {
-      console.error('Failed to save markdown:', err)
-      this._error = err.message || 'Failed to save'
+      this._error = err.message
     } finally {
       this._isSaving = false
     }
   }
 
-  /**
-   * Handle discard button click - reset to original content
-   */
   _handleDiscard() {
     this._currentContent = this._originalContent
     this._isDirty = false
+    this._spellErrors = []
+    // Sync the editor
+    const editor = this.querySelector('#editor-content')
+    if (editor) {
+      editor.textContent = this._originalContent
+    }
   }
 
-  /**
-   * Handle close button or backdrop click
-   * Shows confirmation if there are unsaved changes
-   */
   _handleClose() {
-    if (this._isDirty) {
-      // Show browser confirmation dialog for unsaved changes
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to close?')
-      if (!confirmed) return
-    }
+    if (this._isDirty && !window.confirm('Unsaved changes. Close anyway?')) return
     this._emitClose()
   }
 
-  /**
-   * Emit close event to parent
-   */
   _emitClose() {
-    this.dispatchEvent(
-      new CustomEvent('close', {
-        bubbles: true,
-        composed: true,
-      }),
-    )
+    this.dispatchEvent(new CustomEvent('close', { bubbles: true, composed: true }))
   }
 
-  /**
-   * Switch between view and edit modes
-   */
-  _setMode(newMode) {
-    this.mode = newMode
-  }
-
-  /**
-   * Calculate line count for display
-   */
   get _lineCount() {
-    if (!this._currentContent) return 0
-    return this._currentContent.split('\n').length
+    return (this._currentContent || '').split('\n').length
   }
-
-  /**
-   * Calculate character count for display
-   */
   get _charCount() {
-    if (!this._currentContent) return 0
-    return this._currentContent.length
+    return (this._currentContent || '').length
   }
 
   render() {
-    // Don't render if not open
     if (!this.isOpen) return nothing
-
     const isEditMode = this.mode === 'edit'
 
+    const editorStyles = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 16px;
+      margin: 0;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      box-sizing: border-box;
+      background: ${isEditMode ? '#ffffff' : '#f8fafc'};
+      outline: none;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      cursor: ${isEditMode ? 'text' : 'default'};
+    `
+
     return html`
-      <!-- Modal backdrop -->
       <div
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
         @click="${this._handleClose}"
-        @keydown="${this._handleKeydown}"
       >
-        <!-- Modal container -->
         <div
           class="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl"
           @click="${(e) => e.stopPropagation()}"
         >
-          <!-- Header -->
           <div
             class="bg-primary-700 flex shrink-0 items-center justify-between px-6 py-4 text-white"
           >
             <div class="flex items-center gap-4">
-              <h2 class="max-w-md truncate text-lg font-bold" title="${this._title}">
-                ${this._title || 'Loading...'}
-              </h2>
-              <!-- Mode toggle pills -->
+              <h2 class="max-w-md truncate text-lg font-bold">${this._title || 'Loading...'}</h2>
               <div class="bg-primary-800 flex rounded-full p-1">
                 <button
                   class="${!isEditMode
                     ? 'bg-white text-primary-700'
-                    : 'text-primary-200 hover:text-white'} rounded-full px-3 py-1 text-sm font-medium transition-colors"
-                  @click="${() => this._setMode('view')}"
+                    : 'text-primary-200'} rounded-full px-3 py-1 text-sm font-medium transition-colors"
+                  @click="${() => (this.mode = 'view')}"
                 >
                   View
                 </button>
                 <button
                   class="${isEditMode
                     ? 'bg-white text-primary-700'
-                    : 'text-primary-200 hover:text-white'} rounded-full px-3 py-1 text-sm font-medium transition-colors"
-                  @click="${() => this._setMode('edit')}"
+                    : 'text-primary-200'} rounded-full px-3 py-1 text-sm font-medium transition-colors"
+                  @click="${() => (this.mode = 'edit')}"
                 >
                   Edit
                 </button>
               </div>
             </div>
-
-            <div class="flex items-center gap-3">
-              <!-- File path info -->
-              <span class="text-primary-200 hidden font-mono text-sm sm:inline">
-                ${this.category}/${this.slug}.md
-              </span>
-
-              <!-- Close button -->
-              <button
-                class="hover:bg-primary-600 rounded p-1.5 text-white transition-colors"
-                @click="${this._handleClose}"
-                title="Close (Esc)"
-              >
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  ></path>
-                </svg>
-              </button>
-            </div>
+            <button class="hover:bg-primary-600 rounded p-1.5" @click="${this._handleClose}">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
           </div>
 
-          <!-- Content area -->
-          <div class="flex flex-1 flex-col overflow-hidden">
+          <div class="relative flex flex-1 flex-col overflow-hidden">
             ${this._isLoading
               ? html`
                   <div class="flex flex-1 items-center justify-center">
-                    <div class="text-center">
-                      <div
-                        class="border-primary-200 border-t-primary-600 mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4"
-                      ></div>
-                      <p class="text-primary-600">Loading markdown...</p>
-                    </div>
+                    <div
+                      class="border-primary-200 border-t-primary-600 h-10 w-10 animate-spin rounded-full border-4"
+                    ></div>
                   </div>
                 `
               : this._error
                 ? html`
-                    <div class="flex flex-1 items-center justify-center">
-                      <div
-                        class="max-w-md rounded-lg border border-red-200 bg-red-50 p-6 text-center"
-                      >
-                        <svg
-                          class="mx-auto mb-3 h-12 w-12 text-red-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          ></path>
-                        </svg>
-                        <p class="font-medium text-red-700">${this._error}</p>
-                        <button
-                          class="mt-4 rounded bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700"
-                          @click="${this._loadContent}"
-                        >
-                          Retry
-                        </button>
-                      </div>
+                    <div class="flex flex-1 items-center justify-center p-6 text-center">
+                      <p class="font-normal text-red-500">${this._error}</p>
                     </div>
                   `
                 : html`
-                    <!-- Editor/Viewer -->
-                    <div class="flex-1 overflow-hidden p-4">
-                      <textarea
-                        class="border-primary-200 focus:ring-primary-500 ${isEditMode
-                          ? 'bg-white'
-                          : 'bg-primary-50 cursor-default'} h-full w-full resize-none rounded-lg border p-4 font-mono text-sm leading-relaxed focus:border-transparent focus:ring-2 focus:outline-none"
-                        .value="${this._currentContent}"
-                        ?readonly="${!isEditMode}"
-                        @input="${this._handleInput}"
-                        @keydown="${this._handleKeydown}"
-                        placeholder="No content"
-                        spellcheck="false"
-                      ></textarea>
+                    <div class="relative flex-1 overflow-hidden p-4">
+                      <div class="relative h-full w-full">
+                        <div
+                          id="editor-content"
+                          contenteditable="${isEditMode ? 'true' : 'false'}"
+                          style="${editorStyles}"
+                          @input="${this._handleInput}"
+                          @paste="${this._handlePaste}"
+                          @keydown="${this._handleKeydown}"
+                          @contextmenu="${this._handleContextMenu}"
+                          spellcheck="false"
+                        ></div>
+                      </div>
+
+                      ${this._showContext
+                        ? html`
+                            <div
+                              class="border-primary-200 fixed z-[100] w-64 rounded-md border bg-white py-2 shadow-2xl"
+                              style="left: ${this._contextPos.x}px; top: ${this._contextPos.y}px;"
+                            >
+                              <div
+                                class="text-primary-400 border-primary-50 mb-1 border-b px-4 py-2 text-xs font-bold tracking-wider uppercase"
+                              >
+                                Spellcheck
+                              </div>
+                              <button
+                                class="hover:bg-primary-50 text-secondary-600 w-full px-4 py-2 text-left font-semibold"
+                                @click="${() => this._addToDictionary(this._contextWord)}"
+                              >
+                                Add "${this._contextWord}" to Dictionary
+                              </button>
+                              <button
+                                class="w-full px-4 py-2 text-left text-gray-500 hover:bg-gray-100"
+                                @click="${() => (this._showContext = false)}"
+                              >
+                                Ignore
+                              </button>
+                            </div>
+                          `
+                        : nothing}
                     </div>
                   `}
           </div>
 
-          <!-- Footer -->
-          <div
-            class="bg-primary-50 border-primary-100 flex shrink-0 items-center justify-between border-t px-6 py-3"
-          >
-            <!-- Stats -->
+          <div class="bg-primary-50 flex items-center justify-between border-t px-6 py-3">
             <div class="text-primary-500 flex items-center gap-4 text-sm">
               <span>${this._lineCount} lines</span>
               <span>${this._charCount.toLocaleString()} characters</span>
-              ${this._isDirty
-                ? html`<span class="flex items-center gap-1 font-medium text-amber-600">
-                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fill-rule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
-                    Unsaved changes
-                  </span>`
+              ${this._spellErrors.length > 0
+                ? html`
+                    <span class="flex items-center gap-1 font-normal text-red-600">
+                      <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        />
+                      </svg>
+                      ${this._spellErrors.length} errors
+                    </span>
+                  `
                 : nothing}
             </div>
 
-            <!-- Action buttons -->
             <div class="flex items-center gap-3">
-              ${isEditMode && this._isDirty
+              ${isEditMode
                 ? html`
-                    <!-- Discard button -->
                     <button
-                      class="text-primary-600 hover:text-primary-800 hover:bg-primary-100 rounded px-4 py-2 text-sm font-medium transition-colors"
+                      class="text-primary-600 hover:text-primary-800 px-2 text-sm font-semibold transition-colors"
+                      @click="${this._runSpellCheck}"
+                      ?disabled="${this._isChecking}"
+                    >
+                      ${this._isChecking ? 'Checking...' : 'Spell Check'}
+                    </button>
+                    <button
+                      class="text-primary-600 hover:bg-primary-100 rounded px-4 py-2 text-sm font-medium"
                       @click="${this._handleDiscard}"
-                      ?disabled="${this._isSaving}"
                     >
                       Discard
                     </button>
-
-                    <!-- Save button (primary action) -->
                     <button
-                      class="bg-secondary-600 hover:bg-secondary-700 flex items-center gap-2 rounded px-4 py-2 text-sm font-medium text-white shadow transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      class="bg-secondary-600 hover:bg-secondary-700 rounded px-4 py-2 text-sm font-medium text-white shadow"
                       @click="${this._handleSave}"
                       ?disabled="${this._isSaving}"
                     >
-                      ${this._isSaving
-                        ? html`
-                            <div
-                              class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
-                            ></div>
-                            Saving...
-                          `
-                        : html`
-                            <svg
-                              class="h-4 w-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M5 13l4 4L19 7"
-                              ></path>
-                            </svg>
-                            Save
-                          `}
+                      ${this._isSaving ? 'Saving...' : 'Save'}
                     </button>
                   `
-                : html`
-                    <!-- Close button when no changes or in view mode -->
-                    <button
-                      class="text-primary-700 border-primary-200 hover:bg-primary-50 rounded border bg-white px-4 py-2 text-sm font-medium shadow-sm transition-colors"
-                      @click="${this._handleClose}"
-                    >
-                      Close
-                    </button>
-                  `}
+                : html`<button
+                    class="border-primary-200 rounded border bg-white px-4 py-2 text-sm font-medium shadow-sm"
+                    @click="${this._handleClose}"
+                  >
+                    Close
+                  </button>`}
             </div>
           </div>
         </div>
@@ -462,5 +539,4 @@ export class RmMarkdownEditor extends LitElement {
     `
   }
 }
-
 customElements.define('rm-markdown-editor', RmMarkdownEditor)

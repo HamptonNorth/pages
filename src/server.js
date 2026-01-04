@@ -1,5 +1,11 @@
-// version 17.0 Claude Opus 4.5
+// version 17.1 Claude Opus 4.5
 // =============================================================================
+// CHANGES from v17.1:
+// - FIX: Spellcheck API now uses spellCheckDocument + createTextDocument
+//        (spellCheckText never existed in cspell-lib)
+// - FIX: Added missing 'marked' import for markdown parsing
+// - FIX: Moved spellcheck routes BEFORE /api/ catch-all (routes were unreachable)
+//
 // CHANGES from v17.0:
 // - NEW: Full-text search across all markdown pages using SQLite FTS5
 // - NEW: POST /api/pages/reindex - Rebuild search index (admin only)
@@ -43,7 +49,6 @@ import { auth } from './auth.js'
 import { db } from './db-setup.js'
 import { handleApiRoutes } from './routes/api.js'
 import { readdir, watch } from 'node:fs/promises'
-import { join } from 'node:path'
 import { marked } from 'marked'
 
 // =============================================================================
@@ -56,7 +61,31 @@ import {
   getSearchMeta,
 } from './services/pages-search.js'
 
+// =============================================================================
+// Spellcheck
+// =============================================================================
+import * as cspell from 'cspell-lib'
+
+// Destructure the correct functions from cspell-lib
+// Note: spellCheckText doesn't exist - use spellCheckDocument with createTextDocument
+const { spellCheckDocument, createTextDocument, readSettings, mergeSettings } = cspell
+
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 export { db }
+
+// Initialize Custom Dictionary Table
+db.run(`
+  CREATE TABLE IF NOT EXISTS custom_dictionary (
+    word TEXT PRIMARY KEY,
+    added_by TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`)
 
 const PORT = process.env.PORT || 3000
 
@@ -269,6 +298,18 @@ const server = Bun.serve({
 
     if (path.startsWith('/api/pages/list/')) return handlePagesList(req, path)
     if (path.startsWith('/api/pages/content/')) return handlePageContent(req, path)
+
+    // =========================================================================
+    // SPELLCHECK API ENDPOINTS (must be before /api/ catch-all)
+    // =========================================================================
+    if (path === '/api/spellcheck' && req.method === 'POST') {
+      return handleSpellCheck(req)
+    }
+    if (path === '/api/dictionary/add' && req.method === 'POST') {
+      return handleAddtoDictionary(req)
+    }
+
+    // Catch-all for other /api/ routes
     if (path.startsWith('/api/')) return handleApiRoutes(req, path)
 
     if (path === '/components/client-components.js')
@@ -396,6 +437,113 @@ function parseFrontMatter(text) {
   })
   const body = text.replace(match[0], '').trim()
   return { attributes, body }
+}
+
+/**
+ * POST /api/spellcheck
+ * Runs CSpell against provided text using .cspell.json + SQLite words
+ */
+// version 18.3 Gemini 2.0 Flash
+// version 18.3 Gemini 3 Flash
+// version 18.4 Gemini 3 Flash
+// [Add imports for path/url at the top]
+
+// version 18.4 Gemini 3 Flash
+// =============================================================================
+// Spellcheck Handler with Absolute Pathing and Isolation Logging
+// =============================================================================
+async function handleSpellCheck(req) {
+  // Wrap everything in try-catch including auth
+  try {
+    console.log('[Spellcheck] Handler called')
+
+    const session = await auth.api.getSession({ headers: req.headers })
+    if (!session?.user || session.user.role !== 'admin') {
+      return Response.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    const { text } = await req.json()
+    console.log('[Spellcheck] Input received, length:', text?.length)
+
+    // Verify imports are valid
+    if (typeof createTextDocument !== 'function') {
+      throw new Error('createTextDocument is not a function - cspell-lib import failed')
+    }
+    if (typeof spellCheckDocument !== 'function') {
+      throw new Error('spellCheckDocument is not a function - cspell-lib import failed')
+    }
+
+    // Use process.cwd() to ensure we find .cspell.json regardless of entry point
+    const configPath = join(process.cwd(), '.cspell.json')
+    console.log('[Spellcheck] Loading config from:', configPath)
+
+    const baseConfig = await readSettings(configPath)
+    console.log('[Spellcheck] Settings loaded successfully')
+
+    const sqliteWords = db
+      .query('SELECT word FROM custom_dictionary')
+      .all()
+      .map((r) => r.word)
+    console.log('[Spellcheck] Custom words retrieved from SQLite:', sqliteWords.length)
+
+    const finalConfig = mergeSettings(baseConfig, {
+      words: sqliteWords,
+    })
+
+    console.log('[Spellcheck] Starting engine...')
+
+    // Create a text document for spellCheckDocument (spellCheckText doesn't exist)
+    const doc = createTextDocument({ uri: 'editor.md', content: text })
+    console.log('[Spellcheck] Document created')
+
+    const result = await spellCheckDocument(doc, {}, finalConfig)
+    console.log('[Spellcheck] Engine finished. Issues found:', result.issues.length)
+
+    const errors = result.issues.map((issue) => ({
+      word: issue.text,
+      offset: issue.offset,
+      length: issue.text.length,
+    }))
+
+    return Response.json({ errors })
+  } catch (err) {
+    // Log the full stack trace to the terminal for debugging
+    console.error('--- SPELLCHECK CRITICAL ERROR ---')
+    console.error('Message:', err.message)
+    console.error('Stack:', err.stack)
+    console.error('---------------------------------')
+
+    // Return JSON error to client to prevent the 404.html ENOENT loop
+    return Response.json(
+      {
+        error: 'Spellcheck internal failure',
+        message: err.message,
+      },
+      { status: 500 },
+    )
+  }
+}
+
+/**
+ * POST /api/dictionary/add
+ * Persists a word to the global SQLite dictionary
+ */
+async function handleAddtoDictionary(req) {
+  const session = await auth.api.getSession({ headers: req.headers })
+  if (!session?.user || session.user.role !== 'admin') {
+    return Response.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
+  try {
+    const { word } = await req.json()
+    db.run('INSERT OR IGNORE INTO custom_dictionary (word, added_by) VALUES (?, ?)', [
+      word,
+      session.user.email,
+    ])
+    return Response.json({ success: true })
+  } catch (err) {
+    return Response.json({ error: err.message }, { status: 500 })
+  }
 }
 
 // =============================================================================
@@ -1132,7 +1280,7 @@ async function serveHtmlPage(filepath) {
 }
 
 async function serve404() {
-  const notFoundFile = Bun.file('./public/views/404.html')
+  const notFoundFile = Bun.file(join(__dirname, '../public/views/404.html')) // Use absolute join
   if (await notFoundFile.exists())
     return new Response(notFoundFile, { status: 404, headers: { 'Content-Type': 'text/html' } })
   return new Response('Not Found', { status: 404 })
