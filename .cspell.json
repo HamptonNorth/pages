@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "words": ["redmug"],
+  "words": ["redmug", "rcollins", "rnc", "bunstarter"],
   "language": "en-GB",
   "dictionaries": [
     "en-gb",
@@ -12,6 +12,6 @@
     "bash",
     "markdown"
   ],
-  "enabledLanguageIds": ["javascript", "html", "css", "markdown", "bash"],
+  "enabledLanguageIds": ["markdown"],
   "ignorePaths": ["node_modules/**"]
 }

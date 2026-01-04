@@ -452,78 +452,54 @@ function parseFrontMatter(text) {
 // =============================================================================
 // Spellcheck Handler with Absolute Pathing and Isolation Logging
 // =============================================================================
+/**
+ * POST /api/spellcheck
+ * Explicitly tells CSpell to parse text as Markdown
+ */
+// version 18.7 Gemini 3 Flash
+// FIXED: Enhanced Markdown awareness to strictly ignore code blocks and snippets
 async function handleSpellCheck(req) {
-  // Wrap everything in try-catch including auth
   try {
-    console.log('[Spellcheck] Handler called')
-
     const session = await auth.api.getSession({ headers: req.headers })
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || session.user.role !== 'admin')
       return Response.json({ error: 'Unauthorized' }, { status: 403 })
-    }
 
     const { text } = await req.json()
-    console.log('[Spellcheck] Input received, length:', text?.length)
-
-    // Verify imports are valid
-    if (typeof createTextDocument !== 'function') {
-      throw new Error('createTextDocument is not a function - cspell-lib import failed')
-    }
-    if (typeof spellCheckDocument !== 'function') {
-      throw new Error('spellCheckDocument is not a function - cspell-lib import failed')
-    }
-
-    // Use process.cwd() to ensure we find .cspell.json regardless of entry point
-    const configPath = join(process.cwd(), '.cspell.json')
-    console.log('[Spellcheck] Loading config from:', configPath)
-
+    const configPath = join(__dirname, '../.cspell.json')
     const baseConfig = await readSettings(configPath)
-    console.log('[Spellcheck] Settings loaded successfully')
 
     const sqliteWords = db
       .query('SELECT word FROM custom_dictionary')
       .all()
       .map((r) => r.word)
-    console.log('[Spellcheck] Custom words retrieved from SQLite:', sqliteWords.length)
 
+    // Merge settings with explicit Markdown parser rules
     const finalConfig = mergeSettings(baseConfig, {
       words: sqliteWords,
+      languageId: 'markdown', // Ensure parser knows it's markdown
+      // Failsafe: Add regex to ignore everything inside backticks
+      ignoreRegExpList: [
+        '/`[^`]*`/', // Inline code
+        '/^```[\\s\\S]*?^```/gm', // Fenced code blocks
+      ],
     })
 
-    console.log('[Spellcheck] Starting engine...')
-
-    // Create a text document for spellCheckDocument (spellCheckText doesn't exist)
-    const doc = createTextDocument({ uri: 'editor.md', content: text })
-    console.log('[Spellcheck] Document created')
-
+    // Create document with explicit markdown URI
+    const doc = createTextDocument({ uri: 'editor.md', content: text, languageId: 'markdown' })
     const result = await spellCheckDocument(doc, {}, finalConfig)
-    console.log('[Spellcheck] Engine finished. Issues found:', result.issues.length)
 
-    const errors = result.issues.map((issue) => ({
-      word: issue.text,
-      offset: issue.offset,
-      length: issue.text.length,
-    }))
-
-    return Response.json({ errors })
+    return Response.json({
+      errors: result.issues.map((issue) => ({
+        word: issue.text,
+        offset: issue.offset,
+        length: issue.text.length,
+      })),
+    })
   } catch (err) {
-    // Log the full stack trace to the terminal for debugging
-    console.error('--- SPELLCHECK CRITICAL ERROR ---')
-    console.error('Message:', err.message)
-    console.error('Stack:', err.stack)
-    console.error('---------------------------------')
-
-    // Return JSON error to client to prevent the 404.html ENOENT loop
-    return Response.json(
-      {
-        error: 'Spellcheck internal failure',
-        message: err.message,
-      },
-      { status: 500 },
-    )
+    console.error('[Spellcheck Error]:', err.stack)
+    return Response.json({ error: 'Spellcheck failed', message: err.message }, { status: 500 })
   }
 }
-
 /**
  * POST /api/dictionary/add
  * Persists a word to the global SQLite dictionary
