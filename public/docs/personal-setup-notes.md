@@ -329,7 +329,7 @@ console.log(`Server running at http://localhost:${server.port}`);
 
 ```
 
-The file `server.js` imports  `bun:sqlite` and hen calls the function `intialiseTestCountries()`. This function checks for an existing database/creates a new database, creates a test table `test_countries` if it does not exist and populates with 100 countries (top 100 by GPD). The layout of the `test_countries` table is:
+The file `server.js` imports  `bun:sqlite` and hen calls the function `intialiseTestCountries()`. This function checks for an existing database/creates a new database, creates a test table `test_countries` if it does not exist and populates with 100 countries (top 100 by GDP). The layout of the `test_countries` table is:
 
 ```sql
 CREATE TABLE test_countries (
@@ -882,7 +882,7 @@ Currently `bun x` cannot run the better-auth scripts e.g. `execSync(`npx @better
 ## **bun serve**
 Supports serving of `auth` routes, `api` routes, static files and file base serving of the HTML views
 
-The file `server.js` imports  `bun:sqlite`, checks for the existence of a valid SQLite database and then calls the function `intialiseTestCountries()`. This function checks for existing test_* tables and if not found, creates test tables `test_countries` and `test_products` . `test_countries` is populated with 100 countries (top 100 by GPD). The layout of the `test_countries` table is:
+The file `server.js` imports  `bun:sqlite`, checks for the existence of a valid SQLite database and then calls the function `intialiseTestCountries()`. This function checks for existing test_* tables and if not found, creates test tables `test_countries` and `test_products` . `test_countries` is populated with 100 countries (top 100 by GDP). The layout of the `test_countries` table is:
 
 ```sql
 CREATE TABLE test_countries (
