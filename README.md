@@ -12,7 +12,7 @@ This project provides a scaffolded fully working application that ships with mos
 - Example components built with Lit, Javascript and Tailwind CSS
 - Set up scripts to create database, create and populate better-auth tables and sample test data tables
 - A markdown based pages system for content with mutiple categories, front matter supporting draft, private, sticky pages and an upload facility for images and `*.md` files. Multiple styles supported.
-- Simple editor for markdown content and a file upload for pages media
+- Simple editor, with spell check for markdown content and a file upload for pages media
 - Custom component toadd markdown image sizing, position and text wrapp control
 - Responsive UI, works on mobile but examples designed for desktop apps
 
@@ -26,6 +26,7 @@ Faced with a new web application, clone this starter template, hack out the bits
 - SQLite
 - Better-auth library for authentication
 - Marked library for *.md --> *.html rendering
+- CSpell library for spell checking of markdown pages
 
 
 ## Development set up
