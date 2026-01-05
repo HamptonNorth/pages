@@ -1,17 +1,18 @@
 ---
-title: markdown tables for prose
+title: Markdown tables for prose
 summary: Adding tables to a markdown document (styled by TailwindCSS prose class)
 created: 2025-12-12T10:35
 published: y
 file-type: markdown
+read-mode: true
 style: tailwind
 ---
 
-# markdown tables for prose
+# Markdown tables for prose
 
 You can create tables with pipes | and hyphens -. Hyphens are used to create each column's header, while pipes separate each column. You must include a blank line before your table in order for it to correctly render. 
 
-Note this page does not have the GitHub flavour set. `style:tailwind` in the front matter. The Tailwind `prose` class is better for text content pages. `style:github` in fron matter works best for technical content and content with tables.
+Note this page does not have the GitHub flavour set. In the front matter `style: tailwind` in set. The styling is then done using the Tailwind `prose` class which is better for text content pages. The `style: github` in front matter works best for technical content and content with tables. This example is also set with `read-mode: true` which reduces the width of the display.
 
 ```markdown
 
@@ -34,7 +35,7 @@ This will render as:
 
 ---
 
-The alignment of columns can be sepecified but they are ignored in a TailwindCSS `class="prose"` section 
+The alignment of columns can be specified but they are ignored in a TailwindCSS `class="prose"` section 
 
 ```markdown
 
@@ -55,6 +56,6 @@ This will render with all cells **left justified**:
 | 16/12/2025 | Content Cell  | Content Cell  | 3,299.75 |
 | Xmas | Third row cell- a little bit wider | Content Cell  | Free to enter! |
 
-Use `style:github` in the front matter if you want more control over column layouts. 
+Use `style: github` in the front matter if you want more control over table column layouts. 
 
 There are lot and lots of markdown tutorials on the internet. Two good guides are [John Gruber's site](https://daringfireball.net/projects/markdown/syntax) or for a somewhat longer guide [GitHub's site](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).

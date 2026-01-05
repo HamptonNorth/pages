@@ -5,6 +5,7 @@ created: 2025-12-12T10:36
 published: y
 file-type: markdown
 style: github
+read-mode: false
 ---
 
 # markdown tables
@@ -32,7 +33,7 @@ This will render as:
 
 ---
 
-The alignment of columns can be sepecified 
+The alignment of columns can be specified 
 
 ```markdown
 

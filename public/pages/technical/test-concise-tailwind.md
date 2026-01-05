@@ -28,7 +28,7 @@ A test page to check the markdown is rendered okay. This page has `style:tailwin
 * Green Kiwi fruits
 
 1.  This is a list item 
-2.  Suspendisse id sem consectetuer libero luctus adipiscing.
+2.  Globally facilitate alternative opportunities through enabled value. Compellingly repurpose enterprise-wide.
 
 <dl>
   <dt>Lower cost</dt>

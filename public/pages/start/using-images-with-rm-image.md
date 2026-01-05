@@ -76,14 +76,14 @@ width="480px"  border rounded="lg">Demo images - mixed local and remote sources<
 "https://picsum.photos/seed/slide1/800/400", 
 "/media/start/sunset_near_oronsay.png"  ]' width="480px"  border rounded="lg">Demo images - mixed local and remote sources</rm-image>
 
-Note the first three image work best because they have the same proportions. The later three images cause *jumps* in the rendereing as they have different proportions.
+Note the first three image work best because they have the same proportions. The later three images cause *jumps* in the rendering as they have different proportions.
 
 ### Text wrapping
-The `<rm-image>` component also gives you control over text wrapping. Markdown images are usually renedered in a 'block' with no text wrapping.
+The `<rm-image>` component also gives you control over text wrapping. Markdown images are usually rendered in a 'block' with no text wrapping.
 
 <rm-image src="/media/start/sunset_near_oronsay.png" width="200px" rounded="lg" wrap="wrap" position="left" >Sunset near Oronsay</rm-image> For this we need some long text. Appropriately orchestrate leading-edge leadership skills via long-term high-impact "outside the box" thinking. Distinctively seize vertical potentialities with mission-critical mindshare. Efficiently parallel task scalable quality vectors for 24/365 infomediaries. Continually mesh multimedia based web services before one-to-one models. Continually procrastinate pandemic content whereas sticky best practices.Efficiently disintermediate interdependent portals without exceptional expertise.
 
-Conveniently promote timely synergy through transparent process improvements. Continually cultivate intermandated catalysts for change through parallel experiences. Progressively streamline focused e-markets with impactful initiatives. Assertively cultivate client-centered customer service rather than high-quality growth strategies. Efficiently productivate empowered bandwidth without viral manufactured products.
+Conveniently promote timely synergy through transparent process improvements. Continually cultivate  catalysts for change through parallel experiences. Progressively streamline focused e-markets with impactful initiatives. Assertively cultivate client centred customer service rather than high-quality growth strategies. Efficiently productive empowered bandwidth without viral manufactured products.
 
 The markdown for this is:
 ```html
@@ -91,24 +91,24 @@ The markdown for this is:
 wrap="wrap" position="left" >Sunset near Oronsay</rm-image>
 ```
 
-The text wrap postion can be set to the right.
+The text wrap position can be set to the right.
 
 <rm-image src="/media/start/sunset_near_oronsay.png" width="400px" rounded="lg" wrap="wrap" position="right" >Sunset near Oronsay</rm-image> For this we need some long text. Appropriately orchestrate leading-edge leadership skills via long-term high-impact "outside the box" thinking. Distinctively seize vertical potentialities with mission-critical mindshare. Efficiently parallel task scalable quality vectors for 24/365 infomediaries. Continually mesh multimedia based web services before one-to-one models. Continually procrastinate pandemic content whereas sticky best practices.Efficiently disintermediate interdependent portals without exceptional expertise.
 
-Conveniently promote timely synergy through transparent process improvements. Continually cultivate intermandated catalysts for change through parallel experiences. Progressively streamline focused e-markets with impactful initiatives. Assertively cultivate client-centered customer service rather than high-quality growth strategies. Efficiently productivate empowered bandwidth without viral manufactured products.
+Conveniently promote timely synergy through transparent process improvements. Continually cultivate  catalysts for change through parallel experiences. Progressively streamline focused e-markets with impactful initiatives. Assertively cultivate client-centred customer service rather than high-quality growth strategies. Efficiently productive empowered bandwidth without viral manufactured products.
 
 
-The text wrap postion can be set to the `wrap="break"`.<rm-image src="/media/start/sunset_near_oronsay.png" width="240px" rounded="lg" wrap="break" position="center" >Sunset near Oronsay</rm-image> It breaks the flow at the point you insert the `rm-image` tag.
+The text wrap position can be set to the `wrap="break"`.<rm-image src="/media/start/sunset_near_oronsay.png" width="240px" rounded="lg" wrap="break" position="center" >Sunset near Oronsay</rm-image> It breaks the flow at the point you insert the `rm-image` tag.
 
 
 #### It also works with carousels
 <rm-image src='["https://picsum.photos/seed/slide1/600/400", 
 "https://picsum.photos/seed/slide2/600/400", 
 "https://picsum.photos/seed/slide3/600/400" ]' width="480px"  border rounded="lg" wrap="wrap" position="right"> Demo images - all the same proportion</rm-image>For this we need some long text. Appropriately orchestrate leading-edge leadership skills via long-term high-impact "outside the box" thinking. Distinctively seize vertical potentialities with mission-critical mindshare. Efficiently parallel task scalable quality vectors for 24/365 infomediaries. Continually mesh multimedia based web services before one-to-one models. Continually procrastinate pandemic content whereas sticky best practices.Efficiently disintermediate interdependent portals without exceptional expertise.
-Conveniently promote timely synergy through transparent process improvements. Continually cultivate intermandated catalysts for change through parallel experiences. Progressively streamline focused e-markets with impactful initiatives. Assertively cultivate client-centered customer service rather than high-quality growth strategies. Efficiently productivate empowered bandwidth without viral manufactured products.
+Conveniently promote timely synergy through transparent process improvements. Continually cultivate catalysts for change through parallel experiences. Progressively streamline focused e-markets with impactful initiatives. Assertively cultivate client-centred customer service rather than high-quality growth strategies. Efficiently productive empowered bandwidth without viral manufactured products.
 
-Seamlessly administrate one-to-one convergence whereas optimal core competencies. Holisticly extend long-term high-impact potentialities with 24/365 processes. Dramatically empower cost effective outsourcing without sustainable manufactured products. Intrinsicly disseminate high-payoff data through corporate scenarios. Rapidiously innovate 24/7 web services rather than bleeding-edge best practices.
+Seamlessly administrate one-to-one convergence whereas optimal core competencies. Holistic extend long-term high-impact potentialities with 24/365 processes. Dramatically empower cost effective outsourcing without sustainable manufactured products. Intrinsic disseminate high-payoff data through corporate scenarios. innovate 24/7 web services rather than bleeding-edge best practices.
 
-Phosfluorescently conceptualize web-enabled users with clicks-and-mortar portals. Professionally maintain sticky architectures through bricks-and-clicks process improvements. Distinctively matrix intermandated niches and strategic synergy. Uniquely evisculate professional bandwidth rather than equity invested networks. Completely empower performance based "outside the box" thinking after market positioning benefits.
+Conceptualize web-enabled users with clicks-and-mortar portals. Professionally maintain sticky architectures through bricks-and-clicks process improvements. Distinctively matrix  niches and strategic synergy. Uniquely  professional bandwidth rather than equity invested networks. Completely empower performance based "outside the box" thinking after market positioning benefits.
 
 Conveniently coordinate open-source applications after vertical intellectual capital. Conveniently enhance installed base infrastructures and global core competencies. Authoritatively.

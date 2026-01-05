@@ -1,6 +1,6 @@
 ---
 title: Deploy bunstarter to Linux server
-summary: Notes to deploy from Ubuntu workstation to a loacally attached Ubuntu Server
+summary: Notes to deploy from Ubuntu workstation to a locally attached Ubuntu Server
 created: 2025-12-20
 published: y
 file-type: markdown
@@ -9,7 +9,7 @@ private: rcollins@redmug.co.uk
 sticky: true
 ---
 # Deploy to Linux server
-The notes cover moving code from a Ubuntu Worksation development set up and deplying on a Ubuntu Server. At the time of writing the Ubuntu Workstation was running Ubuntu 25.10 whilst the server was running Ubuntu 24.10.
+The notes cover moving code from a Ubuntu Workstation development set up and deploying on a Ubuntu Server. At the time of writing the Ubuntu Workstation was running Ubuntu 25.10 whilst the server was running Ubuntu 24.10.
 
 ```bash
 # Do a build on the dev workstation

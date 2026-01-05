@@ -1,5 +1,5 @@
 ---
-title: Third page (private)
+title: Sample private page 
 summary: A markdown page for testing private functionality
 created: 2025-12-21T14:30
 published: y

@@ -9,8 +9,8 @@ sticky: false
 ---
 
 # Title
-Not everyone will be able to or need to set up a  link to their documentation server. This illustrates a simple way to add a new page created on your own PC (or Mac or Linux workstation). The screen views show creation of the markdown using Typora though you can use any text editor that's convenient.
+Not everone will be able to or need to set up a  link to their documentation server. This illustrates a simple way to add a new page created on your owwn PC (or Mac or Linux workstation). The screen views show creation of the markdown using Typora though you can use any text editor that's convenient.
 
 
-Not everyone will be able to or need to set up a  link to their documentation server. This illustrates a simple way to add a new page created on your own PC (or Mac or Linux workstation). The screen views show creation of the markdown using Google though you can use any text editor `sholdNOT_be_flagged` that's convenient. redmug is my software company. I want to add redmug to the custom dictionary.
+Not everyone will be able to or need to set up a  link to their documentation server. This illustrates a simple way to add a new page created on your own PC (or Mac or Linux workstation). The screen views show creation of the markdown using Google thoug you can use any text editor `sholdNOT_be_flagged` that's convenient. redmug is my software company. I want to add redmug to the custom dictionary.
 <rm-button danger>Danger</rm-button>

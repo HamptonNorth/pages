@@ -76,7 +76,7 @@ A concise reference for the 50 most used Linux commands, text editors, scripting
 28. **`kill`** — Terminate process.
     * `kill PID` 
     * `kill -9 PID` (Force kill)
-29. **`shutdown`** — Power mgmt.
+29. **`shutdown`** — Power management.
     * `shutdown now` 
     * `shutdown -r now` (Reboot)
 30. **`systemctl`** — Control services.

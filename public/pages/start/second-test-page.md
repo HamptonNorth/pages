@@ -10,7 +10,7 @@ style: github
 
 # Test (github style)
 
-A test page to check the markdown is rendered okay. This page has `style:gitbub` set and the visual appearance should be similar to GitHub rendered markdown. The main differences and fonts used and colour pallete. Maths rendering is not supported in bunstarter.
+A test page to check the markdown is rendered okay. This page has `style:gitbub` set and the visual appearance should be similar to GitHub rendered markdown. The main differences and fonts used and colour palette. Maths rendering is not supported in bunstarter.
 
 # h1 Heading 
 ## h2 Heading
@@ -39,7 +39,7 @@ test.. test... test..... test?..... test!....
 
 !!!!!! ???? ,,  -- ---
 
-"Smartypants, double quotes" and 'single quotes'
+"Smarty pants, double quotes" and 'single quotes'
 
 
 ## Emphasis
@@ -55,11 +55,11 @@ _This is italic text_
 ~~Strikethrough~~
 
 
-## GitHub Flavored Markdown
+## GitHub Flavoured Markdown
 
 GitHub had been using its own variant of Markdown since as early as 2009,[39] which added support for additional formatting such as tables and nesting block content inside list elements, as well as GitHub-specific features such as auto-linking references to commits, issues, usernames, etc.
 
-GitHub Flavored Markdown
+GitHub Flavoured Markdown
 ================================
 
 *View the [source of this content](http://github.github.com/github-flavored-markdown/sample_content.html).*
@@ -80,17 +80,17 @@ A bit of the GitHub spice
 -------------------------
 
 In addition to the changes in the previous section, certain references are auto-linked:
-
+```text
 * SHA: be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
 * User@SHA ref: mojombo@be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
 * User/Project@SHA: mojombo/god@be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
 * \#Num: #1
 * User/#Num: mojombo#1
 * User/Project#Num: mojombo/god#1
-
+```
 These are dangerous goodies though, and we need to make sure email addresses don't get mangled:
 
-My email addy is tom@github.com.
+My email address is tom@github.com.
 
 
 
@@ -105,15 +105,11 @@ The above header should be an H2 tag. Now, for a list of fruits:
 
 Let's get crazy:
 
-1.  This is a list item with two paragraphs. Lorem ipsum dolor
-    sit amet, consectetuer adipiscing elit. Aliquam hendrerit
-    mi posuere lectus.
+1.  This is a list item with two paragraphs. Holistic synthesize focused infrastructures after web-enabled bandwidth. Quickly revolutionize standards.
 
-    Vestibulum enim wisi, viverra nec, fringilla in, laoreet
-    vitae, risus. Donec sit amet nisl. Aliquam semper ipsum
-    sit amet velit.
+    Holistic synthesize focused infrastructures after web-enabled bandwidth. Quickly revolutionize standards.
 
-2.  Suspendisse id sem consectetuer libero luctus adipiscing.
+2.  Distinctively promote standards compliant action items with e-business manufactured products.
 
 What about some code **in** a list? That's insane, right?
 

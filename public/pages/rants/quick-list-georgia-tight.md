@@ -12,7 +12,7 @@ House prices. Not possible to migrate N > S. Demand in SE pushes prices ever hig
 Power of super billionaires. Musk $ to Trump campaign and payback. Keeping taxes low does not benefit others - no trickle down
 
 #### Access to truth. 
-Daily Mail & Euro army. Reliable (Economist/BBC) SLAPs. Internet take down notices. Social media, Youtube TikTok etc. QUANON Flat earthers, anti vaccinations - in position of power.
+Daily Mail & Euro army. Reliable (Economist/BBC) SLAPs. Internet take down notices. Social media, Youtube TikTok etc. QAnon Flat earthers, anti vaccinations - in position of power.
 
 #### Value scientists, teachers and engineers. 
 Not solicitors, accountants and bankers. Why is someone who cares for the elderly paid so little whereas someone who design tax avoidance schemes is highly paid. We need a well educated, numerate and compassionate society

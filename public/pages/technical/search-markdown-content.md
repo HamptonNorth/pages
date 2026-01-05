@@ -10,7 +10,7 @@ style: github
 Search text in *.md files across all categories. This screenshot illustrates:
 <rm-image src="/media/technical/search_example.png"  border rounded="md"></rm-image>
 ## Content Weighting
-Finding the search string `github` is likely to be more relevant if the `github` is in the front matter title or the summary description that buried in the body of the text. Weightings are applied to return the search result in sensible order. The values given to the weighting are as follows:
+Finding the search string `github` is likely to be more relevant if the `github` is in the front matter title or the summary description rather than buried in the body of the text. Weightings are applied to return the search result in sensible order. The values given to the weighting are as follows:
 
 
 | Content Region | Weight | Example |
