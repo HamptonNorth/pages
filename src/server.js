@@ -1,5 +1,10 @@
-// version 17.1 Claude Opus 4.5
+// version 17.2 Claude Opus 4.5
 // =============================================================================
+// CHANGES from v17.2:
+// - NEW: Front matter 'read-mode: true' support for narrower prose reading
+//        Sets meta.readMode boolean in SSR_DATA and API responses
+//        Used by page-detail.html to apply 720px centered width
+//
 // CHANGES from v17.1:
 // - FIX: Spellcheck API now uses spellCheckDocument + createTextDocument
 //        (spellCheckText never existed in cspell-lib)
@@ -597,6 +602,13 @@ async function servePageDetailSSR(req, category, slug) {
   // Front matter 'style' key takes priority over category default
   const effectiveStyleName = meta.style || categoryDefaultStyle
   const styleConfig = getStyleConfig(effectiveStyleName)
+
+  // =========================================================================
+  // READ MODE - Narrower width for prose-heavy content
+  // Front matter: read-mode: true (defaults to false)
+  // =========================================================================
+  const readModeValue = meta['read-mode']
+  meta.readMode = readModeValue === true || readModeValue === 'true'
 
   // =========================================================================
   // INJECT CONFIGURATION SCRIPTS
@@ -1230,6 +1242,10 @@ async function handlePageContent(req, path) {
     const categoryDefaultStyle = categoryConfig ? categoryConfig.style : 'tailwind'
     const effectiveStyleName = meta.style || categoryDefaultStyle
     const styleConfig = getStyleConfig(effectiveStyleName)
+
+    // Parse read-mode from front matter (defaults to false)
+    const readModeValue = meta['read-mode']
+    meta.readMode = readModeValue === true || readModeValue === 'true'
 
     return Response.json({
       meta,

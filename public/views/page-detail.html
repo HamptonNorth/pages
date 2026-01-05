@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- version 1.0    -->
+<!-- version 1.1    -->
 <!-- =============================================================================
      PAGE DETAIL VIEW
      =============================================================================
@@ -9,6 +9,10 @@
      1. Front matter 'style:' key (highest priority)
      2. Category default from PAGE_CONFIG
      3. 'tailwind' (fallback)
+
+     Read Mode:
+     Front matter 'read-mode: true' constrains content to 720px width centered,
+     optimized for reading long prose. Defaults to false if not present.
 
      The style system is fully extensible - adding new styles requires:
      1. Creating a CSS file in /styles/md-styles/
@@ -45,6 +49,15 @@
         max-width: 100%;
         margin: 0 auto;
         padding: 1rem 0;
+      }
+
+      /* =========================================================================
+       * READ MODE - Narrower width for long prose content
+       * Enabled via front matter: read-mode: true
+       * ========================================================================= */
+      #markdown-content.read-mode {
+        max-width: 720px;
+        margin: 0 auto;
       }
 
       /* =========================================================================
@@ -400,6 +413,11 @@
             hljs.highlightElement(el)
           })
           addCopyButtons()
+
+          // Apply read-mode if enabled in front matter
+          if (window.SSR_DATA.readMode) {
+            contentEl.classList.add('read-mode')
+          }
         }
 
         // Hot reload support
@@ -482,6 +500,11 @@
             // Load style CSS if needed
             if (data.style && data.style.cssFile) {
               loadStyleCss(data.style.cssFile)
+            }
+
+            // Apply read-mode if enabled in front matter
+            if (data.meta && data.meta.readMode) {
+              contentEl.classList.add('read-mode')
             }
           })
           .catch(function (e) {
