@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const projectRoot = resolve(__dirname, '..', '..')
-const dbPath = join(projectRoot, 'data', 'app3.db')
+const dbPath = join(projectRoot, 'data', process.env.DATABASE_NAME)
 const envPath = join(projectRoot, '.env')
 
 console.log('🚀 Starting System Setup...')
