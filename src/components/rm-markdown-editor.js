@@ -379,7 +379,7 @@ export class RmMarkdownEditor extends LitElement {
               contenteditable="${isEditMode ? 'true' : 'false'}"
               class="border-primary-200 ${isEditMode
                 ? 'bg-white'
-                : 'bg-primary-50 cursor-default'} absolute inset-0 m-4 overflow-auto rounded-lg border p-4 font-mono text-sm leading-relaxed break-words whitespace-pre-wrap outline-none"
+                : 'bg-primary-50 cursor-default'} wrap-break-words absolute inset-0 m-4 overflow-auto rounded-lg border p-4 font-mono text-sm leading-relaxed whitespace-pre-wrap outline-none"
               @input="${this._handleInput}"
               @paste="${this._handlePaste}"
               @keydown="${this._handleKeydown}"
@@ -390,7 +390,7 @@ export class RmMarkdownEditor extends LitElement {
             ${this._showContext
               ? html`
                   <div
-                    class="border-primary-200 fixed z-[100] w-64 rounded-md border bg-white py-2 shadow-2xl"
+                    class="border-primary-200 fixed z-100 w-64 rounded-md border bg-white py-2 shadow-2xl"
                     style="left: ${this._contextPos.x}px; top: ${this._contextPos.y}px;"
                   >
                     <button
@@ -423,7 +423,7 @@ export class RmMarkdownEditor extends LitElement {
                 <svg class="h-3 w-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 18a8 8 0 100-16 8 8 0 000 16z" />
                 </svg>
-                <span class="min-w-[120px]">
+                <span class="min-w-120px">
                   ${this._isChecking
                     ? html`Checking<span class="inline-block w-8 text-left">${this._dots}</span>`
                     : this._spellErrors.length > 0
