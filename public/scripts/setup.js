@@ -108,8 +108,12 @@ try {
 
       const response = await fetch(`http://localhost:${PORT}/api/auth/sign-up/email`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+        },
         body: JSON.stringify({
+          baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
           email: ADMIN_EMAIL,
           password: ADMIN_PASSWORD,
           name: ADMIN_NAME,
