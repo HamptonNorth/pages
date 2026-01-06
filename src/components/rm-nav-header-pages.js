@@ -250,9 +250,7 @@ export class RmHeader extends LitElement {
               alt="Redmug Logo"
               class="relative -top-0.75 h-10 w-auto object-contain"
             />
-            <span class="text-xl font-bold tracking-tight whitespace-nowrap text-white"
-              >Redmug software</span
-            >
+            <span class="text-xl font-bold tracking-tight whitespace-nowrap text-white">Pages</span>
           </div>
 
           <div class="flex items-center gap-2 sm:gap-4">
