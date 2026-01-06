@@ -4,7 +4,7 @@ import './components/rm-button.js'
 import './components/rm-x-button.js'
 
 import './components/rm-head.js'
-import './components/rm-nav-header.js'
+import './components/rm-nav-header-pages.js'
 import './components/rm-footer'
 
 import './components/rm-default-container.js'
