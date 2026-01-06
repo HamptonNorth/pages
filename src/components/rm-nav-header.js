@@ -1,9 +1,10 @@
-// version 2.0 Claude Opus 4.5
+// version 2.1 Claude Opus 4.5
 // =============================================================================
-// CHANGES from v2.0:
-// - Added pages search modal integration
-// - Added "Search pages" option to Pages dropdown menu
-// - Added search modal state management
+// CHANGES from v2.1:
+// - Removed Countries dropdown and all sub-navigation
+// - Removed Products link from header and drawer
+// - Removed waffle icon menu (Apps/Resources) and all sub-navigation
+// - Replaced Pages icon with "Content" text dropdown
 // =============================================================================
 // public/components/rm-nav-header.js
 
@@ -18,8 +19,6 @@ export class RmHeader extends LitElement {
   static properties = {
     _isDrawerOpen: { state: true },
     _isMenuOpen: { state: true },
-    _isAppsOpen: { state: true },
-    _isCountriesOpen: { state: true },
     _isPagesOpen: { state: true },
     _pageCategories: { state: true },
 
@@ -43,8 +42,6 @@ export class RmHeader extends LitElement {
     super()
     this._isDrawerOpen = false
     this._isMenuOpen = false
-    this._isAppsOpen = false
-    this._isCountriesOpen = false
     this._isPagesOpen = false
     this._pageCategories = [] // Now stores objects: { name: 'blog', sidebar: false }
 
@@ -149,26 +146,6 @@ export class RmHeader extends LitElement {
   toggleMenu() {
     this._isMenuOpen = !this._isMenuOpen
     if (this._isMenuOpen) {
-      this._isAppsOpen = false
-      this._isCountriesOpen = false
-      this._isPagesOpen = false
-    }
-  }
-
-  toggleApps() {
-    this._isAppsOpen = !this._isAppsOpen
-    if (this._isAppsOpen) {
-      this._isMenuOpen = false
-      this._isCountriesOpen = false
-      this._isPagesOpen = false
-    }
-  }
-
-  toggleCountries() {
-    this._isCountriesOpen = !this._isCountriesOpen
-    if (this._isCountriesOpen) {
-      this._isMenuOpen = false
-      this._isAppsOpen = false
       this._isPagesOpen = false
     }
   }
@@ -177,8 +154,6 @@ export class RmHeader extends LitElement {
     this._isPagesOpen = !this._isPagesOpen
     if (this._isPagesOpen) {
       this._isMenuOpen = false
-      this._isAppsOpen = false
-      this._isCountriesOpen = false
     }
   }
 
@@ -283,157 +258,81 @@ export class RmHeader extends LitElement {
           <div class="flex items-center gap-2 sm:gap-4">
             <nav class="mr-2 hidden items-center gap-6 text-sm sm:flex">
               <a href="/" class="${getHeaderLinkClass('/')}">Home</a>
-              <div class="relative">
-                <button
-                  aria-label="Button to access Countries sub menu"
-                  @click="${this.toggleCountries}"
-                  class="${this._isCountriesOpen
-                    ? 'text-white'
-                    : 'text-primary-100'} flex items-center gap-1 transition-colors hover:text-white focus:outline-none"
-                >
-                  Countries
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
-                </button>
-                ${this._isCountriesOpen
-                  ? html`<div
-                        class="fixed inset-0 z-40 cursor-default"
-                        @click="${() => (this._isCountriesOpen = false)}"
-                      ></div>
-                      <div
-                        class="text-primary-800 absolute right-0 z-50 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5"
-                      >
-                        <a
-                          href="/countries.html"
-                          class="hover:bg-primary-100 block px-4 py-2 text-sm"
-                          >View all countries</a
-                        ><a
-                          href="/countries-search.html"
-                          class="hover:bg-primary-100 block px-4 py-2 text-sm"
-                          >Search countries</a
-                        >
-                      </div>`
-                  : nothing}
-              </div>
-              <a href="/products.html" class="${getHeaderLinkClass('/products.html')}">Products</a>
-              <a href="/about.html" class="${getHeaderLinkClass('/about.html')}">About</a>
-            </nav>
-
-            <div class="relative hidden sm:block">
               ${hasPages
                 ? html`
-                    <button
-                      aria-label="Button to access Pages and Blogs"
-                      @click="${this.togglePages}"
-                      class="text-primary-300 hover:bg-primary-600 mr-1 rounded p-1 hover:text-white focus:outline-none"
-                    >
-                      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 4.168 6.253v13C4.168 19.977 5.754 19.5 7.5 19.5S10.832 19.977 12 20.5m0-6.247v6.247m0-6.247C13.168 14.223 14.754 13.75 16.5 13.75s3.332.473 3.332 1.247v6.253C19.832 20.477 18.247 20 16.5 20s-3.332.477-4.168 1.253"
-                        ></path>
-                      </svg>
-                    </button>
-                    ${this._isPagesOpen
-                      ? html`
-                          <div
-                            class="fixed inset-0 z-40 cursor-default"
-                            @click="${() => (this._isPagesOpen = false)}"
-                          ></div>
-                          <div
-                            class="text-primary-800 absolute right-0 z-50 mt-2 w-56 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5"
-                          >
+                    <div class="relative">
+                      <button
+                        aria-label="Button to access Pages and Blogs"
+                        @click="${this.togglePages}"
+                        class="${this._isPagesOpen
+                          ? 'text-white'
+                          : 'text-primary-100'} flex items-center gap-1 transition-colors hover:text-white focus:outline-none"
+                      >
+                        Content
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                          ></path>
+                        </svg>
+                      </button>
+                      ${this._isPagesOpen
+                        ? html`
                             <div
-                              class="border-primary-700 bg-primary-100 text-primary-500 border-b px-4 py-2 text-xs font-bold tracking-wider uppercase"
+                              class="fixed inset-0 z-40 cursor-default"
+                              @click="${() => (this._isPagesOpen = false)}"
+                            ></div>
+                            <div
+                              class="text-primary-800 absolute right-0 z-50 mt-2 w-56 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5"
                             >
-                              Pages
-                            </div>
-                            ${this._pageCategories.map(
-                              (cat) => html`
-                                <a
-                                  href="/pages/${cat.name}"
-                                  class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm capitalize"
-                                >
-                                  ${cat.name}
-                                </a>
-                              `,
-                            )}
-
-                            <!-- Search pages option -->
-                            <div class="border-primary-100 mt-1 border-t pt-1">
-                              <button
-                                @click="${this.openSearchModal}"
-                                class="text-primary-700 hover:bg-primary-50 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
+                              <div
+                                class="border-primary-700 bg-primary-100 text-primary-500 border-b px-4 py-2 text-xs font-bold tracking-wider uppercase"
                               >
-                                <svg
-                                  class="text-primary-400 h-4 w-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+                                Content
+                              </div>
+                              ${this._pageCategories.map(
+                                (cat) => html`
+                                  <a
+                                    href="/pages/${cat.name}"
+                                    class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm capitalize"
+                                  >
+                                    ${cat.name}
+                                  </a>
+                                `,
+                              )}
+
+                              <!-- Search pages option -->
+                              <div class="border-primary-100 mt-1 border-t pt-1">
+                                <button
+                                  @click="${this.openSearchModal}"
+                                  class="text-primary-700 hover:bg-primary-50 flex w-full items-center gap-2 px-4 py-2 text-left text-sm"
                                 >
-                                  <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                  ></path>
-                                </svg>
-                                Search pages
-                              </button>
+                                  <svg
+                                    class="text-primary-400 h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    ></path>
+                                  </svg>
+                                  Search pages
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        `
-                      : nothing}
+                          `
+                        : nothing}
+                    </div>
                   `
                 : nothing}
-
-              <button
-                aria-label="Button to open View products and product maintenance "
-                @click="${this.toggleApps}"
-                class="text-primary-300 hover:bg-primary-600 rounded p-1 hover:text-white focus:outline-none"
-              >
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                  ></path>
-                </svg>
-              </button>
-              ${this._isAppsOpen
-                ? html`<div
-                      class="fixed inset-0 z-40 cursor-default"
-                      @click="${() => (this._isAppsOpen = false)}"
-                    ></div>
-                    <div
-                      class="text-primary-800 absolute right-0 z-50 mt-2 w-56 rounded-md bg-white py-2 shadow-lg ring-1 ring-black/5"
-                    >
-                      <div
-                        class="border-primary-700 bg-primary-100 text-primary-500 border-b px-4 py-2 text-xs font-bold tracking-wider uppercase"
-                      >
-                        Resources
-                      </div>
-                      <a
-                        href="/colours.html"
-                        class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
-                        >Colour swatches</a
-                      ><a
-                        href="/component-variants.html"
-                        class="text-primary-700 hover:bg-primary-50 block px-4 py-2 text-sm"
-                        >Custom components</a
-                      >
-                    </div>`
-                : nothing}
-            </div>
+              <a href="/about.html" class="${getHeaderLinkClass('/about.html')}">About</a>
+            </nav>
 
             <div class="relative">
               <button
@@ -528,10 +427,6 @@ export class RmHeader extends LitElement {
 
               <div class="flex flex-col py-2">
                 <a href="/" class="${getDrawerLinkClass('/')}">Home</a>
-
-                <a href="/products.html" class="${getDrawerLinkClass('/products.html')}"
-                  >Products</a
-                >
                 <a href="/about.html" class="${getDrawerLinkClass('/about.html')}">About</a>
 
                 ${hasPages
@@ -539,7 +434,7 @@ export class RmHeader extends LitElement {
                       <div
                         class="text-primary-500 bg-primary-50 mt-2 px-4 py-2 text-xs font-bold tracking-wider uppercase"
                       >
-                        Pages
+                        Content
                       </div>
                       ${this._pageCategories.map(
                         (cat) => html`
@@ -576,34 +471,6 @@ export class RmHeader extends LitElement {
                       </button>
                     `
                   : nothing}
-
-                <div
-                  class="text-primary-500 bg-primary-50 mt-2 px-4 py-2 text-xs font-bold tracking-wider uppercase"
-                >
-                  Countries
-                </div>
-                <a href="/countries.html" class="${getDrawerLinkClass('/countries.html')} pl-8"
-                  >View all countries</a
-                >
-                <a
-                  href="/countries-search.html"
-                  class="${getDrawerLinkClass('/countries-search.html')} pl-8"
-                  >Search countries</a
-                >
-
-                <div
-                  class="text-primary-500 bg-primary-50 mt-2 px-4 py-2 text-xs font-bold tracking-wider uppercase"
-                >
-                  Resources
-                </div>
-                <a href="/colours.html" class="${getDrawerLinkClass('/colours.html')} pl-8"
-                  >Colour swatches</a
-                >
-                <a
-                  href="/component-variants.html"
-                  class="${getDrawerLinkClass('/component-variants.html')} pl-8"
-                  >Custom components</a
-                >
               </div>
             </aside>`
         : nothing}
