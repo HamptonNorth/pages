@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3'
+import { Database } from 'bun:sqlite'
 import { execSync, spawn } from 'child_process'
 import { mkdirSync, existsSync } from 'fs'
 import { dirname, resolve, join, relative } from 'path'
@@ -49,7 +49,7 @@ if (!existsSync(dirname(dbPath))) {
   mkdirSync(dirname(dbPath), { recursive: true })
 }
 const db = new Database(dbPath)
-db.pragma('journal_mode = WAL')
+db.run('PRAGMA journal_mode = WAL')
 console.log(`✅ Database created at: ${dbPath}`)
 
 //  Run Better-Auth CLI (Generate & Migrate)

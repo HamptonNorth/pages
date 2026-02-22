@@ -20,7 +20,6 @@
     "@tailwindcss/typography": "^0.5.19",
     "@types/bun": "latest",
     "autoprefixer": "^10.4.23",
-    "better-sqlite3": "^12.5.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "10.1.8",
     "globals": "^16.5.0",

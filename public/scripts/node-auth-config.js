@@ -1,6 +1,6 @@
 // scripts/node-auth-config.js
 import { betterAuth } from 'better-auth'
-import Database from 'better-sqlite3'
+import { Database } from 'bun:sqlite'
 import { authOptions } from '../../src/auth-options.js'
 
 // This file is used ONLY by the CLI tool via Node
