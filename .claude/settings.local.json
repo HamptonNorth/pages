@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun add:*)",
+      "Bash(node --version:*)",
+      "Bash(bun:*)",
+      "Bash(find:*)",
+      "Bash(xargs:*)"
+    ]
+  }
+}

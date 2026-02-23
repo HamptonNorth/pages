@@ -1,8 +1,10 @@
 import { Database } from 'bun:sqlite'
-import { execSync, spawn } from 'child_process'
+import { spawn } from 'child_process'
 import { mkdirSync, existsSync } from 'fs'
-import { dirname, resolve, join, relative } from 'path'
+import { dirname, resolve, join } from 'path'
 import { fileURLToPath } from 'url'
+import { getMigrations } from 'better-auth/db'
+import { authOptions } from '../../src/auth-options.js'
 
 //  Setup Path Logic
 const __filename = fileURLToPath(import.meta.url)
@@ -52,27 +54,29 @@ const db = new Database(dbPath)
 db.run('PRAGMA journal_mode = WAL')
 console.log(`✅ Database created at: ${dbPath}`)
 
-//  Run Better-Auth CLI (Generate & Migrate)
+//  Run Better-Auth Migrations (programmatic, no CLI needed)
 console.log('📦 Running Better-Auth Migrations...')
 try {
-  const absConfigPath = join(__dirname, 'node-auth-config.js')
-  const configPath = relative(process.cwd(), absConfigPath)
+  const { runMigrations, toBeCreated, toBeAdded } = await getMigrations({
+    database: db,
+    ...authOptions,
+  })
 
-  console.log(`   Config path set to: ${configPath}`)
-
-  const execOptions = {
-    input: 'y\n',
-    stdio: ['pipe', 'inherit', 'inherit'],
-    env: { ...process.env },
+  if (toBeCreated.length === 0 && toBeAdded.length === 0) {
+    console.log('   No pending migrations.')
+  } else {
+    console.log(`   Tables to create: ${toBeCreated.length}, Tables to alter: ${toBeAdded.length}`)
+    await runMigrations()
   }
-
-  execSync(`npx @better-auth/cli generate --config ${configPath}`, execOptions)
-  execSync(`npx @better-auth/cli migrate --config ${configPath}`, execOptions)
   console.log('✅ Auth tables created/updated successfully.')
 } catch (error) {
-  console.error('❌ Migration failed.')
+  console.error('❌ Migration failed:', error.message)
   process.exit(1)
 }
+
+// Close the migration DB connection to release all locks before proceeding
+db.close()
+console.log('   (Closed migration DB connection to release locks)')
 
 // Seed Admin User (via API)
 console.log(`👤 Seeding Admin User (${ADMIN_EMAIL})...`)
@@ -80,16 +84,13 @@ console.log(`👤 Seeding Admin User (${ADMIN_EMAIL})...`)
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 try {
-  // Check if exists in DB first
-  const existing = db.prepare('SELECT id FROM user WHERE email = ?').get(ADMIN_EMAIL)
+  // Re-open a fresh connection just for the admin check query
+  const dbCheck = new Database(dbPath)
+  const existing = dbCheck.prepare('SELECT id FROM user WHERE email = ?').get(ADMIN_EMAIL)
+  dbCheck.close()
 
   if (!existing) {
     console.log('   Starting temporary server to handle API request...')
-
-    // Close the setup script's DB connection BEFORE spawning the server.
-    // This prevents "Database Locked" errors when the server tries to write to the same file.
-    db.close()
-    console.log('   (Closed local DB connection to release locks)')
 
     //  Start the server in the background
     const serverProcess = spawn('bun', ['src/server.js'], {
@@ -153,7 +154,6 @@ try {
     }
   } else {
     console.log('   Admin user already exists (Skipping).')
-    db.close()
   }
 } catch (err) {
   console.error('❌ Seeding failed:', err.message)
