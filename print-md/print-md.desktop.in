@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Print Markdown
+GenericName=Print
+Comment=Render and print a markdown file using GitHub style (A4)
+Exec=__INSTALL_DIR__/print-md.js %f
+Icon=document-print
+Terminal=false
+Categories=Office;Utility;
+MimeType=text/markdown;text/x-markdown;
+NoDisplay=false

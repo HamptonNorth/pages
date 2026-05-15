@@ -1,0 +1,12 @@
+{
+  "name": "print-md",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "print-md": "./print-md.js"
+  },
+  "dependencies": {
+    "marked": "^17.0.1"
+  }
+}

@@ -5,7 +5,31 @@
       "Bash(node --version:*)",
       "Bash(bun:*)",
       "Bash(find:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(git -C /var/home/rcollins/code/pages remote -v)",
+      "Bash(git -C /var/home/rcollins/code/pages remote add:*)",
+      "Bash(git -C /var/home/rcollins/code/pages fetch origin)",
+      "Bash(git -C /var/home/rcollins/code/pages log --oneline origin/main -10)",
+      "Bash(git -C /var/home/rcollins/code/pages branch --set-upstream-to=origin/main main)",
+      "Bash(git -C /var/home/rcollins/code/pages reset --soft origin/main)",
+      "Bash(git -C /var/home/rcollins/code/pages log --oneline -5)",
+      "Bash(git -C /var/home/rcollins/code/pages status)",
+      "Bash(git -C /var/home/rcollins/code/pages diff --cached --stat)",
+      "Bash(mkdir -p /var/home/rcollins/code/pages/print-md)",
+      "Bash(chmod +x /var/home/rcollins/code/pages/print-md/print-md.js)",
+      "Bash(chmod +x /var/home/rcollins/code/pages/print-md/install.sh)",
+      "Bash(npm install *)",
+      "Bash(mkdir -p /tmp/print-md-test-bin)",
+      "Bash(printf '#!/bin/sh\\\\necho FAKE_XDG_OPEN \"$@\"\\\\n')",
+      "Bash(chmod +x /tmp/print-md-test-bin/xdg-open)",
+      "Bash(PATH=/tmp/print-md-test-bin:__TRACKED_VAR__ node /var/home/rcollins/code/pages/print-md/print-md.js /var/home/rcollins/code/pages/public/pages/documentation/start-here.md)",
+      "Bash(ls -lt /tmp/print-md-*.html 2>/dev/null | head -3)",
+      "Bash(awk '/<body>/,0' /tmp/print-md-fe047298a130.html)",
+      "Bash(rm -f /tmp/print-md-fe047298a130.html /tmp/print-md-test-bin/xdg-open)",
+      "Bash(rmdir /tmp/print-md-test-bin)",
+      "Bash(mkdir -p /tmp/print-md-test-bin && printf '#!/bin/sh\\\\n' > /tmp/print-md-test-bin/xdg-open && chmod +x /tmp/print-md-test-bin/xdg-open && PATH=\"/tmp/print-md-test-bin:$PATH\" node /var/home/rcollins/code/pages/print-md/print-md.js /var/home/rcollins/code/pages/public/pages/documentation/start-here.md && ls -t /tmp/print-md-*.html | head -1)",
+      "Bash(awk '/<body>/,/<\\\\/body>/' /tmp/print-md-ac8ef028f42d.html)",
+      "Bash(rm -f /tmp/print-md-*.html /tmp/print-md-test-bin/xdg-open && rmdir /tmp/print-md-test-bin)"
     ]
   }
 }
